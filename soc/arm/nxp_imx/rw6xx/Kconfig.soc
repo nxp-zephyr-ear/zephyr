@@ -1,0 +1,77 @@
+# RW6XX Series
+
+# Copyright (c) 2022, NXP
+# SPDX-License-Identifier: Apache-2.0
+
+choice
+	prompt "RW6XX Series MCU Selection"
+	depends on SOC_SERIES_RW6XX
+
+config SOC_RW610
+	bool "SOC_RW610"
+	select CPU_HAS_ARM_SAU
+	select CPU_HAS_ARM_MPU
+	select CPU_HAS_FPU
+	select HAS_MCUX_OS_TIMER
+	select ARM_TRUSTZONE_M
+	select CPU_CORTEX_M_HAS_SYSTICK
+	select HAS_MCUX
+	select HAS_MCUX_FLEXCOMM
+	select HAS_MCUX_CACHE
+	select INIT_SYS_PLL
+
+endchoice
+
+if SOC_SERIES_RW6XX
+
+config SOC_PART_NUMBER_RW610EVA0IK
+	bool
+
+config SOC_PART_NUMBER_RW6XX
+	string
+	default "RW610EVA0IK" if SOC_PART_NUMBER_RW610EVA0IK
+	help
+	  This string holds the full part number of the SoC. It is a hidden
+	  option that you should not set directly. The part number selection
+	  choice defines the default value for this string.
+
+config INIT_SYS_PLL
+	bool "Initialize SYS PLL"
+
+menuconfig NXP_RW6XX_BOOT_HEADER
+	bool "Create boot header"
+	help
+	  Create data structures required by the boot ROM to boot the
+	  application from an external flash device.
+
+if NXP_RW6XX_BOOT_HEADER
+
+choice BOOT_DEVICE
+	prompt "Boot device selection"
+	default BOOT_FLEXSPI_NOR
+
+config BOOT_FLEXSPI_NOR
+	bool "FlexSPI serial NOR"
+
+endchoice
+
+config FLASH_CONFIG_OFFSET
+	hex "Flash config data offset"
+	default 0x400
+	help
+	  The flash config offset provides the boot ROM with the on-board
+	  flash type and parameters. The boot ROM requires a fixed flash conifg
+	  offset for FlexSPI device.
+
+config IMAGE_VECTOR_TABLE_OFFSET
+	hex "Image vector table offset"
+	default 0x1000
+	help
+	  The Image Vector Table (IVT) provides the boot ROM with pointers to
+	  the application entry point and device configuration data. The boot
+	  ROM requires a fixed IVT offset for each type of boot device.
+
+endif # NXP_RW6XX_BOOT_HEADER
+
+
+endif # SOC_SERIES_RW6XX
