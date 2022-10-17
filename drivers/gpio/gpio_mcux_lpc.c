@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020,2023 NXP
+ * Copyright 2017-2020,2022-2023 NXP
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -40,8 +40,12 @@ struct gpio_mcux_lpc_config {
 	uint8_t int_source;
 #ifdef IOPCTL
 	IOPCTL_Type *pinmux_base;
-#else
+#endif
+#ifdef IOCON
 	IOCON_Type *pinmux_base;
+#endif
+#ifdef MCI_IO_MUX
+	MCI_IO_MUX_Type *pinmux_base;
 #endif
 	uint32_t port_no;
 };
@@ -81,8 +85,8 @@ static int gpio_mcux_lpc_configure(const struct device *dev, gpio_pin_t pin,
 	}
 	/* Select GPIO mux for this pin (func 0 is always GPIO) */
 	*pinconfig &= ~(IOPCTL_PIO_FSEL_MASK);
-
-#else /* LPC SOCs */
+#endif
+#ifdef IOCON /* LPC SOCs */
 	volatile uint32_t *pinconfig;
 	IOCON_Type *pinmux_base;
 
@@ -101,6 +105,10 @@ static int gpio_mcux_lpc_configure(const struct device *dev, gpio_pin_t pin,
 	/* Select GPIO mux for this pin (func 0 is always GPIO) */
 	*pinconfig &= ~(IOCON_PIO_FUNC_MASK);
 #endif
+#ifdef MCI_IO_MUX
+	/* MCI_IO_MUX_Type *pinmux_base = config->pinmux_base; */
+
+#endif
 
 	if (flags & (GPIO_PULL_UP | GPIO_PULL_DOWN)) {
 #ifdef IOPCTL /* RT600 and RT500 series */
@@ -110,7 +118,8 @@ static int gpio_mcux_lpc_configure(const struct device *dev, gpio_pin_t pin,
 		} else if ((flags & GPIO_PULL_DOWN) != 0) {
 			*pinconfig &= ~(IOPCTL_PIO_PULLUP_EN);
 		}
-#else /* LPC SOCs */
+#endif
+#ifdef IOCON /* LPC SOCs */
 
 		*pinconfig &= ~(IOCON_PIO_MODE_PULLUP|IOCON_PIO_MODE_PULLDOWN);
 		if ((flags & GPIO_PULL_UP) != 0) {
@@ -122,8 +131,12 @@ static int gpio_mcux_lpc_configure(const struct device *dev, gpio_pin_t pin,
 	} else {
 #ifdef IOPCTL /* RT600 and RT500 series */
 		*pinconfig &= ~IOPCTL_PIO_PUPD_EN;
-#else /* LPC SOCs */
+#endif
+#ifdef IOCON /* LPC SOCs */
 		*pinconfig &= ~(IOCON_PIO_MODE_PULLUP|IOCON_PIO_MODE_PULLDOWN);
+#endif
+#ifdef MCI_IO_MUX
+
 #endif
 	}
 
@@ -400,8 +413,12 @@ static const struct gpio_driver_api gpio_mcux_lpc_driver_api = {
 
 #ifdef IOPCTL
 #define PINMUX_BASE	IOPCTL
-#else
+#endif
+#ifdef IOCON
 #define PINMUX_BASE	IOCON
+#endif
+#ifdef MCI_IO_MUX
+#define PINMUX_BASE	MCI_IO_MUX
 #endif
 
 #define GPIO_MCUX_LPC_MODULE_IRQ_CONNECT(inst)						\
