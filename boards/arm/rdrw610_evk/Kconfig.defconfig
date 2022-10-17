@@ -1,0 +1,11 @@
+# RDRW610-EVK board
+
+# Copyright 2022 NXP
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_RDRW610_EVK
+
+config BOARD
+	default "rdrw610_evk"
+
+endif # BOARD_RDRW610_EVK
