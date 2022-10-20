@@ -19,6 +19,11 @@ static int rdrw610_evk_init(void)
 	IO_MUX_SetPinMux(IO_MUX_FC3_USART_DATA);
 #endif
 
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm2), nxp_lpc_i2c, okay)) && CONFIG_I2C
+	CLOCK_AttachClk(kSFRO_to_FLEXCOMM2);
+	IO_MUX_SetPinMux(IO_MUX_FC2_I2C_16_17);
+#endif
+
 #if CONFIG_GPIO
 	IO_MUX_SetPinMux(IO_MUX_GPIO2);
 	IO_MUX_SetPinMux(IO_MUX_GPIO25);
