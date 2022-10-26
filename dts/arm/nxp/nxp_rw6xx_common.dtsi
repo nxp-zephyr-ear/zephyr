@@ -60,6 +60,12 @@
 		#clock-cells = <1>;
 	};
 
+	pinctrl: mci_iomux@4000 {
+		compatible = "nxp,rw-iomux-pinctrl";
+		reg = <0x4000 0x1000>;
+		status = "okay";
+	};
+
 	clkctl1: clkctl@21000 {
 		compatible = "nxp,lpc-syscon";
 		reg = <0x21000 0x1000>;
@@ -122,6 +128,18 @@
 		interrupts = <17 0>;
 		clocks = <&clkctl1 MCUX_FLEXCOMM3_CLK>;
 		status = "disabled";
+	};
+
+	aon_soc_ctrl: aon_soc_ctrl@5000800 {
+		compatible = "nxp,rw-soc-ctrl";
+		reg = <0x5000800 0x1000>;
+		status = "okay";
+	};
+
+	soc_ctrl: soc_ctrl@5001000 {
+		compatible = "nxp,rw-soc-ctrl";
+		reg = <0x5001000 0x1000>;
+		status = "okay";
 	};
 
 };
