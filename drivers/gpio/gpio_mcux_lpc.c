@@ -26,6 +26,9 @@
 #endif
 #include <fsl_gpio.h>
 #include <fsl_device_registers.h>
+#ifdef MCI_IO_MUX
+#include <zephyr/drivers/pinctrl.h>
+#endif
 
 /* Interrupt sources, matching int-source enum in DTS binding definition */
 #define INT_SOURCE_PINT 0
@@ -106,9 +109,22 @@ static int gpio_mcux_lpc_configure(const struct device *dev, gpio_pin_t pin,
 	/* Select GPIO mux for this pin (func 0 is always GPIO) */
 	*pinconfig &= ~(IOCON_PIO_FUNC_MASK);
 #endif
-#ifdef MCI_IO_MUX
-	/* MCI_IO_MUX_Type *pinmux_base = config->pinmux_base; */
+#ifdef MCI_IO_MUX /* RW61x SOCs */
+		/* Construct a pin control state, and apply it directly. */
+		pinctrl_soc_pin_t pin_cfg;
 
+		if (config->port_no == 1) {
+			pin_cfg = IOMUX_GPIO_IDX(pin + 32) | IOMUX_TYPE(IOMUX_GPIO);
+		} else {
+			pin_cfg = IOMUX_GPIO_IDX(pin) | IOMUX_TYPE(IOMUX_GPIO);
+		}
+		/* Add pull up flags, if required */
+		if ((flags & GPIO_PULL_UP) != 0) {
+			pin_cfg |= IOMUX_PAD_PULL(0x1);
+		} else if ((flags & GPIO_PULL_DOWN) != 0) {
+			pin_cfg |= IOMUX_PAD_PULL(0x2);
+		}
+		pinctrl_configure_pins(&pin_cfg, 1, 0);
 #endif
 
 	if (flags & (GPIO_PULL_UP | GPIO_PULL_DOWN)) {
