@@ -139,6 +139,14 @@
 		status = "disabled";
 	};
 
+	flexcomm14: flexcom@126000 {
+		compatible = "nxp,lpc-flexcomm";
+		reg = <126000 0x2000>;
+		interrupts = <20 0>;
+		clocks = <&clkctl1 MCUX_FLEXCOMM14_CLK>;
+		status = "disabled";
+	};
+
 	aon_soc_ctrl: aon_soc_ctrl@5000800 {
 		compatible = "nxp,rw-soc-ctrl";
 		reg = <0x5000800 0x1000>;
