@@ -57,6 +57,9 @@
 #define MCUX_FLEXSPI_CLK		36
 #define MCUX_FLEXSPI2_CLK		37
 
+/* RW IP */
+#define MCUX_GAU_CLK			38
+
 #define MCUX_MRT_CLK			40
 
 #endif /* ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_MCUX_LPC_SYSCON_H_ */
