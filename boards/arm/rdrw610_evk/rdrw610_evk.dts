@@ -83,3 +83,11 @@
 zephyr_udc0: &usb_otg {
 	status = "okay";
 };
+
+&adc0 {
+	status = "okay";
+};
+
+&adc1 {
+	status = "okay";
+};
