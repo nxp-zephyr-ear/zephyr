@@ -177,6 +177,12 @@ static int mcux_lpc_syscon_clock_control_get_subsys_rate(
 		break;
 	case MCUX_LCDIF_PIXEL_CLK:
 		*rate = CLOCK_GetDcPixelClkFreq();
+#endif
+
+/* Part of RW IP */
+#if defined(CONFIG_ADC_MCUX_GAU)
+	case MCUX_GAU_CLK:
+		*rate = CLOCK_GetGauClkFreq();
 		break;
 #endif
 	}
