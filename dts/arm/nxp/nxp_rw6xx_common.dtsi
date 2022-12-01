@@ -166,6 +166,17 @@
 		status = "disabled";
 		clk-divider = <1>;
 	};
+
+	os_timer: timers@13b000 {
+		compatible = "nxp,os-timer";
+		reg = <0x13b000 0x1000>;
+		interrupts = <41 0>;
+		status = "disabled";
+	};
+};
+
+&systick {
+	status = "disabled";
 };
 
 &nvic {
