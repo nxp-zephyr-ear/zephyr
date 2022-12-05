@@ -17,91 +17,107 @@ properties:
   interrupts:
     required: true
 
-  reference-voltage:
+  resolution:
+    type: int
+    required: true
+    description: |
+      Resolution of ADC in bits, this is global to every channel.
+      Note that the Zephyr API will allow changing resolution
+      at channel_setup call, but this ADC cannot have different
+      resolutions for each channel.
+    enum:
+      - 12
+      - 14
+      - 16
+
+  oversampling:
     type: int
     required: false
-    description: Reference voltage
-
-  ext-cal-volt:
-    type: boolean
-    required: false
-    description: If external calibration voltage should be used
+    description: |
+      Number of raw samples to average for result sample.
+      Note that the Zephyr API will allow changing oversample amount
+      at channel_setup call, but this ADC cannot have different
+      averaging configurations for each channel.
+      The default is no oversampling, which is the reset value.
+    enum:
+      - 0
+      - 2
+      - 4
+      - 8
+      - 16
+    default: 0
 
   clock-divider:
     type: int
-    required: true
-    description: Clock divider from 1 to 32
+    required: false
+    description: Clock divider from 1 to 32.
+    default: 1
 
   power-mode:
-    type: int
+    type: string
     required: false
-    description: Power mode, half or full bias current
-    default: 0
+    description: Current bias. Full bias is the default reset value.
+    enum:
+      - "full-bias"
+      - "half-bias"
+    default: "full-bias"
 
   warmup-time:
     type: int
     required: false
-    description: Warm up time in microseconds, or bypass, default is bypass
-    default: 0x20
-
-  input-mode:
-    type: int
-    required: false
     description: |
-      Single or differential channels, default single
-    default: 0
-
-  conversion-mode:
-    type: int
-    required: false
-    description: Continuous or one shot conversion, default one shot
-    default: 0
-
-  average-length:
-    type: int
-    required: false
-    description: Number of readings to average for sample value, default no averaging
-    default: 0
+      Warm up time in microseconds (1 to 32 us). The default 33 is a value
+      that would disable warmup time if not otherwise set.
+    default: 33
 
   trigger-source:
-    type: int
+    type: string
     required: false
-    description: Conversion trigger source, default is software
-    default: 4
+    description: Conversion trigger source
+    enum:
+      - "gpt"
+      - "acomp"
+      - "gpio40"
+      - "gpio41"
+      - "software"
+    default: "software"
 
   result-width:
     type: int
     required: false
-    description: Result width, default 16 bit
-    default: 0
+    description: Result width in bits for each channel sample.
+    enum:
+      - 16
+      - 32
+    default: 16
 
   fifo-threshold:
     type: int
     required: false
-    description: FIFO threshold, default 1
-    default: 0
+    description: FIFO threshold
+    enum:
+      - 1
+      - 4
+      - 8
+      - 16
+    default: 1
 
   enable-dma:
     type: boolean
     required: false
     description: DMA enable
 
-  resolution:
-    type: int
-    required: false
-    description: Quantization level of samples, default is 12 bits
-    default: 0
-
   input-buffer:
     type: boolean
     required: false
-    description: Input buffer enable
+    description: Enable use of the input buffer
 
-  input-gain:
-    type: int
+  ext-cal-volt:
+    type: boolean
     required: false
-    description: Input buffer gain, default is 1x (keep value)
-    default: 1
+    description: |
+      Use external calibration voltage.
+      By default, ADC uses an internal calibration voltage.
 
   "#io-channel-cells":
     const: 1
