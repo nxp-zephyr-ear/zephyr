@@ -30,16 +30,14 @@ struct mcux_gau_adc_config {
 	adc_clock_divider_t clock_div;
 	adc_analog_portion_power_mode_t power_mode;
 	adc_warm_up_time_t warmup_time;
-	adc_input_mode_t input_mode;
-	adc_conversion_mode_t conversion_mode;
-	adc_average_length_t average_length;
 	adc_trigger_source_t trigger;
 	bool input_gain_buffer;
 	adc_result_width_t result_width;
 	adc_fifo_threshold_t fifo_threshold;
 	bool enable_dma;
-	adc_resolution_t resolution;
 	adc_calibration_ref_t cal_ref;
+	adc_resolution_t resolution;
+	adc_average_length_t oversampling;
 };
 
 struct mcux_gau_adc_data {
@@ -322,18 +320,8 @@ static int mcux_gau_adc_init(const struct device *dev)
 		return -ENOTSUP;
 	}
 
-	if (config->input_mode == kADC_InputDifferential) {
-		LOG_ERR("Differential mode not yet supported");
-		return -ENOTSUP;
-	}
-
 	if (config->enable_dma) {
 		LOG_ERR("ADC DMA not yet supported");
-		return -ENOTSUP;
-	}
-
-	if (config->conversion_mode == kADC_ConversionContinuous) {
-		LOG_ERR("ADC continuous mode not supported");
 		return -ENOTSUP;
 	}
 
@@ -342,9 +330,9 @@ static int mcux_gau_adc_init(const struct device *dev)
 	adc_config.clockDivider = config->clock_div;
 	adc_config.powerMode = config->power_mode;
 	adc_config.warmupTime = config->warmup_time;
-	adc_config.inputMode = config->input_mode;
-	adc_config.conversionMode = config->conversion_mode;
-	adc_config.averageLength = config->average_length;
+	adc_config.inputMode = kADC_InputSingleEnded;
+	adc_config.conversionMode = kADC_ConversionOneShot;
+	adc_config.averageLength = config->oversampling;
 	adc_config.triggerSource = config->trigger;
 	adc_config.enableInputGainBuffer = config->input_gain_buffer;
 	adc_config.resultWidth = config->result_width;
@@ -387,20 +375,18 @@ static const struct adc_driver_api mcux_gau_adc_driver_api = {
 		.base = (ADC_Type *)DT_INST_REG_ADDR(n),			\
 		.irq_config_func = mcux_gau_adc_config_func_##n,		\
 		/* Minus one because DT starts at 1, HAL enum starts at 0 */	\
-		.clock_div = DT_PROP(DT_DRV_INST(n), clock_divider) - 1,	\
-		.power_mode = DT_PROP(DT_DRV_INST(n), power_mode),		\
+		.clock_div = DT_INST_PROP(n, clock_divider) - 1,		\
+		.power_mode = DT_INST_ENUM_IDX(n, power_mode),			\
 		/* Minus one because DT starts at 1, HAL enum starts at 0 */	\
-		.warmup_time = DT_PROP(DT_DRV_INST(n), warmup_time) - 1,	\
-		.input_mode = DT_PROP(DT_DRV_INST(n), input_mode),		\
-		.conversion_mode = DT_PROP(DT_DRV_INST(n), conversion_mode),	\
-		.average_length = DT_PROP(DT_DRV_INST(n), average_length),	\
-		.trigger = DT_PROP(DT_DRV_INST(n), trigger_source),		\
-		.result_width = DT_PROP(DT_DRV_INST(n),	result_width),		\
-		.fifo_threshold = DT_PROP(DT_DRV_INST(n), fifo_threshold),	\
-		.input_gain_buffer = DT_PROP(DT_DRV_INST(n), input_buffer),	\
-		.enable_dma = DT_PROP(DT_DRV_INST(n), enable_dma),		\
-		.resolution = DT_PROP(DT_DRV_INST(n), resolution),		\
-		.cal_ref = (DT_PROP(DT_DRV_INST(n), ext_cal_volt) ? 1 : 0),	\
+		.warmup_time = DT_INST_PROP(n, warmup_time) - 1,		\
+		.trigger = DT_INST_ENUM_IDX(n, trigger_source),			\
+		.result_width = DT_INST_ENUM_IDX(n, result_width),		\
+		.fifo_threshold = DT_INST_ENUM_IDX(n, fifo_threshold),		\
+		.input_gain_buffer = DT_INST_PROP(n, input_buffer),		\
+		.enable_dma = DT_INST_PROP(n, enable_dma),			\
+		.cal_ref = (DT_INST_PROP(n, ext_cal_volt) ? 1 : 0),		\
+		.resolution = DT_INST_ENUM_IDX(n, resolution),			\
+		.oversampling = DT_INST_ENUM_IDX(n, oversampling),		\
 	};									\
 										\
 	static struct mcux_gau_adc_data mcux_gau_adc_data_##n = {0};		\
