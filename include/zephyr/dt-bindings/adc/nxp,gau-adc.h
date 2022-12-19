@@ -8,7 +8,7 @@
 
 #include <zephyr/dt-bindings/adc/adc.h>
 
-/* Channel Sources (reg property) */
+/* Channel Sources */
 #define GAU_ADC_CH0 0
 #define GAU_ADC_CH1 1
 #define GAU_ADC_CH2 2
