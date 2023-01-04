@@ -163,7 +163,9 @@ static void adc_context_start_sampling(struct adc_context *ctx)
 	const struct mcux_gau_adc_config *config = data->dev->config;
 	ADC_Type *base = config->base;
 
-	ADC_DoSoftwareTrigger(base);
+	if (config->trigger == kADC_TriggerSourceSoftware) {
+		ADC_DoSoftwareTrigger(base);
+	}
 }
 
 static void adc_context_update_buffer_pointer(struct adc_context *ctx,
@@ -271,13 +273,6 @@ static int do_read(const struct device *dev,
 	}
 
 	data->results = sequence->buffer;
-
-	if (config->trigger == kADC_TriggerSourceSoftware) {
-		ADC_DoSoftwareTrigger(base);
-	}
-
-	while (!(base->ADC_REG_CMD & ADC_ADC_REG_CMD_CONV_START_MASK))
-		;
 
 	adc_context_start_read(&data->ctx, sequence);
 
