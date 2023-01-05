@@ -36,7 +36,6 @@ struct mcux_gau_adc_config {
 	adc_fifo_threshold_t fifo_threshold;
 	bool enable_dma;
 	adc_calibration_ref_t cal_ref;
-	adc_resolution_t resolution;
 	adc_average_length_t oversampling;
 };
 
@@ -344,7 +343,6 @@ static int mcux_gau_adc_init(const struct device *dev)
 	adc_config.resultWidth = config->result_width;
 	adc_config.fifoThreshold = config->fifo_threshold;
 	adc_config.enableDMA = config->enable_dma;
-	adc_config.resolution = config->resolution;
 	adc_config.enableADC = true;
 
 	ADC_Init(base, &adc_config);
@@ -392,7 +390,6 @@ static const struct adc_driver_api mcux_gau_adc_driver_api = {
 		.input_gain_buffer = DT_INST_PROP(n, input_buffer),		\
 		.enable_dma = DT_INST_PROP(n, enable_dma),			\
 		.cal_ref = (DT_INST_PROP(n, ext_cal_volt) ? 1 : 0),		\
-		.resolution = DT_INST_ENUM_IDX(n, resolution),			\
 		.oversampling = DT_INST_ENUM_IDX(n, oversampling),		\
 	};									\
 										\
