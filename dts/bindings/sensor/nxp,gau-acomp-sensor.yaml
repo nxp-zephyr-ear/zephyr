@@ -1,0 +1,130 @@
+# Copyright 2023 NXP
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  NXP General Analog Unit Analog Comparator Sensor.
+  Child of parent nxp,gau-acomp node.
+
+compatible: "nxp,gau-acomp-sensor"
+
+include: [sensor-device.yaml]
+
+# NOTE: Enum indices correspond to register values. Be careful editing.
+
+properties:
+  reg:
+    required: true
+
+  nxp,warmtime:
+    type: int
+    enum:
+      - 1
+      - 2
+      - 4
+      - 8
+    default: 1
+    description: Warm-up time in microseconds. Default is reset value.
+
+  nxp,bias-prog:
+    type: string
+    enum:
+      - "slow"
+      - "medium"
+      - "fast"
+    default: "slow"
+    description: Bias current control or response time control. Default is reset value.
+
+  nxp,inactive-output:
+    type: boolean
+    description: |
+      If set, ACOMP will output 1 / high when inactive. Otherwise, it will
+      output 0 / low when inactive.
+
+  nxp,edge-pulses:
+    type: string
+    enum:
+      - "none"
+      - "rising"
+      - "falling"
+      - "both"
+    default: "none"
+    description: Edge triggered edge pulse enable/disable. Default is reset value.
+
+  nxp,vio-scaling-factor:
+    type: int
+    enum:
+      - 1
+      - 2
+      - 3
+      - 4
+    default: 1
+    description: |
+      VIO reference will be scaled by X/4. For example, if this property is 3,
+      then the VIO reference will be scaled by 3/4. Default is reset value.
+
+  nxp,invert-output:
+    type: boolean
+    description: Enable ACOMP output inversion to GPIO.
+
+  nxp,pos-input:
+    type: string
+    required: true
+    enum:
+      - "CH0"
+      - "CH1"
+      - "CH2"
+      - "CH3"
+      - "CH4"
+      - "CH5"
+      - "CH6"
+      - "CH7"
+      - "DACA"
+      - "DACB"
+    description: Which input source to use as positive input to ACOMP.
+
+  nxp,neg-input:
+    type: string
+    required: true
+    enum:
+      - "CH0"
+      - "CH1"
+      - "CH2"
+      - "CH3"
+      - "CH4"
+      - "CH5"
+      - "CH6"
+      - "CH7"
+      - "DACA"
+      - "DACB"
+      - "VREF_1P25"
+      - "VSSA"
+      - "VIO"
+    description: Which input source to use as negative input to ACOMP.
+
+  nxp,pos-hysteresis:
+    type: int
+    enum:
+      - 0
+      - 10
+      - 20
+      - 30
+      - 40
+      - 50
+      - 60
+      - 70
+    default: 0
+    description: Positive hysteresis in millivolts. Default is reset value.
+
+  nxp,neg-hysteresis:
+    type: int
+    enum:
+      - 0
+      - 10
+      - 20
+      - 30
+      - 40
+      - 50
+      - 60
+      - 70
+    default: 0
+    description: Negative hysteresis in millivolts. Default is reset value.
