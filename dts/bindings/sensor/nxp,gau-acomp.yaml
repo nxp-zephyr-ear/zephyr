@@ -1,0 +1,17 @@
+# Copyright 2023 NXP
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  NXP General Analog Unit Analog Comparator Module
+  Has child nxp,gau-acomp-sensor nodes.
+
+compatible: "nxp,gau-acomp"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
