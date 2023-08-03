@@ -16,6 +16,16 @@
 		};
 	};
 
+	pinmux_flexcomm0_spi: pinmux_flexcomm0_spi {
+		group0 {
+			pinmux = <IO_MUX_FC0_SPI_SS0_IO0>,
+				<IO_MUX_FC0_SPI_SS0_IO2>,
+				<IO_MUX_FC0_SPI_SS0_IO3>,
+				<IO_MUX_FC0_SPI_SS0_IO4>;
+			slew-rate = "normal";
+		};
+	};
+
 	pinmux_pwm0: pinmux_pwm0 {
 		group0 {
 			pinmux = <IO_MUX_SCT_OUT_0>;
