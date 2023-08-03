@@ -189,6 +189,27 @@ static ALWAYS_INLINE void clock_init(void)
 	CLOCK_AttachClk(kSFRO_to_FLEXCOMM14);
 #endif
 
+
+/* Clock flexcomms when used as SPI */
+#ifdef CONFIG_SPI
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm0), nxp_lpc_spi, okay))
+	CLOCK_AttachClk(kSFRO_to_FLEXCOMM0);
+#endif
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm1), nxp_lpc_spi, okay))
+	CLOCK_AttachClk(kSFRO_to_FLEXCOMM1);
+#endif
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm2), nxp_lpc_spi, okay))
+	CLOCK_AttachClk(kSFRO_to_FLEXCOMM2);
+#endif
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm3), nxp_lpc_spi, okay))
+	CLOCK_AttachClk(kSFRO_to_FLEXCOMM3);
+#endif
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm14), nxp_lpc_spi, okay))
+	CLOCK_AttachClk(kSFRO_to_FLEXCOMM14);
+#endif
+#endif /* CONFIG_SPI */
+
+
 #endif /* CONFIG_SOC_RW610 */
 }
 
