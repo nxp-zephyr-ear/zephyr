@@ -51,6 +51,15 @@
 	};
 };
 
+&flexcomm0 {
+	compatible = "nxp,lpc-spi";
+	pinctrl-0 = <&pinmux_flexcomm0_spi>;
+	pinctrl-names = "default";
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+};
+
 &flexcomm2 {
 	compatible = "nxp,lpc-i2c";
 	status = "okay";
