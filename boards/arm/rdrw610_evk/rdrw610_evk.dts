@@ -51,6 +51,10 @@
 	};
 };
 
+&dma0 {
+	status = "okay";
+};
+
 &flexcomm0 {
 	compatible = "nxp,lpc-spi";
 	pinctrl-0 = <&pinmux_flexcomm0_spi>;
