@@ -72,8 +72,11 @@ __imx_boot_ivt_section void (*const image_vector_table[])(void) = {
 };
 #endif /* CONFIG_NXP_RW6XX_BOOT_HEADER */
 
-const clock_avpll_config_t g_avpllConfig_BOARD_BootClockRUN = {
-	.ch1Freq = kCLOCK_AvPllChFreq12p288m, .ch2Freq = kCLOCK_AvPllChFreq64m, .enableCali = true};
+const clock_avpll_config_t avpll_config = {
+	.ch1Freq = kCLOCK_AvPllChFreq12p288m,
+	.ch2Freq = kCLOCK_AvPllChFreq64m,
+	.enableCali = true
+};
 
 /**
  * @brief Initialize the system clocks and peripheral clocks
@@ -102,6 +105,13 @@ static ALWAYS_INLINE void clock_init(void)
 	 * when updating PLL and main clock.
 	 */
 	set_flexspi_clock(FLEXSPI, 6U, 4U);
+
+	/* Enable AUX0 PLL to 260 MHz */
+	CLOCK_SetClkDiv(kCLOCK_DivAux0PllClk, 1U);
+
+	/* Init AVPLL and enable both channels */
+	CLOCK_InitAvPll(&avpll_config);
+	CLOCK_SetClkDiv(kCLOCK_DivAudioPllClk, 1U);
 
 	/* First let M33 run on SOSC */
 	CLOCK_AttachClk(kSYSOSC_to_MAIN_CLK);
