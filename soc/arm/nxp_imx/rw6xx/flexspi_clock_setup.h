@@ -8,6 +8,6 @@
 
 #include "fsl_common.h"
 
-void flexspi_safe_config(void);
+void set_flexspi_clock(FLEXSPI_Type *base, uint32_t src, uint32_t divider);
 
 #endif /* _FLEXSPI_CLOCK_SETUP_H_ */
