@@ -49,6 +49,33 @@
 			zephyr,code = <INPUT_KEY_0>;
 		};
 	};
+
+	power-states {
+		/* This is the setting for Idle Mode */
+		idle: idle {
+			compatible = "zephyr,power-state";
+			power-state-name = "runtime-idle";
+			min-residency-us = <0>;
+			exit-latency-us = <0>;
+		};
+		/* This is the setting for Standby Mode */
+		suspend: suspend {
+			compatible = "nxp,pdcfg-power", "zephyr,power-state";
+			power-state-name = "suspend-to-idle";
+			/* TODO: Revisit latency numbers */
+			min-residency-us = <500>;
+			exit-latency-us = <120>;
+			deep-sleep-config = <0x180000>,
+						<0x0>,
+						<0x4>,
+						<0x100>,
+						<0x0>;
+		};
+	};
+};
+
+&cpu0 {
+	cpu-power-states = <&idle &suspend>;
 };
 
 &dma0 {
@@ -99,8 +126,10 @@
 	status = "okay";
 };
 
+/* OS Timer is the wakeup source for PM mode 2 */
 &os_timer {
 	status = "okay";
+	wakeup-source;
 };
 
 zephyr_udc0: &usb_otg {
