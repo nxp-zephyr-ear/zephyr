@@ -7,12 +7,11 @@
 #include <zephyr/init.h>
 
 #include <fsl_clock.h>
+#include <fsl_power.h>
 #include "fsl_io_mux.h"
 
 static int rdrw610_evk_init(void)
 {
-
-
 #ifdef CONFIG_I2S_TEST_SEPARATE_DEVICES
 /* Eventually this code should not be here
  * but should be configured by some SYSCTL node */
@@ -41,6 +40,16 @@ static int rdrw610_evk_init(void)
 
 #endif /* CONFIG_I2S_TEST_SEPARATE_DEVICES */
 
+#if CONFIG_PM
+	power_init_config_t initCfg = {
+		/* VCORE AVDD18 supplied from iBuck on RD board. */
+		.iBuck         = true,
+		/* CAU_SOC_SLP_REF_CLK needed for LPOSC. */
+		.gateCauRefClk = false,
+	};
+
+	POWER_InitPowerConfig(&initCfg);
+#endif
 	return 0;
 }
 
