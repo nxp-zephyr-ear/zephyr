@@ -56,10 +56,10 @@ child-binding:
         required: true
         type: string
         enum:
-          - "ultra"
-          - "fast"
-          - "normal"
           - "slow"
+          - "normal"
+          - "fast"
+          - "ultra"
         description: |
           Pin output slew rate. Sets the GPIOxx_SR field in the SR_CONFIGx
           register.
