@@ -265,6 +265,10 @@ static int nxp_rw600_init(void)
 
 	POWER_DisableGDetVSensors();
 
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(wwdt), nxp_lpc_wwdt, okay))
+	POWER_EnableResetSource(kPOWER_ResetSourceWdt);
+#endif
+
 	/* Initialize clock */
 	clock_init();
 
