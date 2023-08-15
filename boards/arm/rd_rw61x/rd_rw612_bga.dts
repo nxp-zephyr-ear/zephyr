@@ -8,11 +8,11 @@
 
 #include <nxp/nxp_rw6xx.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
-#include "rdrw610_evk-pinctrl.dtsi"
+#include "rd_rw612_bga-pinctrl.dtsi"
 
 / {
-	model = "NXP RW610-EVK board";
-	compatible = "nxp,rw610";
+	model = "NXP RD_RW612_BGA board";
+	compatible = "nxp,rw612";
 
 	aliases {
 		usart-0 = &flexcomm3;

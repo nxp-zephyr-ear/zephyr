@@ -1,0 +1,11 @@
+# NXP RW612 platform configuration options
+
+# Copyright 2023 NXP
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_RW612
+
+config SOC
+	default "rw612"
+
+endif # SOC_RW612

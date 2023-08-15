@@ -9,26 +9,40 @@ choice
 
 config SOC_RW610
 	bool "SOC_RW610"
-	select CPU_HAS_ARM_SAU
-	select CPU_HAS_ARM_MPU
-	select CPU_HAS_FPU
-	select HAS_MCUX_OS_TIMER
-	select ARM_TRUSTZONE_M
-	select CPU_CORTEX_M_HAS_SYSTICK
-	select HAS_MCUX
-	select HAS_MCUX_FLEXCOMM
-	select INIT_SYS_PLL
+
+config SOC_RW612
+	bool "SOC_RW612"
 
 endchoice
 
 if SOC_SERIES_RW6XX
 
-config SOC_PART_NUMBER_RW610EVA0IK
+config SOC_PART_NUMBER_RW612ETA1I
+	bool
+
+config SOC_PART_NUMBER_RW612HNA1I
+	bool
+
+config SOC_PART_NUMBER_RW612UKA1I
+	bool
+
+config SOC_PART_NUMBER_RW610ETA1I
+	bool
+
+config SOC_PART_NUMBER_RW610HNA1I
+	bool
+
+config SOC_PART_NUMBER_RW610UKA1I
 	bool
 
 config SOC_PART_NUMBER_RW6XX
 	string
-	default "RW610EVA0IK" if SOC_PART_NUMBER_RW610EVA0IK
+	default "RW612ETA1I" if SOC_PART_NUMBER_RW612ETA1I
+	default "RW612HNA1I" if SOC_PART_NUMBER_RW612HNA1I
+	default "RW612UKA1I" if SOC_PART_NUMBER_RW612UKA1I
+	default "RW610ETA1I" if SOC_PART_NUMBER_RW610ETA1I
+	default "RW610HNA1I" if SOC_PART_NUMBER_RW610HNA1I
+	default "RW610UKA1I" if SOC_PART_NUMBER_RW610UKA1I
 	help
 	  This string holds the full part number of the SoC. It is a hidden
 	  option that you should not set directly. The part number selection
