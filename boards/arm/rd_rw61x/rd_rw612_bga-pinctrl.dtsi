@@ -1,4 +1,4 @@
-#include <nxp/rw/RW610-pinctrl.h>
+#include <nxp/rw/RW612-pinctrl.h>
 
 &pinctrl {
 	pinmux_flexcomm3_usart: pinmux_flexcomm3_usart {
