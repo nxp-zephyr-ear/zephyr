@@ -145,9 +145,11 @@ static int mcux_lpc_syscon_clock_control_get_subsys_rate(
 		break;
 #endif
 
+#ifndef	CONFIG_SOC_SERIES_RW6XX
 	case MCUX_BUS_CLK:
 		*rate = CLOCK_GetFreq(kCLOCK_BusClk);
 		break;
+#endif /* CONFIG_SOC_SERIES_RW6XX */
 
 #if defined(CONFIG_I3C_MCUX)
 	case MCUX_I3C_CLK:

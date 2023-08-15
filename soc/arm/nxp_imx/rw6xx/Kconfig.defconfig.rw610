@@ -8,18 +8,4 @@ if SOC_RW610
 config SOC
 	default "rw610"
 
-if CORTEX_M_SYSTICK
-
-config SYS_CLOCK_HW_CYCLES_PER_SEC
-	default 260000000
-
-endif # CORTEX_M_SYSTICK
-
-if MCUX_OS_TIMER
-
-config SYS_CLOCK_HW_CYCLES_PER_SEC
-	default 1000000
-
-endif # MCUX_OS_TIMER
-
 endif # SOC_RW610

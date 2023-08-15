@@ -1,12 +1,12 @@
-# RDRW610-EVK board
+# RD_RW612_BGA board
 
 # Copyright 2022 NXP
 # SPDX-License-Identifier: Apache-2.0
 
-if BOARD_RDRW610_EVK
+if BOARD_RD_RW612_BGA
 
 config BOARD
-	default "rdrw610_evk"
+	default "rd_rw612_bga"
 
 if LVGL
 
@@ -30,4 +30,4 @@ config LV_Z_VDB_SIZE
 
 endif # LVGL
 
-endif # BOARD_RDRW610_EVK
+endif # BOARD_RD_RW612_BGA
