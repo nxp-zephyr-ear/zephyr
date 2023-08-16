@@ -172,6 +172,7 @@ static ALWAYS_INLINE void clock_init(void)
 
 /* Any flexcomm can be USART */
 #if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm0), nxp_lpc_usart, okay)) && CONFIG_SERIAL
+	CLOCK_SetFRGClock(&(const clock_frg_clk_config_t){0, kCLOCK_FrgPllDiv, 255, 0});
 	CLOCK_AttachClk(kFRG_to_FLEXCOMM0);
 #endif
 #if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm1), nxp_lpc_usart, okay)) && CONFIG_SERIAL
