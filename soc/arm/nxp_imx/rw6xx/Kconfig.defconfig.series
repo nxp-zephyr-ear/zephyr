@@ -6,7 +6,7 @@
 if SOC_SERIES_RW6XX
 
 config CODE_DATA_RELOCATION_SRAM
-	default y
+	default y if FLASH_MCUX_FLEXSPI_XIP
 
 config SOC_SERIES
 	default "rw6xx"
