@@ -169,6 +169,7 @@ add_subdirectory_ifdef(CONFIG_WSEN_PADS wsen_pads)
 add_subdirectory_ifdef(CONFIG_WSEN_PDUS wsen_pdus)
 add_subdirectory_ifdef(CONFIG_WSEN_TIDS wsen_tids)
 add_subdirectory_ifdef(CONFIG_XMC4XXX_TEMP xmc4xxx_temp)
+add_subdirectory_ifdef(CONFIG_NXP_GAU_ACOMP nxp_gau_acomp)
 
 zephyr_syscall_header(${ZEPHYR_BASE}/include/zephyr/drivers/sensor.h)
 
