@@ -216,3 +216,12 @@ zephyr_udc0: &usb_otg {
 	pinctrl-0 = <&pinmux_pwm0>;
 	pinctrl-names = "default";
 };
+
+&acomp_sensor0 {
+	status = "okay";
+	/* HD2 on the board, pin is labelled 42 in silk screen */
+	nxp,pos-input = "CH0";
+	nxp,neg-input = "VIO";
+	nxp,vio-scaling-factor = <2>;
+	nxp,bias-prog = "fast";
+};
