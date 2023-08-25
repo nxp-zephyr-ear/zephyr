@@ -35,6 +35,8 @@ static inline void EnableDeepSleepIRQ(IRQn_Type irq)
 #define INPUTMUX_PINTSEL_COUNT INPUTMUX_PINT_SEL_COUNT
 #endif
 
+#define ble_wakeup_handler	BLE_MCI_WAKEUP0_DriverIRQHandler
+
 #ifdef __cplusplus
 extern "C" {
 #endif
