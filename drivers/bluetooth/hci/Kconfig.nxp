@@ -1,0 +1,11 @@
+#
+# Copyright 2023 NXP
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+config HCI_NXP_SET_BDADDR
+	bool "HCI Set BT Address"
+	default n
+	help
+	  If enabled, the BD_ADDR will be set by the host at HCI init, using a HCI vendor command.
