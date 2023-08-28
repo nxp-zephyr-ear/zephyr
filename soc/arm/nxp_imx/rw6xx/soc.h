@@ -37,6 +37,10 @@ static inline void EnableDeepSleepIRQ(IRQn_Type irq)
 
 #define ble_wakeup_handler	BLE_MCI_WAKEUP0_DriverIRQHandler
 
+#ifdef CONFIG_MEMC
+uint32_t flexspi_clock_set_freq(uint32_t clock_name, uint32_t rate);
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
