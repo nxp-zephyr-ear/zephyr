@@ -8,6 +8,10 @@ if BOARD_RD_RW612_BGA
 config BOARD
 	default "rd_rw612_bga"
 
+choice FLASH_MCUX_FLEXSPI_XIP_MEM_TARGET
+	default FLASH_MCUX_FLEXSPI_XIP_MEM_SRAM
+endchoice
+
 if LVGL
 
 # Swap color order for the default display panel
@@ -29,5 +33,20 @@ config LV_Z_VDB_SIZE
 	default 10
 
 endif # LVGL
+
+# Limit flash load size to avoid overwriting fw storage partition
+# Flash load size must be given in hex, as a number of bytes
+config FLASH_LOAD_SIZE
+	default 0x400000 if !BOOTLOADER_MCUBOOT
+
+# This is a workaround for not being able to define the BOOT_MAX_IMG_SECTORS
+# within the MCUBoot board .conf file, since no fork of MCUBoot is maintained
+# for the RW. We must define the BOOT_MAX_IMG_SECTORS Kconfig here to
+# prevent undefined KConfig warnings when not building MCUBoot
+config BOOT_MAX_IMG_SECTORS
+	int "Max image sectors (MCUBoot)"
+	help
+	  Max sectors for bootable image. Used by MCUBoot to determine
+	  the max slot size of an image.
 
 endif # BOARD_RD_RW612_BGA
