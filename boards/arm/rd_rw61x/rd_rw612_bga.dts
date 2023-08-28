@@ -25,7 +25,8 @@
 	chosen {
 		zephyr,sram = &sram_data;
 		zephyr,flash = &mx25u51245g;
-		zephyr,code-partition = &code_partition;
+		zephyr,code-partition = &slot0_partition;
+		zephyr,flash-controller = &mx25u51245g;
 		zephyr,console = &flexcomm3;
 		zephyr,shell-uart = &flexcomm3;
 		zephyr,display = &st7796s;
@@ -203,26 +204,38 @@ zephyr_udc0: &usb_otg {
 	ahb-prefetch;
 	ahb-cacheable;
 	ahb-read-addr-opt;
-	rx-clock-source = <3>;
+	rx-clock-source = <1>;
 	rx-clock-source-b = <3>;
 	pinctrl-0 = <&pinmux_flexspi>;
 	pinctrl-names = "default";
 	status = "okay";
-	/* Driver for MX25U512 flash not currently enabled */
 	mx25u51245g: mx25u51245g@0 {
 		compatible = "nxp,imx-flexspi-nor";
 		spi-max-frequency = <133000000>;
 		reg = <0>;
 		/* MX25UM51245G is 64MB, 512MBit flash part */
 		size = <DT_SIZE_M(64 * 8)>;
+		status = "okay";
+		jedec-id = [c2 25 3a];
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		status = "okay";
+
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			code_partition: partition@0 {
-				label = "application";
-				reg = <0x0 DT_SIZE_M(4)>;
+			boot_partition: partition@0 {
+				label = "mcuboot";
+				reg = <0x00000000 DT_SIZE_K(128)>;
+			};
+			/* Note slot 0 has one additional sector,
+			 * this is intended for use with the swap move algorithm
+			 */
+			slot0_partition: partition@20000 {
+				label = "image-0";
+				reg = <0x00020000 0x3e0000>;
 			};
 
 			/* This partition is reserved for connectivity firmwares storage
@@ -234,9 +247,14 @@ zephyr_udc0: &usb_otg {
 				read-only;
 			};
 
-			storage_partition: partition@680000 {
+			slot1_partition: partition@680000 {
+				label = "image-1";
+				reg = <0x680000 0x3e0000>;
+			};
+
+			storage_partition: partition@a60000 {
 				label = "storage";
-				reg = <0x680000 0x3980000>;
+				reg = <0xa60000 0x35a0000>;
 			};
 		};
 	};
