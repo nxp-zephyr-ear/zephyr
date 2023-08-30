@@ -43,6 +43,8 @@ static int nxp_gau_acomp_attr_get(const struct device *dev,
 {
 	struct nxp_gau_acomp_data *data = dev->data;
 
+	return -ENOTSUP; /* TODO: not supported for now because triggers not tested */
+
 	if (chan != SENSOR_CHAN_COMPARATOR && chan != SENSOR_CHAN_ALL) {
 		return -EINVAL;
 	}
@@ -68,6 +70,8 @@ static int nxp_gau_acomp_attr_set(const struct device *dev,
 	volatile uint32_t *const ctrl_reg = &base->CTRL0 +
 				(config->acomp_index * sizeof(uint32_t));
 	uint32_t ctrl_val = *ctrl_reg;
+
+	return -ENOTSUP; /* TODO: not supported for now because triggers not tested */
 
 	if (chan != SENSOR_CHAN_COMPARATOR && chan != SENSOR_CHAN_ALL) {
 		return -EINVAL;
@@ -111,6 +115,8 @@ static int nxp_gau_acomp_trigger_set(const struct device *dev,
 	volatile uint32_t *const ctrl_reg = &base->CTRL0 +
 				(config->acomp_index * sizeof(uint32_t));
 	uint32_t ctrl_val = *ctrl_reg;
+
+	return -ENOTSUP; /* TODO: not supported for now because triggers not tested */
 
 	if (trig->chan != SENSOR_CHAN_COMPARATOR && trig->chan != SENSOR_CHAN_ALL) {
 		return -EINVAL;
@@ -205,6 +211,8 @@ static void nxp_gau_acomp_isr(const struct device *dev)
 {
 	struct nxp_gau_acomp_data *data = dev->data;
 	struct sensor_trigger trigger;
+
+	return; /* TODO: not supported for now because triggers not tested */
 
 	trigger.type = data->trigger_type;
 	trigger.chan = SENSOR_CHAN_COMPARATOR;
