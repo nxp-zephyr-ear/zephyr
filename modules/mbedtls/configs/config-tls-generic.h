@@ -353,6 +353,10 @@
 #define MBEDTLS_MD_C
 #endif
 
+#if defined(CONFIG_MBEDTLS_HKDF_C)
+#define MBEDTLS_HKDF_C
+#endif
+
 /* Automatic dependencies */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) || \
