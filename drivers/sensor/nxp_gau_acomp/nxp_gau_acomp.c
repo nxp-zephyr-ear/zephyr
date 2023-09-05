@@ -145,7 +145,7 @@ static int nxp_gau_acomp_sample_fetch(const struct device *dev,
 	struct nxp_gau_acomp_data *data = dev->data;
 	ACOMP_Type *base = config->base;
 
-	volatile uint32_t *const status_reg = &base->STATUS0 +
+	const volatile uint32_t *const status_reg = &base->STATUS0 +
 				(config->acomp_index * sizeof(uint32_t));
 
 	if (channel != SENSOR_CHAN_COMPARATOR && channel != SENSOR_CHAN_ALL) {
