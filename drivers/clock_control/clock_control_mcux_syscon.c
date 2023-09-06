@@ -157,6 +157,11 @@ static int mcux_lpc_syscon_clock_control_get_subsys_rate(
 #endif
 #if defined(CONFIG_PWM_MCUX_SCTIMER)
 	case MCUX_SCTIMER_CLK:
+#ifdef CONFIG_SOC_SERIES_RW6XX
+		/* RW6XX uses core clock for SCTimer, not bus clock */
+		*rate = CLOCK_GetCoreSysClkFreq();
+		break;
+#endif
 #endif
 #ifndef	CONFIG_SOC_SERIES_RW6XX
 	case MCUX_BUS_CLK:
