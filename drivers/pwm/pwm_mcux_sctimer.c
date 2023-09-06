@@ -83,7 +83,11 @@ static int mcux_sctimer_pwm_set_cycles(const struct device *dev,
 		 * Do not divide by the prescale factor as this is accounted for in
 		 * the SDK function
 		 */
+#ifdef CONFIG_SOC_SERIES_RW6XX
+		clock_freq = CLOCK_GetCoreSysClkFreq();
+#else
 		clock_freq = CLOCK_GetFreq(kCLOCK_BusClk);
+#endif
 		pwm_freq = (clock_freq / config->prescale) / period_cycles;
 
 		if (pwm_freq == 0) {
@@ -118,7 +122,12 @@ static int mcux_sctimer_pwm_get_cycles_per_sec(const struct device *dev,
 {
 	const struct pwm_mcux_sctimer_config *config = dev->config;
 
+
+#ifdef CONFIG_SOC_SERIES_RW6XX
+	*cycles = CLOCK_GetCoreSysClkFreq() / config->prescale;
+#else
 	*cycles = CLOCK_GetFreq(kCLOCK_BusClk) / config->prescale;
+#endif
 
 	return 0;
 }
