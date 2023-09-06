@@ -20,6 +20,7 @@ common:
     - frdm_kl25z
     - lpcxpresso55s69_cpu0
     - stm32l562e_dk_ns
+    - rd_rw612_bga
   depends_on: usb_device
   filter: dt_label_with_parent_compat_enabled("slot0_partition", "fixed-partitions")
     and dt_label_with_parent_compat_enabled("slot1_partition", "fixed-partitions")
