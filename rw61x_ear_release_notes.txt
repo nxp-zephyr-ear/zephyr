@@ -65,6 +65,27 @@ Known issues
 1 counter and adc test cases failure due to test node configuration missing. Need an overlay dts.
 2 samples/subsys/usb/cdc_acm_composite/sample.usb.cdc-acm-composite test failure
 
+BLE support
+============
+
+BLE applications supported in this release are:
+	- peripheral_ht 	(samples/bluetooth/peripheral_ht)
+	- central_ht		(samples/bluetooth/central_ht)
+	- peripheral_ots	(samples/bluetooth/peripheral_ots)
+	- peripheral_dis	(samples/bluetooth/peripheral_dis)
+	- bt_tester		(tests/bluetooth/bt_tester)
+	- shell			(tests/bluetooth/shell)
+
+Limitations:
+	- Low power not supported yet for BLE applications.
+	- Hardware accelerators for security cryptography are not supported yet.
+	- Storage back-ends (NVS, FCB, File system) are not supported yet. This impacts applications
+	  that are using the settings subsystem, as is the case for the shell application.
+	  Some warnings / errors related to settings storage may be logged by this application.
+	- Some shell BLE commands may be unsupported for now.
+	- Enforcement of ATT flow control (BT_ATT_ENFORCE_FLOW) prevent some applications to connect
+	  with the peer device. This feature is disabled for now for the concerned application.
+
 How to get the code
 ===================
 
