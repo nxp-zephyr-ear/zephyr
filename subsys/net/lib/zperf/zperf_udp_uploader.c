@@ -275,6 +275,7 @@ int zperf_udp_upload(const struct zperf_upload_params *param,
 	int port = 0;
 	int sock;
 	int ret;
+	struct ifreq req;
 
 	if (param == NULL || result == NULL) {
 		return -EINVAL;
@@ -294,6 +295,16 @@ int zperf_udp_upload(const struct zperf_upload_params *param,
 					 IPPROTO_UDP);
 	if (sock < 0) {
 		return sock;
+	}
+
+	if (param->ifreq_name[0] != '\0') {
+		(void)memset(req.ifr_name, 0, sizeof(req.ifr_name));
+		strcpy(req.ifr_name, param->ifreq_name);
+
+		if (zsock_setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, &req,
+				     sizeof(struct ifreq)) != 0) {
+			NET_WARN("Failed to set SO_BINDTODEVICE socket option. ");
+		}
 	}
 
 	ret = udp_upload(sock, port, param->duration_ms, param->packet_size,
