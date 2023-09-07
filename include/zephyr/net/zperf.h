@@ -34,6 +34,7 @@ struct zperf_upload_params {
 	uint32_t duration_ms;
 	uint32_t rate_kbps;
 	uint16_t packet_size;
+	char ifreq_name[Z_DEVICE_MAX_NAME_LEN];
 	struct {
 		uint8_t tos;
 		int tcp_nodelay;
