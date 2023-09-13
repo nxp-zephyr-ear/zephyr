@@ -382,14 +382,14 @@ config IPV6
          This option enables the use of IPv6 support. Say Y if you
 	 wish to enable this feature.
 
+if IPV6
 config MAX_IPV6_ADDRESSES
        int "Maximum IPv6 addresses"
        range 3 10
        default 3
-       depends on NET_IPV6 && NET_IF_MAX_IPV6_ADDR
        help
        This option sets Maximum number of IPv6 addresses that can be supported. Minimum is three. 
-
+endif
 endmenu
 
 if IW61x || SD8987 || SD8978 || RW610
@@ -530,7 +530,7 @@ menu "Development and Debugging"
 
 config ENABLE_ERROR_LOGS
        bool
-       prompt "Enable error logs"
+		prompt "WiFi driver error logs control"
        default y
        help
 		If you enable this, error messages
@@ -543,7 +543,7 @@ config ENABLE_ERROR_LOGS
 
 config ENABLE_WARNING_LOGS
        bool
-       prompt "Enable warning logs"
+		prompt "WiFi driver warning logs control"
        default y
        help
 		If you enable this, error messages
@@ -582,7 +582,7 @@ config WLCMGR_DEBUG
 
 menu "Wifi extra debug options"
 config WIFI_EXTRA_DEBUG
-       bool "Enable extra debug"
+		bool "WiFi driver extra debug control"
        default n
        help
 	This macro helps you to get additional debugging
@@ -591,7 +591,7 @@ config WIFI_EXTRA_DEBUG
 	happens.
 
 config WIFI_UAP_DEBUG
-       bool "Enable uAP debug"
+		bool "WiFi driver uAP debug control"
        default n
        depends on WIFI_EXTRA_DEBUG
        help
