@@ -30,6 +30,7 @@ config WIFI_MAX_PRIO
 
 choice
 	prompt "Wi-Fi Chipset"
+	default RW610 if SOC_SERIES_RW6XX
 	default SD8987
 
 config SD8987
@@ -51,7 +52,7 @@ config SD8978
 	help
 	  Select this option if you have a NXP 8978-based
 	  Wireless chip. This option will enable support
-	  for NXP 8978-based wireless chip with 
+	  for NXP 8978-based wireless chip with
           RT series boards.
 
 config RW610
@@ -69,7 +70,7 @@ config IW61x
 	help
 	  Select this option if you have a NXP IW61x-based
 	  Wireless chip. This option will enable support
-	  for NXP IW61x-based wireless chip with 
+	  for NXP IW61x-based wireless chip with
           RT series boards.
 
 config SD8801
@@ -125,18 +126,6 @@ config SDIO_MULTI_PORT_RX_AGGR
 
 if RW610
 
-config IMU
-    bool "NXP IMU driver support"
-    default y
-    help
-      For driver and firmware communicating through IMU interface.
-
-config FW_LOADER
-    bool "NXP firmware loader service support"
-    default y
-    help
-      For driver downloading firmware using loader service.
-
 config 11AX
     bool "802.11ax Support"
     def_bool y
@@ -161,11 +150,11 @@ config ENABLE_HTTPSERVER
         just reads and discards it, and always serve a single static page.
 
 config TX_RX_ZERO_COPY
-    bool "Zero copy"
-    default y
-    select NET_IPV4_FRAGMENT
-    help
-        For zero copy in driver data path. Now only support RX.
+	bool "Zero copy"
+	default y
+	imply NET_IPV4_FRAGMENT
+	help
+		For zero copy in driver data path. Now only support RX.
 
 config WIFI_CAPA
     bool "Wi-Fi Capability"
@@ -400,12 +389,13 @@ config IPV6
 
 if IPV6
 config MAX_IPV6_ADDRESSES
-       int "Maximum IPv6 addresses"
-       range 3 10
-       default 3
-       help
-       This option sets Maximum number of IPv6 addresses that can be supported. Minimum is three. 
+	int "Maximum IPv6 addresses"
+	range 3 10
+	default 3
+	help
+		This option sets Maximum number of IPv6 addresses that can be supported. Minimum is three.
 endif
+
 endmenu
 
 if IW61x || SD8987 || SD8978 || RW610
