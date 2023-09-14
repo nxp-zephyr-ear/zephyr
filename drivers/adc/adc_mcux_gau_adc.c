@@ -24,27 +24,26 @@ LOG_MODULE_REGISTER(adc_mcux_gau_adc);
 #error "ADC requires configuurable inputs"
 #endif
 
+#define NUM_ADC_CHANNELS 16
+
 struct mcux_gau_adc_config {
 	ADC_Type *base;
 	void (*irq_config_func)(const struct device *dev);
 	adc_clock_divider_t clock_div;
 	adc_analog_portion_power_mode_t power_mode;
-	adc_warm_up_time_t warmup_time;
 	adc_trigger_source_t trigger;
 	bool input_gain_buffer;
-	adc_result_width_t result_width;
-	adc_fifo_threshold_t fifo_threshold;
-	bool enable_dma;
-	adc_calibration_ref_t cal_ref;
-	adc_average_length_t oversampling;
+	adc_calibration_ref_t cal_volt;
 };
 
 struct mcux_gau_adc_data {
 	const struct device *dev;
 	struct adc_context ctx;
-	adc_channel_source_t channel_sources[16];
+	adc_channel_source_t channel_sources[NUM_ADC_CHANNELS];
 	uint8_t scan_length;
 	uint16_t *results;
+	uint16_t *repeat;
+	struct k_work read_samples_work;
 };
 
 static int mcux_gau_adc_channel_setup(const struct device *dev,
@@ -52,12 +51,10 @@ static int mcux_gau_adc_channel_setup(const struct device *dev,
 {
 	const struct mcux_gau_adc_config *config = dev->config;
 	struct mcux_gau_adc_data *data = dev->data;
-	adc_input_gain_t gain;
-	adc_vref_source_t ref;
-	adc_warm_up_time_t warmup;
 	ADC_Type *base = config->base;
 	uint8_t channel_id = channel_cfg->channel_id;
 	uint8_t source_channel = channel_cfg->input_positive;
+	uint32_t tmp_reg;
 
 	/* Input validations */
 
@@ -66,64 +63,94 @@ static int mcux_gau_adc_channel_setup(const struct device *dev,
 		return -ENOTSUP;
 	}
 
-	if (channel_id >= 16) {
-		LOG_ERR("ADC does not support more than 16 channels");
+	if (channel_id >= NUM_ADC_CHANNELS) {
+		LOG_ERR("ADC does not support more than %d channels", NUM_ADC_CHANNELS);
 		return -ENOTSUP;
 	}
 
-	if (source_channel < 0 || (source_channel > 12 && source_channel != 15)) {
+	if (source_channel > 12 && source_channel != 15) {
 		LOG_ERR("Invalid source channel");
 		return -EINVAL;
 	}
 
 	/* Set Acquisition/Warmup time */
-	LOG_DBG("Acquisition/Warmup time is global to entire ADC peripheral, "
-		 "i.e. channel_setup will override this property for all previous channels.");
+	tmp_reg = base->ADC_REG_INTERVAL;
 	base->ADC_REG_INTERVAL &= ~ADC_ADC_REG_INTERVAL_WARMUP_TIME_MASK;
-	if (channel_cfg->acquisition_time >= 32) {
-		warmup = kADC_WarmUpStateBypass;
-		LOG_DBG("ADC warmup is bypassed");
+	base->ADC_REG_INTERVAL &= ~ADC_ADC_REG_INTERVAL_BYPASS_WARMUP_MASK;
+	if (channel_cfg->acquisition_time == 0) {
+		base->ADC_REG_INTERVAL |= ADC_ADC_REG_INTERVAL_BYPASS_WARMUP_MASK;
+	} else if (channel_cfg->acquisition_time <= 32) {
+		base->ADC_REG_INTERVAL |=
+			ADC_ADC_REG_INTERVAL_WARMUP_TIME(channel_cfg->acquisition_time - 1);
 	} else {
-		warmup = channel_cfg->acquisition_time;
+		LOG_ERR("Invalid acquisition time requested of ADC");
+		return -EINVAL;
 	}
-	base->ADC_REG_INTERVAL |= ADC_ADC_REG_INTERVAL_WARMUP_TIME(warmup);
+	/* If user changed the warmup time, warn  */
+	if (base->ADC_REG_INTERVAL != tmp_reg) {
+		LOG_WRN("Acquisition/Warmup time is global to entire ADC peripheral, "
+		"i.e. channel_setup will override this property for all previous channels.");
+	}
 
 	/* Set Input Gain */
-	LOG_DBG("Input gain is global to entire ADC peripheral, "
-		"i.e. channel_setup will override this property for all previous channels.");
+	tmp_reg = base->ADC_REG_ANA;
 	base->ADC_REG_ANA &= ~ADC_ADC_REG_ANA_INBUF_GAIN_MASK;
 	if (channel_cfg->gain == ADC_GAIN_1) {
-		gain = kADC_InputGain1;
+		base->ADC_REG_ANA |= ADC_ADC_REG_ANA_INBUF_GAIN(kADC_InputGain1);
 	} else if (channel_cfg->gain == ADC_GAIN_1_2) {
-		gain = kADC_InputGain0P5;
+		base->ADC_REG_ANA |= ADC_ADC_REG_ANA_INBUF_GAIN(kADC_InputGain0P5);
 	} else if (channel_cfg->gain == ADC_GAIN_2) {
-		gain = kADC_InputGain2;
+		base->ADC_REG_ANA |= ADC_ADC_REG_ANA_INBUF_GAIN(kADC_InputGain2);
 	} else {
 		LOG_ERR("Invalid gain");
 		return -EINVAL;
 	}
-	base->ADC_REG_ANA |= ADC_ADC_REG_ANA_INBUF_GAIN(gain);
+	/* If user changed the gain, warn */
+	if (base->ADC_REG_ANA != tmp_reg) {
+		LOG_WRN("Input gain is global to entire ADC peripheral, "
+		"i.e. channel_setup will override this property for all previous channels.");
+	}
 
 	/* Set Reference voltage of ADC */
-	LOG_DBG("Reference voltage is global to entire ADC peripheral, "
-		"i.e. channel_setup will override this property for all previous channels.");
+	tmp_reg = base->ADC_REG_ANA;
 	base->ADC_REG_ANA &= ~ADC_ADC_REG_ANA_VREF_SEL_MASK;
 	if (channel_cfg->reference == ADC_REF_INTERNAL) {
-		ref = kADC_Vref1P2V;
+		base->ADC_REG_ANA |= ADC_ADC_REG_ANA_VREF_SEL(kADC_Vref1P2V);
 	} else if (channel_cfg->reference == ADC_REF_EXTERNAL0) {
-		ref = kADC_VrefExternal;
+		base->ADC_REG_ANA |= ADC_ADC_REG_ANA_VREF_SEL(kADC_VrefExternal);
 	} else if (channel_cfg->reference == ADC_REF_VDD_1) {
-		ref = kADC_Vref1P8V;
+		base->ADC_REG_ANA |= ADC_ADC_REG_ANA_VREF_SEL(kADC_Vref1P8V);
 	} else {
 		LOG_ERR("Vref not supported");
 		return -ENOTSUP;
 	}
-	base->ADC_REG_ANA |= ADC_ADC_REG_ANA_VREF_SEL(ref);
+	/* if user changed the reference voltage, warn */
+	if (base->ADC_REG_ANA != tmp_reg) {
+		LOG_WRN("Reference voltage is global to entire ADC peripheral, "
+		"i.e. channel_setup will override this property for all previous channels.");
+	}
 
 	data->channel_sources[channel_id] = source_channel;
 
 	return 0;
 }
+
+static void mcux_gau_adc_read_samples(struct k_work *work)
+{
+	 struct mcux_gau_adc_data *data =
+				CONTAINER_OF(work, struct mcux_gau_adc_data,
+						read_samples_work);
+	const struct device *dev = data->dev;
+	const struct mcux_gau_adc_config *config = dev->config;
+	ADC_Type *base = config->base;
+
+	while ((ADC_GetFifoDataCount(base) > 0)) {
+		*(data->results++) = (uint16_t)ADC_GetConversionResult(base);
+	}
+
+	adc_context_on_sampling_done(&data->ctx, dev);
+}
+
 
 static void mcux_gau_adc_isr(const struct device *dev)
 {
@@ -131,28 +158,15 @@ static void mcux_gau_adc_isr(const struct device *dev)
 	struct mcux_gau_adc_data *data = dev->data;
 	ADC_Type *base = config->base;
 
-	if ((ADC_GetStatusFlags(base) & kADC_DataReadyInterruptFlag) != 0UL) {
-		uint8_t fifo_count = (base->ADC_REG_STATUS &
-					ADC_ADC_REG_STATUS_FIFO_DATA_COUNT_MASK) >>
-					ADC_ADC_REG_STATUS_FIFO_DATA_COUNT_SHIFT;
-
-		if (fifo_count > data->scan_length) {
-			LOG_ERR("Unexpected ADC FIFO behaviour");
-			return;
-		}
-
-		while (base->ADC_REG_STATUS & ADC_ADC_REG_STATUS_FIFO_NE_MASK) {
-			*(data->results++) = ADC_GetConversionResult(base);
-		}
-
-		ADC_StopConversion(base);
+	if (ADC_GetStatusFlags(base) & kADC_DataReadyInterruptFlag) {
+		/* Clear flag to avoid infinite interrupt */
 		ADC_ClearStatusFlags(base, kADC_DataReadyInterruptFlag);
-		adc_context_on_sampling_done(&data->ctx, dev);
-	} else {
-		LOG_WRN("ADC received unexpected interrupt, "
-			"REG_ISR: %x", base->ADC_REG_ISR);
-	}
 
+		/* offload and do not block during irq */
+		k_work_submit(&data->read_samples_work);
+	} else {
+		LOG_ERR("ADC received unimplemented interrupt");
+	}
 }
 
 static void adc_context_start_sampling(struct adc_context *ctx)
@@ -162,7 +176,9 @@ static void adc_context_start_sampling(struct adc_context *ctx)
 	const struct mcux_gau_adc_config *config = data->dev->config;
 	ADC_Type *base = config->base;
 
+	/* TODO: support other triggers, how to do with zephyr api? */
 	if (config->trigger == kADC_TriggerSourceSoftware) {
+		ADC_StopConversion(base);
 		ADC_DoSoftwareTrigger(base);
 	}
 }
@@ -170,38 +186,37 @@ static void adc_context_start_sampling(struct adc_context *ctx)
 static void adc_context_update_buffer_pointer(struct adc_context *ctx,
 					      bool repeat_sampling)
 {
+	struct mcux_gau_adc_data *data =
+		CONTAINER_OF(ctx, struct mcux_gau_adc_data, ctx);
+
 	if (repeat_sampling) {
-		LOG_DBG("ADC driver does not overwrite samplings within a sequence");
+		data->results = data->repeat;
 	}
 }
 
-static int do_read(const struct device *dev,
+static int mcux_gau_adc_do_read(const struct device *dev,
 		   const struct adc_sequence *sequence)
 {
 	const struct mcux_gau_adc_config *config = dev->config;
 	ADC_Type *base = config->base;
 	struct mcux_gau_adc_data *data = dev->data;
-	adc_resolution_t res;
-	adc_average_length_t avg;
 	uint8_t num_channels = 0;
 
-	/* Only 16 channels on the ADC */
-	if (sequence->channels & (0xFFFF << 16)) {
+	/* if user selected channe >= NUM_ADC_CHANNELS that is invalid */
+	if (sequence->channels & (0xFFFF << NUM_ADC_CHANNELS)) {
 		LOG_ERR("Invalid channels selected for sequence");
 		return -EINVAL;
 	}
 
 	/* Count channels */
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < NUM_ADC_CHANNELS; i++) {
 		num_channels += ((sequence->channels & (0x1 << i)) ? 1 : 0);
 	}
 
 	/* Buffer must hold (number of samples per channel) * (number of channels) samples */
-	if (sequence->options != NULL &&
-		sequence->buffer_size < ((1 + sequence->options->extra_samplings) * num_channels)) {
-		LOG_ERR("Buffer size too small");
-		return -ENOMEM;
-	} else if (sequence->options == NULL && sequence->buffer_size < num_channels) {
+	if ((sequence->options != NULL && sequence->buffer_size <
+	    ((1 + sequence->options->extra_samplings) * num_channels)) ||
+	    (sequence->options == NULL && sequence->buffer_size < num_channels)) {
 		LOG_ERR("Buffer size too small");
 		return -ENOMEM;
 	}
@@ -212,9 +227,8 @@ static int do_read(const struct device *dev,
 	/* Register Value is 1 less than what it represents */
 	base->ADC_REG_CONFIG |= ADC_ADC_REG_CONFIG_SCAN_LENGTH(data->scan_length - 1);
 
-
 	/* Set up scan channels */
-	for (int channel = 0; channel < 16; channel++) {
+	for (int channel = 0; channel < NUM_ADC_CHANNELS; channel++) {
 		if (sequence->channels & (0x1 << channel)) {
 			ADC_SetScanChannel(base,
 				data->scan_length - num_channels--,
@@ -224,57 +238,44 @@ static int do_read(const struct device *dev,
 
 	/* Set resolution of ADC */
 	base->ADC_REG_ANA &= ~ADC_ADC_REG_ANA_RES_SEL_MASK;
-	switch (sequence->resolution) {
-	case 11:
-	case 12:
-		res = kADC_Resolution12Bit;
-		break;
-	case 13:
-	case 14:
-		res = kADC_Resolution14Bit;
-		break;
-	case 15:
-	case 16:
-		res = kADC_Resolution16Bit;
-		break;
-	default:
+	/* odd numbers are for differential channels */
+	if (sequence->resolution == 12 || sequence->resolution == 11) {
+		base->ADC_REG_ANA |= ADC_ADC_REG_ANA_RES_SEL(kADC_Resolution12Bit);
+	} else if (sequence->resolution == 14 || sequence->resolution == 13) {
+		base->ADC_REG_ANA |= ADC_ADC_REG_ANA_RES_SEL(kADC_Resolution14Bit);
+	} else if (sequence->resolution == 16 || sequence->resolution == 15) {
+		base->ADC_REG_ANA |= ADC_ADC_REG_ANA_RES_SEL(kADC_Resolution16Bit);
+	} else {
 		LOG_ERR("Invalid resolution");
 		return -EINVAL;
 	}
-	base->ADC_REG_ANA |= ADC_ADC_REG_ANA_RES_SEL(res);
 
 	/* Set oversampling */
 	base->ADC_REG_CONFIG &= ~ADC_ADC_REG_CONFIG_AVG_SEL_MASK;
-	switch (sequence->oversampling) {
-	case 0:
-		avg = kADC_AverageNone;
-		break;
-	case 1:
-		avg = kADC_Average2;
-		break;
-	case 2:
-		avg = kADC_Average4;
-		break;
-	case 3:
-		avg = kADC_Average8;
-		break;
-	case 4:
-		avg = kADC_Average16;
-		break;
-	default:
+	if (sequence->oversampling == 0) {
+		base->ADC_REG_CONFIG |= ADC_ADC_REG_CONFIG_AVG_SEL(kADC_AverageNone);
+	} else if (sequence->oversampling == 1) {
+		base->ADC_REG_CONFIG |= ADC_ADC_REG_CONFIG_AVG_SEL(kADC_Average2);
+	} else if (sequence->oversampling == 2) {
+		base->ADC_REG_CONFIG |= ADC_ADC_REG_CONFIG_AVG_SEL(kADC_Average4);
+	} else if (sequence->oversampling == 3) {
+		base->ADC_REG_CONFIG |= ADC_ADC_REG_CONFIG_AVG_SEL(kADC_Average8);
+	} else if (sequence->oversampling == 4) {
+		base->ADC_REG_CONFIG |= ADC_ADC_REG_CONFIG_AVG_SEL(kADC_Average16);
+	} else {
 		LOG_ERR("Invalid oversampling setting");
 		return -EINVAL;
 	}
-	base->ADC_REG_CONFIG |= ADC_ADC_REG_CONFIG_AVG_SEL(avg);
 
 	/* Calibrate if requested */
 	if (sequence->calibrate) {
-		if (ADC_DoAutoCalibration(base, config->cal_ref)) {
+		if (ADC_DoAutoCalibration(base, config->cal_volt)) {
 			LOG_WRN("Calibration of ADC failed!");
 		}
 	}
 
 	data->results = sequence->buffer;
+	data->repeat = sequence->buffer;
 
 	adc_context_start_read(&data->ctx, sequence);
 
@@ -288,7 +289,7 @@ static int mcux_gau_adc_read(const struct device *dev,
 	int error;
 
 	adc_context_lock(&data->ctx, false, NULL);
-	error = do_read(dev, sequence);
+	error = mcux_gau_adc_do_read(dev, sequence);
 	adc_context_release(&data->ctx, error);
 	return error;
 }
@@ -302,7 +303,7 @@ static int mcux_gau_adc_read_async(const struct device *dev,
 	int error;
 
 	adc_context_lock(&data->ctx, true, async);
-	error = do_read(dev, sequence);
+	error = mcux_gau_adc_do_read(dev, sequence);
 	adc_context_release(&data->ctx, error);
 	return error;
 }
@@ -320,34 +321,36 @@ static int mcux_gau_adc_init(const struct device *dev)
 
 	LOG_DBG("Initializing ADC");
 
-	if (config->trigger == kADC_TriggerSourceGpt) {
-		LOG_ERR("GPT Trigger currently not supported");
-		return -ENOTSUP;
-	}
-
-	if (config->enable_dma) {
-		LOG_ERR("ADC DMA not yet supported");
+	if (config->trigger != kADC_TriggerSourceSoftware) {
+		LOG_ERR("only software trigger currently not supported");
 		return -ENOTSUP;
 	}
 
 	ADC_GetDefaultConfig(&adc_config);
 
+	/* DT configs */
 	adc_config.clockDivider = config->clock_div;
 	adc_config.powerMode = config->power_mode;
-	adc_config.warmupTime = config->warmup_time;
-	adc_config.inputMode = kADC_InputSingleEnded;
-	adc_config.conversionMode = kADC_ConversionOneShot;
-	adc_config.averageLength = config->oversampling;
-	adc_config.triggerSource = config->trigger;
 	adc_config.enableInputGainBuffer = config->input_gain_buffer;
-	adc_config.resultWidth = config->result_width;
-	adc_config.fifoThreshold = config->fifo_threshold;
-	adc_config.enableDMA = config->enable_dma;
+	/* TODO: support other triggers */
+	adc_config.triggerSource = config->trigger;
+
+	/* TODO: support differential channels */
+	adc_config.inputMode = kADC_InputSingleEnded;
+	/* One shot meets the needs of the current zephyr adc context/api */
+	adc_config.conversionMode = kADC_ConversionOneShot;
+	/* since using one shot mode, just interrupt on one sample (agnostic to # channels) */
+	adc_config.fifoThreshold = kADC_FifoThresholdData1;
+	/* 32 bit width not supported in this driver; zephyr seems to use 16 bit */
+	adc_config.resultWidth = kADC_ResultWidth16;
+	/* TODO: Add DMA option kconfig? */
+	adc_config.enableDMA = false;
+	/* TODO: power management uses this perhaps? */
 	adc_config.enableADC = true;
 
 	ADC_Init(base, &adc_config);
 
-	if (ADC_DoAutoCalibration(base, config->cal_ref)) {
+	if (ADC_DoAutoCalibration(base, config->cal_volt)) {
 		LOG_WRN("Calibration of ADC failed!");
 	}
 
@@ -356,12 +359,13 @@ static int mcux_gau_adc_init(const struct device *dev)
 	config->irq_config_func(dev);
 	ADC_EnableInterrupts(base, kADC_DataReadyInterruptEnable);
 
+	k_work_init(&data->read_samples_work, &mcux_gau_adc_read_samples);
+
 	adc_context_init(&data->ctx);
 	adc_context_unlock_unconditionally(&data->ctx);
 
 	return 0;
 }
-
 
 static const struct adc_driver_api mcux_gau_adc_driver_api = {
 	.channel_setup = mcux_gau_adc_channel_setup,
@@ -372,6 +376,7 @@ static const struct adc_driver_api mcux_gau_adc_driver_api = {
 	.ref_internal = 1200,
 };
 
+
 #define GAU_ADC_MCUX_INIT(n)							\
 										\
 	static void mcux_gau_adc_config_func_##n(const struct device *dev);     \
@@ -380,17 +385,11 @@ static const struct adc_driver_api mcux_gau_adc_driver_api = {
 		.base = (ADC_Type *)DT_INST_REG_ADDR(n),			\
 		.irq_config_func = mcux_gau_adc_config_func_##n,		\
 		/* Minus one because DT starts at 1, HAL enum starts at 0 */	\
-		.clock_div = DT_INST_PROP(n, clock_divider) - 1,		\
-		.power_mode = DT_INST_ENUM_IDX(n, power_mode),			\
-		/* Minus one because DT starts at 1, HAL enum starts at 0 */	\
-		.warmup_time = DT_INST_PROP(n, warmup_time) - 1,		\
-		.trigger = DT_INST_ENUM_IDX(n, trigger_source),			\
-		.result_width = DT_INST_ENUM_IDX(n, result_width),		\
-		.fifo_threshold = DT_INST_ENUM_IDX(n, fifo_threshold),		\
-		.input_gain_buffer = DT_INST_PROP(n, input_buffer),		\
-		.enable_dma = DT_INST_PROP(n, enable_dma),			\
-		.cal_ref = (DT_INST_PROP(n, ext_cal_volt) ? 1 : 0),		\
-		.oversampling = DT_INST_ENUM_IDX(n, oversampling),		\
+		.clock_div = DT_INST_PROP(n, nxp_clock_divider) - 1,		\
+		.power_mode = DT_INST_ENUM_IDX(n, nxp_power_mode),		\
+		.trigger = DT_INST_ENUM_IDX(n, nxp_trigger_source),		\
+		.input_gain_buffer = DT_INST_PROP(n, nxp_input_buffer),		\
+		.cal_volt = DT_INST_ENUM_IDX(n, nxp_calibration_voltage),	\
 	};									\
 										\
 	static struct mcux_gau_adc_data mcux_gau_adc_data_##n = {0};		\
