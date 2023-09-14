@@ -17,7 +17,6 @@ flash: 62500
 supported:
   - adc
   - ble
-  - counter
   - dma
   - entropy
   - gpio
