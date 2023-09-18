@@ -297,6 +297,12 @@ static int memc_flexspi_init(const struct device *dev)
 #if defined(FSL_FEATURE_FLEXSPI_SUPPORT_SEPERATE_RXCLKSRC_PORTB) && \
 FSL_FEATURE_FLEXSPI_SUPPORT_SEPERATE_RXCLKSRC_PORTB
 	flexspi_config.rxSampleClockPortB = data->rx_sample_clock_b;
+#if defined(FSL_FEATURE_FLEXSPI_SUPPORT_RXCLKSRC_DIFF) && \
+	FSL_FEATURE_FLEXSPI_SUPPORT_RXCLKSRC_DIFF
+	if (flexspi_config.rxSampleClock != flexspi_config.rxSampleClockPortB) {
+		flexspi_config.rxSampleClockDiff = true;
+	}
+#endif
 #endif
 
 	/* Configure AHB RX buffers, if any configuration settings are present */
