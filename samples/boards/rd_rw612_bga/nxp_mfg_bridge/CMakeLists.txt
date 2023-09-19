@@ -11,7 +11,5 @@ zephyr_include_directories(
   ${ZEPHYR_HAL_NXP_MODULE_DIR}/mcux/components/conn_fwloader/include
   )
 
-zephyr_library_sources(${ZEPHYR_HAL_NXP_MODULE_DIR}/mcux/mcux-sdk/utilities/misc_utilities/fsl_memcpy.S)
-
 FILE(GLOB app_sources src/*.c)
 target_sources(app PRIVATE ${app_sources})
