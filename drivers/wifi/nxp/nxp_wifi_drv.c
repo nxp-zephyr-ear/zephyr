@@ -395,8 +395,9 @@ int WPL_Start(linkLostCb_t callbackFunction)
 	}
 
 	if (status == WPLRET_SUCCESS) {
-		syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_INIT_GROUP, true,
+		syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_INIT_GROUP, false,
 				       WPL_SYNC_TIMEOUT_MS);
+		k_event_clear(&s_wplSyncEvent, WPL_SYNC_INIT_GROUP);
 		if (syncBit & EVENT_BIT(WLAN_REASON_INITIALIZED)) {
 			s_linkLostCb = callbackFunction;
 			status = WPLRET_SUCCESS;
@@ -521,8 +522,9 @@ static int WPL_Start_AP(const struct device *dev, struct wifi_connect_req_params
 		if (ret != WM_SUCCESS) {
 			status = WPLRET_FAIL;
 		} else {
-			syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_UAP_START_GROUP, true,
+			syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_UAP_START_GROUP, false,
 					       WPL_SYNC_TIMEOUT_MS);
+			k_event_clear(&s_wplSyncEvent, WPL_SYNC_UAP_START_GROUP);
 			if (syncBit & EVENT_BIT(WLAN_REASON_UAP_SUCCESS)) {
 				status = WPLRET_SUCCESS;
 			} else if (syncBit & EVENT_BIT(WLAN_REASON_UAP_START_FAILED)) {
@@ -571,14 +573,15 @@ static int WPL_Stop_AP(const struct device *dev)
 	if (status == WPLRET_SUCCESS) {
 		dhcp_server_stop();
 
-		k_event_clear(&s_wplSyncEvent, WPL_SYNC_UAP_START_GROUP);
+		k_event_clear(&s_wplSyncEvent, WPL_SYNC_UAP_STOP_GROUP);
 
 		ret = wlan_stop_network(UAP_NETWORK_NAME);
 		if (ret != WM_SUCCESS) {
 			status = WPLRET_FAIL;
 		} else {
-			syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_UAP_STOP_GROUP, true,
+			syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_UAP_STOP_GROUP, false,
 					       WPL_SYNC_TIMEOUT_MS);
+			k_event_clear(&s_wplSyncEvent, WPL_SYNC_UAP_STOP_GROUP);
 			if (syncBit & EVENT_BIT(WLAN_REASON_UAP_STOPPED)) {
 				status = WPLRET_SUCCESS;
 			} else if (syncBit & EVENT_BIT(WLAN_REASON_UAP_STOP_FAILED)) {
@@ -690,6 +693,7 @@ static int WPL_Scan(const struct device *dev, scan_result_cb_t cb)
 	}
 
 	if (status == WPLRET_SUCCESS) {
+		k_event_clear(&s_wplSyncEvent, WPL_SYNC_SCAN_GROUP);
 		ret = wlan_scan(WLP_process_results);
 		if (ret != WM_SUCCESS) {
 			status = WPLRET_FAIL;
@@ -697,8 +701,9 @@ static int WPL_Scan(const struct device *dev, scan_result_cb_t cb)
 	}
 
 	if (status == WPLRET_SUCCESS) {
-		syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_SCAN_GROUP, true,
+		syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_SCAN_GROUP, false,
 				       WPL_SYNC_TIMEOUT_MS);
+		k_event_clear(&s_wplSyncEvent, WPL_SYNC_SCAN_GROUP);
 		if (syncBit & EVENT_BIT(EVENT_SCAN_DONE)) {
 			status = WPLRET_SUCCESS;
 		} else {
@@ -749,7 +754,11 @@ static int WPL_Connect(const struct device *dev, struct wifi_connect_req_params 
 		memcpy(sta_network.ssid, params->ssid, params->ssid_length);
 		sta_network.ssid_specific = 1;
 
-		sta_network.channel = params->channel;
+		if (params->channel == WIFI_CHANNEL_ANY) {
+			sta_network.channel = 0;
+		} else {
+			sta_network.channel = params->channel;
+		}
 
 		if (params->mfp == WIFI_MFP_REQUIRED) {
 			sta_network.security.mfpc = true;
@@ -800,8 +809,9 @@ static int WPL_Connect(const struct device *dev, struct wifi_connect_req_params 
 	}
 
 	if (status == WPLRET_SUCCESS) {
-		syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_CONNECT_GROUP, true,
+		syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_CONNECT_GROUP, false,
 				       WPL_SYNC_TIMEOUT_MS);
+		k_event_clear(&s_wplSyncEvent, WPL_SYNC_CONNECT_GROUP);
 		if (syncBit & EVENT_BIT(WLAN_REASON_SUCCESS)) {
 			status = WPLRET_SUCCESS;
 		} else if (syncBit & EVENT_BIT(WLAN_REASON_CONNECT_FAILED)) {
@@ -869,8 +879,9 @@ static int WPL_Disconnect(const struct device *dev)
 	}
 
 	if (status == WPLRET_SUCCESS) {
-		syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_DISCONNECT_GROUP, true,
+		syncBit = k_event_wait(&s_wplSyncEvent, WPL_SYNC_DISCONNECT_GROUP, false,
 				       WPL_SYNC_TIMEOUT_MS);
+		k_event_clear(&s_wplSyncEvent, WPL_SYNC_DISCONNECT_GROUP);
 		if (syncBit & EVENT_BIT(WLAN_REASON_USER_DISCONNECT)) {
 			status = WPLRET_SUCCESS;
 		} else {
