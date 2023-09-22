@@ -246,10 +246,18 @@ static int bt_nxp_open(void)
 	return 0;
 }
 
+static int bt_nxp_close(void)
+{
+	/* Do nothing */
+
+	return 0;
+}
+
 
 static const struct bt_hci_driver drv = {
 	.name		= "BT NXP",
 	.open		= bt_nxp_open,
+	.close		= bt_nxp_close,
 	.send		= bt_nxp_send,
 	.bus		= BT_HCI_DRIVER_BUS_IPM,
 };
