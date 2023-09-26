@@ -1,7 +1,7 @@
 Early Access Release of Zephyr for the NXP RW61x Reference Design
 =================================================================
 
-Release: V2.0
+Release: EAR2.0
 
 This document summarizes the contents of the early access release for
 the Zephyr support of the NXP RW61X reference design.
@@ -15,8 +15,16 @@ Changes from: 1.1
   in order to reserve firmware storage partition
 - Added doc page for RD_RW612_BGA
 - Enable TRNG
-- Add GAU ACOMP driver
+- Add sensor driver enabling GAU ACOMP
 - Added NXP WIFI driver adapter layer
+- Added support for FlexSPI with external PSRAM and NOR Flash
+- Enabled support for MCUBoot and LittleFS
+- Added support for loading image to SRAM using ROM
+- Reworked GAU ADC driver, including devicetree binding updates
+- Switched to optimized memcpy implementation (fsl_memcpy) when using newlib
+- Removed MPU regions for SMU1 and SMU2, freeing 2 MPU regions for user
+  applications. Please note these MPU regions may sometimes be required
+  in an application overlay when using newlib
 
 Changes from: 1.0
 - Updated HAL to match latest internal SDK for RW61X
@@ -62,8 +70,7 @@ DISPLAY (SPI driver st7796s display controller)
 Known issues
 ============
 
-1 counter and adc test cases failure due to test node configuration missing. Need an overlay dts.
-2 samples/subsys/usb/cdc_acm_composite/sample.usb.cdc-acm-composite test failure
+1 samples/subsys/usb/cdc_acm_composite/sample.usb.cdc-acm-composite test failure
 
 BLE support
 ============
