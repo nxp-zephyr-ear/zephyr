@@ -111,7 +111,8 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 	printSeparator();
 
 	if (s_wplState >= WPL_INITIALIZED) {
-		k_event_set(&s_wplSyncEvent, EVENT_BIT(reason));
+		/* Do not replace the current set of events  */
+		k_event_post(&s_wplSyncEvent, EVENT_BIT(reason));
 	}
 
 	switch (reason) {
@@ -664,7 +665,7 @@ out:
 	g_mlan.scan_cb(g_mlan.netif, 0, NULL);
 	g_mlan.scan_cb = NULL;
 
-	k_event_set(&s_wplSyncEvent, EVENT_BIT(EVENT_SCAN_DONE));
+	k_event_post(&s_wplSyncEvent, EVENT_BIT(EVENT_SCAN_DONE));
 
 	return WM_SUCCESS;
 }
