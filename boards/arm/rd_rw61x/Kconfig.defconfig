@@ -39,6 +39,26 @@ config LV_Z_DOUBLE_VDB
 config LV_Z_FLUSH_THREAD
 	default y
 
+# Enable input subsystem for FT5336 driver
+config INPUT
+	default y
+
+# KSCAN subsystem must be enabled for KSCAN input shim driver
+config KSCAN
+	default y
+
+# Configure LVGL to use touchscreen with KSCAN API
+config LV_Z_POINTER_KSCAN
+	default y
+
+# Swap X/Y coordinates, and invert Y to match screen layout
+config LV_Z_POINTER_KSCAN_SWAP_XY
+	default y
+
+config LV_Z_POINTER_KSCAN_INVERT_Y
+	default y
+
+
 endif # LVGL
 
 # Limit flash load size to avoid overwriting fw storage partition
