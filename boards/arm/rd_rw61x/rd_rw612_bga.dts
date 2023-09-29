@@ -30,6 +30,7 @@
 		zephyr,console = &flexcomm3;
 		zephyr,shell-uart = &flexcomm3;
 		zephyr,display = &st7796s;
+		zephyr,keyboard-scan = &kscan_input;
 	};
 
 	leds {
@@ -147,6 +148,33 @@
 	#size-cells = <0>;
 	pinctrl-0 = <&pinmux_flexcomm2_i2c>;
 	pinctrl-names = "default";
+	ft7401: ft7401@38 {
+		/*
+		 * Settings to connect this touch controller:
+		 * Populate JP3 and JP50 to connect I2C
+		 * Controller can be connected to Arduino Header (J8/J5)
+		 * Pin #1 | Signal | Header
+		 * -------------------------------
+		 * 1      | VDD    | J8.2 (+3.3V)
+		 * 2      | IOVDD  | J8.4 (+3.3V)
+		 * 3      | SCL    | J5.10 (SCL)
+		 * 4      | SDA    | J5.9 (SDA)
+		 * 5      | INT    | Not Connected
+		 * 6      | RST    | J6.4 (D3)
+		 * 7      | GND    | J8.6 (GND)
+		 * 8      | GND    | J8.7 (GND)
+		 *
+		 * Note- the actual controller present on this IC is a FT7401,
+		 * but the FT5336 driver in Zephyr supports this IC.
+		 */
+		compatible = "focaltech,ft5336";
+		reg = <0x38>;
+		reset-gpios = <&hsgpio0 15 GPIO_ACTIVE_HIGH>;
+		/* Adapts input driver to kscan API */
+		kscan_input: kscan-input {
+			compatible = "zephyr,kscan-input";
+		};
+	};
 };
 
 &flexcomm3 {
