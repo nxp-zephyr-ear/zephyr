@@ -1026,6 +1026,9 @@ static void wifi_net_iface_init(struct net_if *iface)
 
 	/* Not do the wlan init until the last wifi netif configured */
 	if (init_cnt == wifi_net_iface_num) {
+		g_mlan.state.interface = WLAN_BSS_TYPE_STA;
+		g_uap.state.interface = WLAN_BSS_TYPE_UAP;
+
 #ifdef RW610
 		IRQ_CONNECT(72, 1, WL_MCI_WAKEUP0_DriverIRQHandler, 0, 0);
 		irq_enable(72);
