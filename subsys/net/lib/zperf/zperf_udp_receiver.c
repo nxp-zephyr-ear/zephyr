@@ -45,6 +45,7 @@ static void udp_svc_handler(struct k_work *work);
 
 NET_SOCKET_SERVICE_SYNC_DEFINE_STATIC(svc_udp, NULL, udp_svc_handler,
 				      SOCK_ID_MAX);
+static char udp_server_iface_name[Z_DEVICE_MAX_NAME_LEN];
 
 static inline void build_reply(struct zperf_udp_datagram *hdr,
 			       struct zperf_server_hdr *stat,
@@ -310,7 +311,8 @@ static void udp_svc_handler(struct k_work *work)
 
 static int zperf_udp_receiver_init(void)
 {
-	int ret;
+	int ret = 0;
+	int if_namelen;
 
 	for (int i = 0; i < ARRAY_SIZE(fds); i++) {
 		fds[i].fd = -1;
@@ -341,6 +343,21 @@ static int zperf_udp_receiver_init(void)
 			if (ret < 0) {
 				NET_WARN("Unable to set IPv4");
 				goto use_any_ipv4;
+			}
+		} else if (udp_server_iface_name[0]) {
+			if_namelen = strnlen(udp_server_iface_name, IFNAMSIZ);
+			if (if_namelen == IFNAMSIZ) {
+				NET_ERR("iface name is too long");
+				goto error;
+			}
+			ret = zsock_setsockopt(fds[SOCK_ID_IPV4].fd, SOL_SOCKET,
+					       SO_BINDTODEVICE,
+					       udp_server_iface_name,
+					       if_namelen);
+			if (ret < 0) {
+				NET_ERR("Could not bind to iface %s",
+					udp_server_iface_name);
+				goto error;
 			}
 		} else {
 use_any_ipv4:
@@ -447,6 +464,14 @@ int zperf_udp_download(const struct zperf_download_params *param,
 	udp_user_data  = user_data;
 	udp_server_port = param->port;
 	memcpy(&udp_server_addr, &param->addr, sizeof(struct sockaddr));
+
+	if (param->if_name[0]) {
+		memset(udp_server_iface_name, 0x0, sizeof(udp_server_iface_name));
+		strncpy(udp_server_iface_name, param->if_name,
+			sizeof(udp_server_iface_name));
+	} else {
+		udp_server_iface_name[0] = 0;
+	}
 
 	ret = zperf_udp_receiver_init();
 	if (ret < 0) {
