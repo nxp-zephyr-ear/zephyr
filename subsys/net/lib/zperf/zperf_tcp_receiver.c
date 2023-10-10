@@ -49,6 +49,7 @@ static bool tcp_server_running;
 static bool tcp_server_stop;
 static uint16_t tcp_server_port;
 static struct sockaddr tcp_server_addr;
+static char tcp_server_iface_name[Z_DEVICE_MAX_NAME_LEN];
 static K_SEM_DEFINE(tcp_server_run, 0, 1);
 
 static void tcp_received(const struct sockaddr *addr, size_t datalen)
@@ -175,6 +176,16 @@ static void tcp_server_session(void)
 				NET_WARN("Unable to set IPv4");
 				goto use_any_ipv4;
 			}
+		} else if (tcp_server_iface_name[0]) {
+			addr = zperf_get_if_in4_addr(&tcp_server_iface_name[0],
+				strlen(tcp_server_iface_name));
+			if (!addr) {
+				NET_ERR("Unable to get IPv4 by iface name %s",
+					tcp_server_iface_name);
+				goto error;
+			}
+			memcpy(&in4_addr->sin_addr, addr,
+				sizeof(struct in_addr));
 		} else {
 use_any_ipv4:
 			in4_addr->sin_addr.s_addr = INADDR_ANY;
@@ -388,6 +399,14 @@ int zperf_tcp_download(const struct zperf_download_params *param,
 	tcp_server_running = true;
 	tcp_server_stop = false;
 	memcpy(&tcp_server_addr, &param->addr, sizeof(struct sockaddr));
+
+	if (param->if_name[0]) {
+		memset(tcp_server_iface_name, 0x0, sizeof(tcp_server_iface_name));
+		strncpy(tcp_server_iface_name, param->if_name,
+			sizeof(tcp_server_iface_name));
+	} else {
+		tcp_server_iface_name[0] = 0;
+	}
 
 	k_sem_give(&tcp_server_run);
 
