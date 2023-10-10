@@ -339,6 +339,10 @@ static int cmd_udp_download(const struct shell *sh, size_t argc,
 			param.port = DEF_PORT;
 		}
 
+		if (argc >= 3) {
+			strncpy(param.if_name, argv[2], sizeof(param.if_name));
+		}
+
 		ret = zperf_udp_download(&param, udp_session_cb, (void *)sh);
 		if (ret == -EALREADY) {
 			shell_fprintf(sh, SHELL_WARNING,
@@ -1058,6 +1062,10 @@ static int cmd_tcp_download(const struct shell *sh, size_t argc,
 			param.port = DEF_PORT;
 		}
 
+		if (argc >= 3) {
+			strncpy(param.if_name, argv[2], sizeof(param.if_name));
+		}
+
 		ret = zperf_tcp_download(&param, tcp_session_cb, (void *)sh);
 		if (ret == -EALREADY) {
 			shell_fprintf(sh, SHELL_WARNING,
@@ -1180,7 +1188,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(zperf_cmd_tcp,
 		  ,
 		  cmd_tcp_upload2),
 	SHELL_CMD(download, &zperf_cmd_tcp_download,
-		  "[<port>]\n"
+		  "[<port> <interface name>]\n"
 		  "Example: tcp download 5001\n",
 		  cmd_tcp_download),
 	SHELL_SUBCMD_SET_END
@@ -1233,7 +1241,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(zperf_cmd_udp,
 		  ,
 		  cmd_udp_upload2),
 	SHELL_CMD(download, &zperf_cmd_udp_download,
-		  "[<port>]\n"
+		  "[<port> <interface name>]\n"
 		  "Example: udp download 5001\n",
 		  cmd_udp_download),
 	SHELL_SUBCMD_SET_END

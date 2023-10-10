@@ -43,6 +43,7 @@ struct zperf_upload_params {
 
 struct zperf_download_params {
 	uint16_t port;
+	char if_name[Z_DEVICE_MAX_NAME_LEN];
 };
 
 struct zperf_results {
