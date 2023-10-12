@@ -295,6 +295,13 @@
 		};
 	};
 
+	enet: ethernet@138000 {
+		compatible = "nxp,kinetis-ethernet";
+		reg = <0x138000 0x628>;
+		interrupts = <115 0>;
+		interrupt-names = "COMMON";
+		status = "disabled";
+	};
 };
 
 &flexspi {
