@@ -306,3 +306,19 @@ zephyr_udc0: &usb_otg {
 		ahb-write-wait-interval = <0>;
 	};
 };
+
+/*
+ * To use ethernet on RD_RW612_BGA board:
+ *
+ * Load R485, R486, R487, R488, R489, R491, R490,
+ * 	R522, R521, R520, R524, R523, R508, R505
+ * Remove R518, R507, R506
+ */
+&enet {
+	status = "okay";
+	pinctrl-0 = <&pinmux_enet>;
+	pinctrl-names = "default";
+	int-gpios = <&hsgpio1 23 GPIO_ACTIVE_HIGH>;
+	reset-gpios = <&hsgpio0 21 GPIO_ACTIVE_HIGH>;
+	phy-addr = <2>;
+};
