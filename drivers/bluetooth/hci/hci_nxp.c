@@ -70,6 +70,10 @@ LOG_MODULE_REGISTER(bt_driver);
 
 #endif /* HCI_NXP_SET_BDADDR */
 
+/* -------------------------------------------------------------------------- */
+/*                              Public prototypes                             */
+/* -------------------------------------------------------------------------- */
+
 extern int32_t ble_hci_handler(void);
 extern int32_t ble_wakeup_done_handler(void);
 
@@ -77,7 +81,7 @@ extern int32_t ble_wakeup_done_handler(void);
 /*                             Private functions                              */
 /* -------------------------------------------------------------------------- */
 
-#if CONFIG_HCI_NXP_ENABLE_AUTO_SLEEP
+#if CONFIG_HCI_NXP_ENABLE_AUTO_SLEEP || CONFIG_HCI_NXP_SET_CAL_DATA
 static int nxp_bt_send_vs_command(uint16_t opcode, const uint8_t *params, uint8_t params_len)
 {
 	struct net_buf *buf;
@@ -95,7 +99,9 @@ static int nxp_bt_send_vs_command(uint16_t opcode, const uint8_t *params, uint8_
 	/* Send the command */
 	return bt_hci_cmd_send_sync(opcode, buf, NULL);
 }
+#endif /* CONFIG_HCI_NXP_ENABLE_AUTO_SLEEP || CONFIG_HCI_NXP_SET_CAL_DATA */
 
+#if CONFIG_HCI_NXP_ENABLE_AUTO_SLEEP
 static int nxp_bt_enable_controller_autosleep(void)
 {
 	uint16_t opcode = BT_OP(BT_OGF_VS, HCI_CMD_SET_BT_SLEEP_MODE_OCF);
@@ -122,6 +128,33 @@ static int nxp_bt_set_host_sleep_config(void)
 }
 #endif /* CONFIG_HCI_NXP_ENABLE_AUTO_SLEEP */
 
+#if CONFIG_HCI_NXP_SET_CAL_DATA
+static int bt_nxp_set_calibration_data(void)
+{
+	uint16_t opcode = BT_OP(BT_OGF_VS, HCI_CMD_STORE_BT_CAL_DATA_OCF);
+	extern const uint8_t hci_cal_data_params[HCI_CMD_STORE_BT_CAL_DATA_PARAM_LENGTH];
+
+	/* Send the command */
+	return nxp_bt_send_vs_command(opcode, hci_cal_data_params,
+				      HCI_CMD_STORE_BT_CAL_DATA_PARAM_LENGTH);
+}
+
+#if CONFIG_HCI_NXP_SET_CAL_DATA_ANNEX100
+static int bt_nxp_set_calibration_data_annex100(void)
+{
+	uint16_t opcode = BT_OP(BT_OGF_VS, HCI_CMD_STORE_BT_CAL_DATA_ANNEX100_OCF);
+
+	extern const uint8_t
+		hci_cal_data_annex100_params[HCI_CMD_STORE_BT_CAL_DATA_PARAM_ANNEX100_LENGTH];
+
+	/* Send the command */
+	return nxp_bt_send_vs_command(opcode, hci_cal_data_annex100_params,
+				      HCI_CMD_STORE_BT_CAL_DATA_PARAM_ANNEX100_LENGTH);
+}
+#endif /* CONFIG_HCI_NXP_SET_CAL_DATA_ANNEX100 */
+
+#endif /* CONFIG_HCI_NXP_SET_CAL_DATA */
+
 #ifdef CONFIG_HCI_NXP_SET_BDADDR
 static void bt_nxp_set_address(void)
 {
@@ -147,14 +180,14 @@ static void bt_nxp_set_address(void)
 	/* Set 3 LSB of MAC address from UUID */
 	if (uuidLen >= PLATFORM_BLE_BD_ADDR_OUI_PART_SIZE) {
 		memcpy((void *)bleDeviceAddress,
-			   (void *)(uid + uuidLen - PLATFORM_BLE_BD_ADDR_OUI_PART_SIZE),
-			   PLATFORM_BLE_BD_ADDR_OUI_PART_SIZE);
+		       (void *)(uid + uuidLen - PLATFORM_BLE_BD_ADDR_OUI_PART_SIZE),
+		       PLATFORM_BLE_BD_ADDR_OUI_PART_SIZE);
 	}
 	/* Set 3 MSB of MAC address from OUI */
 	memcpy((void *)(bleDeviceAddress + PLATFORM_BLE_BD_ADDR_OUI_PART_SIZE), (void *)addrOUI,
-		   PLATFORM_BLE_BD_ADDR_OUI_PART_SIZE);
+	       PLATFORM_BLE_BD_ADDR_OUI_PART_SIZE);
 	memcpy((void *)&hciPacket[HCI_CMD_PACKET_HEADER_LENGTH + 2U],
-		   (const void *)bleDeviceAddress, BLE_DEVICE_ADDR_SIZE);
+	       (const void *)bleDeviceAddress, BLE_DEVICE_ADDR_SIZE);
 	hciBuffer[0] = HCI_CMD;
 	memcpy(hciBuffer + 1U, (const void *)hciPacket, packetSize);
 
@@ -342,6 +375,26 @@ static int bt_nxp_open(void)
 #if CONFIG_HCI_NXP_SET_BDADDR
 		bt_nxp_set_address();
 #endif /* HCI_NXP_SET_BDADDR */
+
+#if CONFIG_HCI_NXP_SET_CAL_DATA
+		ret = bt_nxp_set_calibration_data();
+		if (ret < 0) {
+			LOG_ERR("Failed to set calibration data");
+			break;
+		}
+#if CONFIG_HCI_NXP_SET_CAL_DATA_ANNEX100
+		/* After send annex55 to CPU2, CPU2 need reset,
+		 * a delay of at least 20ms is required to continue sending annex100
+		 */
+		k_sleep(Z_TIMEOUT_MS(20));
+
+		ret = bt_nxp_set_calibration_data_annex100();
+		if (ret < 0) {
+			LOG_ERR("Failed to set calibration data");
+			break;
+		}
+#endif /* CONFIG_HCI_NXP_SET_CAL_DATA_ANNEX100 */
+#endif /* CONFIG_HCI_NXP_SET_CAL_DATA */
 
 #if CONFIG_HCI_NXP_ENABLE_AUTO_SLEEP
 		ret = nxp_bt_set_host_sleep_config();
