@@ -10,7 +10,9 @@ tests:
       - usb
       - bluetooth
     # FIXME: exclude due to build error
-    platform_exclude: 96b_carbon
+    platform_exclude:
+      - 96b_carbon
+      - rd_rw612_bga
   sample.bluetooth.hci_usb.device_next:
     harness: bluetooth
     depends_on:
