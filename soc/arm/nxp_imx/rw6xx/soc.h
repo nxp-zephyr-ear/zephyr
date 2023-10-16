@@ -35,7 +35,8 @@ static inline void EnableDeepSleepIRQ(IRQn_Type irq)
 #define INPUTMUX_PINTSEL_COUNT INPUTMUX_PINT_SEL_COUNT
 #endif
 
-#define ble_wakeup_handler	BLE_MCI_WAKEUP0_DriverIRQHandler
+#define ble_hci_handler         BLE_MCI_WAKEUP0_DriverIRQHandler
+#define ble_wakeup_done_handler BLE_MCI_WAKEUP_DONE0_DriverIRQHandler
 
 #ifdef CONFIG_MEMC
 uint32_t flexspi_clock_set_freq(uint32_t clock_name, uint32_t rate);
