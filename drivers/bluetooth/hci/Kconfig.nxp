@@ -9,3 +9,12 @@ config HCI_NXP_SET_BDADDR
 	default n
 	help
 	  If enabled, the BD_ADDR will be set by the host at HCI init, using a HCI vendor command.
+
+config HCI_NXP_ENABLE_AUTO_SLEEP
+	bool "BLE Controller auto sleep mode"
+	default n
+	help
+	  If enabled, the Controller auto sleep mode will be configured and enabled during HCI init.
+	  Auto sleep mode means the Controller will handle its low power state automatically.
+	  Enabling this feature will allow to save power at the cost of some latency when sending a HCI
+	  message to the Controller as the Host will need to wake it up.
