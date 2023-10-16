@@ -39,6 +39,12 @@ config BT_HCI_ACL_FLOW_CONTROL
 config HCI_NXP_ENABLE_AUTO_SLEEP
 	default y
 
+config HCI_NXP_SET_CAL_DATA
+	default y
+
+config HCI_NXP_SET_CAL_DATA_ANNEX100
+	default n
+
 endif # BT
 
 config NXP_FW_LOADER
