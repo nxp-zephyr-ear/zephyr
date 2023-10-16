@@ -18,3 +18,16 @@ config HCI_NXP_ENABLE_AUTO_SLEEP
 	  Auto sleep mode means the Controller will handle its low power state automatically.
 	  Enabling this feature will allow to save power at the cost of some latency when sending a HCI
 	  message to the Controller as the Host will need to wake it up.
+
+config HCI_NXP_SET_CAL_DATA
+	bool "BLE Controller calibration data"
+	default n
+	help
+	  If enabled, the Host will send calibration data to the BLE Controller during HCI init.
+
+config HCI_NXP_SET_CAL_DATA_ANNEX100
+	bool "BLE Controller calibration data annex 100"
+	default n
+	help
+	  If enabled, the Host will send calibration data annex 100 to the BLE Controller during HCI
+	  init.
