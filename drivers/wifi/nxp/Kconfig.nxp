@@ -400,6 +400,24 @@ config RF_TEST_MODE
    help
      This option enables WLAN test mode commands.
 
+config IMD3_CFG
+	bool "Set imd validation parameters"
+	default y
+	help
+		This option is used to set IM3 configuration for Wi-Fi, BLE coex mode and antenna isolation debug.
+
+config EU_VALIDATION
+	bool "FIPS Support"
+	default y
+	help
+		This option enables FIPS Support.
+
+config WIFI_CLOCKSYNC
+	bool "Clock sync using TSF latch"
+	default y
+	help
+		This option enables clock synchronization of TSF latches.
+
 endif
 
 if IW61x
