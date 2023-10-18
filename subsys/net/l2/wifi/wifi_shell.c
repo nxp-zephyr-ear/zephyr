@@ -1626,7 +1626,6 @@ SHELL_STATIC_SUBCMD_SET_CREATE(wifi_twt_ops,
 );
 
 SHELL_STATIC_SUBCMD_SET_CREATE(wifi_commands,
-	SHELL_CMD(ap, &wifi_cmd_ap, "Access Point mode commands", NULL),
 	SHELL_CMD(connect, NULL,
 		  "Connect to a Wi-Fi AP\n"
 		  "\"<SSID>\"\n"
