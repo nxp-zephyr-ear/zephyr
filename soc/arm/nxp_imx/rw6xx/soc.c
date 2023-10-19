@@ -26,6 +26,8 @@
 #include <fsl_device_registers.h>
 #include "soc.h"
 #include "flexspi_clock_setup.h"
+#include "fsl_ocotp.h"
+#include "mcuxClEls.h"
 
 #ifdef CONFIG_NXP_RW6XX_BOOT_HEADER
 extern char z_main_stack[];
@@ -78,11 +80,137 @@ const clock_avpll_config_t avpll_config = {
 	.enableCali = true
 };
 
+struct otp_gdet_data {
+	uint32_t CFG0;
+	uint32_t CFG1;
+	uint32_t CFG2;
+	uint32_t CFG3;
+	uint32_t CFG4;
+	uint32_t CFG5;
+	uint32_t TRIM0;
+};
+
+static void load_gdet_cfg(struct otp_gdet_data *data, uint32_t pack)
+{
+	data->CFG3 = POWER_TrimSvc(data->CFG3, pack);
+
+	/* GDET clock has been characterzed to 64MHz */
+	CLKCTL0->ELS_GDET_CLK_SEL = CLKCTL0_ELS_GDET_CLK_SEL_SEL(2);
+
+	/* Clear the GDET reset */
+	RSTCTL0->PRSTCTL1_CLR = RSTCTL0_PRSTCTL1_CLR_ELS_GDET_REF_RST_N_MASK;
+
+	/* Enable ELS */
+	MCUX_CSSL_FP_FUNCTION_CALL_BEGIN(result, token, mcuxClEls_Enable_Async());
+	if ((token != MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Enable_Async)) ||
+	    (result != MCUXCLELS_STATUS_OK_WAIT)) {
+		assert(false);
+	}
+	MCUX_CSSL_FP_FUNCTION_CALL_END();
+
+	/* Wait for the mcuxClEls_Enable_Async operation to complete. */
+	MCUX_CSSL_FP_FUNCTION_CALL_BEGIN(result, token,
+				mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+	/* mcuxClEls_WaitForOperation is a flow-protected function:
+	 * Check the protection token and the return value
+	 */
+	if ((token != MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation)) ||
+	    (result != MCUXCLELS_STATUS_OK)) {
+		assert(false);
+	}
+	MCUX_CSSL_FP_FUNCTION_CALL_END();
+
+	/* LOAD command */
+	MCUX_CSSL_FP_FUNCTION_CALL_BEGIN(result, token,
+				mcuxClEls_GlitchDetector_LoadConfig_Async((uint8_t *)data));
+	if ((token != MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_GlitchDetector_LoadConfig_Async)) ||
+	    (result != MCUXCLELS_STATUS_OK_WAIT)) {
+		assert(false);
+	}
+	MCUX_CSSL_FP_FUNCTION_CALL_END();
+	/* Wait for the mcuxClEls_GlitchDetector_LoadConfig_Async
+	 * operation to complete.
+	 */
+	MCUX_CSSL_FP_FUNCTION_CALL_BEGIN(result, token,
+					 mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+	if ((token != MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation)) ||
+	    (result != MCUXCLELS_STATUS_OK)) {
+		assert(false);
+	}
+	MCUX_CSSL_FP_FUNCTION_CALL_END();
+
+	/* Wait for ELS ready */
+	while ((ELS->ELS_STATUS & ELS_ELS_STATUS_ELS_BUSY_MASK) != 0U) {
+	}
+}
+
+/* Configure voltage sensor and glitch detect blocks.
+ * The configuration values are read from the OCOTP block
+ */
+static void config_svc_sensor(void)
+{
+	uint64_t svc;
+	uint32_t pack;
+	status_t status;
+	struct otp_gdet_data gdetData;
+
+	OCOTP_OtpInit();
+
+	status = OCOTP_ReadSVC(&svc);
+
+	if (status == kStatus_Success) {
+		/* CES */
+		status = OCOTP_ReadPackage(&pack);
+		if (status == kStatus_Success) {
+			/*
+			 * A2 CES: Use SVC voltage.
+			 * A1 CES: Keep boot voltage 1.11V.
+			 */
+			POWER_InitVoltage((uint32_t)svc >> 16, pack);
+		}
+
+		/* SVC GDET config */
+		status = (status == kStatus_Success) ? OCOTP_OtpFuseRead(149, &gdetData.CFG0) :
+			  status;
+		status = (status == kStatus_Success) ? OCOTP_OtpFuseRead(150, &gdetData.CFG1) :
+			  status;
+		status = (status == kStatus_Success) ? OCOTP_OtpFuseRead(151, &gdetData.CFG2) :
+			  status;
+		status = (status == kStatus_Success) ? OCOTP_OtpFuseRead(155, &gdetData.CFG3) :
+			  status;
+		status = (status == kStatus_Success) ? OCOTP_OtpFuseRead(153, &gdetData.CFG4) :
+			  status;
+		status = (status == kStatus_Success) ? OCOTP_OtpFuseRead(154, &gdetData.CFG5) :
+			  status;
+
+		if (status == kStatus_Success) {
+			load_gdet_cfg(&gdetData, pack);
+		}
+	} else {
+		/* A1/A2 non-CES */
+		SystemCoreClockUpdate();
+
+		/* LPBG trim */
+		BUCK11->BUCK_CTRL_EIGHTEEN_REG = 0x6U;
+		/* Change buck level */
+		PMU->PMIP_BUCK_LVL = PMU_PMIP_BUCK_LVL_SLEEP_BUCK18_SEL(0x60U) |
+			PMU_PMIP_BUCK_LVL_SLEEP_BUCK11_SEL(0x22U) |
+			PMU_PMIP_BUCK_LVL_NORMAL_BUCK18_SEL(0x60U) |
+			PMU_PMIP_BUCK_LVL_NORMAL_BUCK11_SEL(0x54U);
+		/* Delay 600us */
+		SDK_DelayAtLeastUs(600, SystemCoreClock);
+	}
+
+	OCOTP_OtpDeinit();
+}
+
 /**
  * @brief Initialize the system clocks and peripheral clocks
  */
 static ALWAYS_INLINE void clock_init(void)
 {
+	POWER_DisableGDetVSensors();
+
 	if ((PMU->CAU_SLP_CTRL & PMU_CAU_SLP_CTRL_SOC_SLP_RDY_MASK) == 0U) {
 		/* LPOSC not enabled, enable it */
 		CLOCK_EnableClock(kCLOCK_RefClkCauSlp);
@@ -99,17 +227,11 @@ static ALWAYS_INLINE void clock_init(void)
 	/* Enable T3 256M clock and SFRO */
 	CLOCK_EnableClock(kCLOCK_T3PllMci256mClk);
 
+	config_svc_sensor();
 	/* Move FLEXSPI clock source to T3 256m / 4 to avoid instruction/data fetch issue in XIP
 	 * when updating PLL and main clock.
 	 */
 	set_flexspi_clock(FLEXSPI, 6U, 4U);
-
-	/* Enable AUX0 PLL to 260 MHz */
-	CLOCK_SetClkDiv(kCLOCK_DivAux0PllClk, 1U);
-
-	/* Init AVPLL and enable both channels */
-	CLOCK_InitAvPll(&avpll_config);
-	CLOCK_SetClkDiv(kCLOCK_DivAudioPllClk, 1U);
 
 	/* First let M33 run on SOSC */
 	CLOCK_AttachClk(kSYSOSC_to_MAIN_CLK);
@@ -123,6 +245,13 @@ static ALWAYS_INLINE void clock_init(void)
 	/* tddr_mci_flexspi_clk 320MHz */
 	CLOCK_InitTddrRefClk(kCLOCK_TddrFlexspiDiv10);
 	CLOCK_EnableClock(kCLOCK_TddrMciFlexspiClk); /* 320MHz */
+
+	/* Enable AUX0 PLL to 260 MHz */
+	CLOCK_SetClkDiv(kCLOCK_DivAux0PllClk, 1U);
+
+	/* Init AVPLL and enable both channels */
+	CLOCK_InitAvPll(&avpll_config);
+	CLOCK_SetClkDiv(kCLOCK_DivAudioPllClk, 1U);
 
 	/* Configure MainPll to 260MHz, then let CM33 run on Main PLL. */
 	CLOCK_SetClkDiv(kCLOCK_DivSysCpuAhbClk, 1U);
@@ -256,6 +385,8 @@ static ALWAYS_INLINE void clock_init(void)
 	RESET_PeripheralReset(kENET_IPG_S_RST_SHIFT_RSTn);
 	CLOCK_EnableClock(kCLOCK_TddrMciEnetClk);
 #endif /* CONFIG_NET_L2_ETHERNET */
+
+	POWER_EnableGDetVSensors();
 }
 
 /**
@@ -270,8 +401,6 @@ static ALWAYS_INLINE void clock_init(void)
 
 static int nxp_rw600_init(void)
 {
-
-	POWER_DisableGDetVSensors();
 
 #if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(wwdt), nxp_lpc_wwdt, okay))
 	POWER_EnableResetSource(kPOWER_ResetSourceWdt);
