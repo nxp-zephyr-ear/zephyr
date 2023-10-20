@@ -442,6 +442,10 @@ static int bt_nxp_init(void)
 	IRQ_CONNECT(HCI_WAKEUP_IRQ_N, HCI_WAKEUP_IRQ_P, ble_wakeup_done_handler, 0, 0);
 	irq_enable(HCI_WAKEUP_IRQ_N);
 
+#if (DT_INST_PROP(0, wakeup_source))
+	EnableDeepSleepIRQ(HCI_IRQ_N);
+#endif
+
 	do {
 		status = PLATFORM_InitBle();
 		if (status < 0) {
