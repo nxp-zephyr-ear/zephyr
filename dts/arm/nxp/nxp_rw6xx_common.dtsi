@@ -15,10 +15,6 @@
 	aliases {
 	};
 
-	chosen {
-		zephyr,entropy = &trng;
-	};
-
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -68,13 +64,6 @@
 		compatible = "nxp,rw-iomux-pinctrl";
 		reg = <0x4000 0x1000>;
 		status = "okay";
-	};
-
-	trng: random@14000 {
-		compatible = "nxp,kinetis-trng";
-		reg = <0x14000 0x1000>;
-		status = "okay";
-		interrupts = <123 0>;
 	};
 
 	clkctl1: clkctl@21000 {
