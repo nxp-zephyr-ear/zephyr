@@ -245,14 +245,6 @@ void *memc_flexspi_get_ahb_address(const struct device *dev,
 		offset += data->size[i];
 	}
 
-#if defined(FSL_FEATURE_FLEXSPI_SUPPORT_ADDRESS_SHIFT) && \
-	(FSL_FEATURE_FLEXSPI_SUPPORT_ADDRESS_SHIFT)
-	if (data->base->FLSHCR0[port] & FLEXSPI_FLSHCR0_ADDRSHIFT_MASK) {
-		/* Address shift is set, add 0x1000_0000 to AHB address */
-		offset += 0x10000000;
-	}
-#endif
-
 	return data->ahb_base + offset;
 }
 
@@ -296,7 +288,7 @@ static int memc_flexspi_init(const struct device *dev)
 	flexspi_config.rxSampleClock = data->rx_sample_clock;
 #if defined(FSL_FEATURE_FLEXSPI_SUPPORT_SEPERATE_RXCLKSRC_PORTB) && \
 FSL_FEATURE_FLEXSPI_SUPPORT_SEPERATE_RXCLKSRC_PORTB
-	flexspi_config.rxSampleClockPortB = data->rx_sample_clock_b;
+	flexspi_config.rxSampleBlockPortB = data->rx_sample_clock_b;
 #endif
 
 	/* Configure AHB RX buffers, if any configuration settings are present */
