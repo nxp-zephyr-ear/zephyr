@@ -17,7 +17,6 @@
 		usart-0 = &flexcomm3;
 		led0 = &green_led;
 		sw0 = &sw_4;
-		watchdog0 = &wwdt;
 	};
 
 	chosen {
@@ -67,9 +66,5 @@
 };
 
 &hsgpio0 {
-	status = "okay";
-};
-
-&wwdt {
 	status = "okay";
 };
