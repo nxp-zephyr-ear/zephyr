@@ -55,8 +55,6 @@ Supported Features
 +-----------+------------+-----------------------------------+
 | ADC       | on-chip    | adc                               |
 +-----------+------------+-----------------------------------+
-| TRNG      | on-chip    | entropy                             |
-+-----------+------------+-------------------------------------+
 
 The default configuration can be found in the defconfig file:
 
