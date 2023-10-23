@@ -73,7 +73,3 @@
 &wwdt {
 	status = "okay";
 };
-
-zephyr_udc0: &usb_otg {
-	status = "okay";
-};

@@ -22,18 +22,6 @@ static int rdrw610_evk_init(void)
 	CLOCK_AttachClk(kSFRO_to_FLEXCOMM2);
 #endif
 
-
-#if DT_NODE_HAS_STATUS(DT_NODELABEL(usb_otg), okay) && CONFIG_USB_DC_NXP_EHCI
-	/* Enable system xtal from Analog */
-	SYSCTL2->ANA_GRP_CTRL |= (1UL << SYSCTL2_ANA_GRP_CTRL_PU_SHIFT);
-	/* reset USB */
-	RESET_PeripheralReset(kUSB_RST_SHIFT_RSTn);
-	/* enable usb clock */
-	CLOCK_EnableClock(kCLOCK_Usb);
-	/* enable usb phy clock */
-	CLOCK_EnableUsbhsPhyClock();
-#endif
-
 	return 0;
 }
 
