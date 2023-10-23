@@ -46,24 +46,24 @@ extern void z_arm_exc_spurious(void);
 
 __imx_boot_ivt_section void (*const image_vector_table[])(void) = {
 	(void (*)())(z_main_stack + CONFIG_MAIN_STACK_SIZE), /* 0x00 */
-	z_arm_reset,                                         /* 0x04 */
-	z_arm_nmi,                                           /* 0x08 */
-	z_arm_hard_fault,                                    /* 0x0C */
-	z_arm_mpu_fault,                                     /* 0x10 */
-	z_arm_bus_fault,                                     /* 0x14 */
-	z_arm_usage_fault,                                   /* 0x18 */
+	z_arm_reset,					     /* 0x04 */
+	z_arm_nmi,					     /* 0x08 */
+	z_arm_hard_fault,				     /* 0x0C */
+	z_arm_mpu_fault,				     /* 0x10 */
+	z_arm_bus_fault,				     /* 0x14 */
+	z_arm_usage_fault,				     /* 0x18 */
 #if defined(CONFIG_ARM_SECURE_FIRMWARE)
 	z_arm_secure_fault, /* 0x1C */
 #else
 	z_arm_exc_spurious,
-#endif                                  /* CONFIG_ARM_SECURE_FIRMWARE */
-	(void (*)())_flash_used,        /* 0x20, imageLength. */
-	0,                              /* 0x24, imageType (Plain Image) */
-	0,                              /* 0x28, authBlockOffset/crcChecksum */
-	z_arm_svc,                      /* 0x2C */
-	z_arm_debug_monitor,            /* 0x30 */
+#endif					/* CONFIG_ARM_SECURE_FIRMWARE */
+	(void (*)())_flash_used,	/* 0x20, imageLength. */
+	0,				/* 0x24, imageType (Plain Image) */
+	0,				/* 0x28, authBlockOffset/crcChecksum */
+	z_arm_svc,			/* 0x2C */
+	z_arm_debug_monitor,		/* 0x30 */
 	(void (*)())image_vector_table, /* 0x34, imageLoadAddress. */
-	z_arm_pendsv,                   /* 0x38 */
+	z_arm_pendsv,			/* 0x38 */
 #if defined(CONFIG_SYS_CLOCK_EXISTS) && defined(CONFIG_CORTEX_M_SYSTICK_INSTALL_ISR)
 	sys_clock_isr, /* 0x3C */
 #else
@@ -98,30 +98,11 @@ static ALWAYS_INLINE void clock_init(void)
 	/* Enable T3 256M clock and SFRO */
 	CLOCK_EnableClock(kCLOCK_T3PllMci256mClk);
 
-	/* Move FLEXSPI clock source to T3 256m / 4 to avoid instruction/data fetch issue in XIP
-	 * when updating PLL and main clock.
-	 */
-	set_flexspi_clock(FLEXSPI, 6U, 4U);
+	flexspi_safe_config();
 
 	/* First let M33 run on SOSC */
 	CLOCK_AttachClk(kSYSOSC_to_MAIN_CLK);
 	CLOCK_SetClkDiv(kCLOCK_DivSysCpuAhbClk, 1);
-
-	/* tcpu_mci_clk configured to 260MHz, tcpu_mci_flexspi_clk 312MHz. */
-	CLOCK_InitTcpuRefClk(3120000000UL, kCLOCK_TcpuFlexspiDiv10);
-	/* Enable tcpu_mci_clk 260MHz. Keep tcpu_mci_flexspi_clk gated. */
-	CLOCK_EnableClock(kCLOCK_TcpuMciClk);
-
-	/* tddr_mci_flexspi_clk 320MHz */
-	CLOCK_InitTddrRefClk(kCLOCK_TddrFlexspiDiv10);
-	CLOCK_EnableClock(kCLOCK_TddrMciFlexspiClk); /* 320MHz */
-
-	/* Enable AUX0 PLL to 260MHz. */
-	CLOCK_SetClkDiv(kCLOCK_DivAux0PllClk, 1U);
-
-	/* Init AVPLL and enable both channels. */
-	CLOCK_InitAvPll(&g_avpllConfig_BOARD_BootClockRUN);
-	CLOCK_SetClkDiv(kCLOCK_DivAudioPllClk, 1U);
 
 	/* Configure MainPll to 260MHz, then let CM33 run on Main PLL. */
 	CLOCK_SetClkDiv(kCLOCK_DivSysCpuAhbClk, 1U);
@@ -134,9 +115,6 @@ static ALWAYS_INLINE void clock_init(void)
 
 	/* Set PLL FRG clock to 20MHz. */
 	CLOCK_SetClkDiv(kCLOCK_DivPllFrgClk, 13U);
-
-	/* Call function set_flexspi_clock() to set flexspi clock source to aux0_pll_clk in XIP. */
-	set_flexspi_clock(FLEXSPI, 2U, 2U);
 
 #if DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(os_timer), nxp_os_timer, okay)
 	CLOCK_AttachClk(kLPOSC_to_OSTIMER_CLK);
@@ -186,7 +164,12 @@ static ALWAYS_INLINE void clock_init(void)
 	CLOCK_AttachClk(kFRG_to_FLEXCOMM14);
 #endif
 	/* Set up USART clock to debug configuration by default */
-	const clock_frg_clk_config_t debug_clock_conf = {3, kCLOCK_FrgPllDiv, 255, 0};
+	const clock_frg_clk_config_t debug_clock_conf = {
+		3,
+		kCLOCK_FrgPllDiv,
+		255,
+		0
+	};
 	CLOCK_SetFRGClock(&debug_clock_conf);
 
 /* Any flexcomm can be I2C */
@@ -206,6 +189,7 @@ static ALWAYS_INLINE void clock_init(void)
 	CLOCK_AttachClk(kSFRO_to_FLEXCOMM14);
 #endif
 
+
 /* Clock flexcomms when used as SPI */
 #ifdef CONFIG_SPI
 #if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm0), nxp_lpc_spi, okay))
@@ -224,6 +208,7 @@ static ALWAYS_INLINE void clock_init(void)
 	CLOCK_AttachClk(kSFRO_to_FLEXCOMM14);
 #endif
 #endif /* CONFIG_SPI */
+
 
 #endif /* CONFIG_SOC_RW610 */
 }
