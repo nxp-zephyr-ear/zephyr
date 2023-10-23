@@ -463,10 +463,4 @@ config MBEDTLS_LMS
 	depends on MBEDTLS_PSA_CRYPTO_C
 	depends on MBEDTLS_HASH_SHA256_ENABLED
 
-config MBEDTLS_HKDF_C
-	bool "HMAC key derivation functions"
-	select MBEDTLS_MD
-	help
-	   "Enable HMAC key derivation functions"
-
 endmenu
