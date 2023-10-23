@@ -36,16 +36,13 @@ config BT_BUF_EVT_DISCARDABLE_SIZE
 config BT_HCI_ACL_FLOW_CONTROL
 	default n
 
-config BT_ATT_ENFORCE_FLOW
-	default n
-
-endif # BT
-
 config NXP_FW_LOADER
-	default y if (BT || WIFI)
+	default y
 
 config NXP_RF_IMU
-	default y if (BT || WIFI)
+	default y
+
+endif # BT
 
 choice USB_MCUX_CONTROLLER_TYPE
 	default USB_DC_NXP_EHCI
