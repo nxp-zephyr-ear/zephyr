@@ -55,10 +55,8 @@ Supported Features
 +-----------+------------+-----------------------------------+
 | ADC       | on-chip    | adc                               |
 +-----------+------------+-----------------------------------+
-| TRNG      | on-chip    | entropy                           |
-+-----------+------------+-----------------------------------+
-| ACOMP     | on-chip    | sensor                            |
-+-----------+------------+-----------------------------------+
+| TRNG      | on-chip    | entropy                             |
++-----------+------------+-------------------------------------+
 
 The default configuration can be found in the defconfig file:
 
@@ -132,3 +130,4 @@ Resources
 
 .. _RW612 Website:
    https://www.nxp.com/products/wireless-connectivity/wi-fi-plus-bluetooth-plus-802-15-4/wireless-mcu-with-integrated-tri-radiobr1x1-wi-fi-6-plus-bluetooth-low-energy-5-3-802-15-4:RW612
+
