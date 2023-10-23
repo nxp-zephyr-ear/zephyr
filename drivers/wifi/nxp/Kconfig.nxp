@@ -267,12 +267,6 @@ config UNII4_BAND_SUPPORT
    help
      This option is used to enable/disable UNII4 channels.
 
-config CAU_TEMPERATURE
-   bool "Cau temperature"
-   default y
-   help
-     This option is used to enable/disable Cau temperature.
-
 config TSP
    bool "TSP"
    default y
