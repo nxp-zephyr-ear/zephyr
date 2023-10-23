@@ -86,32 +86,6 @@ Limitations:
 	- Enforcement of ATT flow control (BT_ATT_ENFORCE_FLOW) prevent some applications to connect
 	  with the peer device. This feature is disabled for now for the concerned application.
 
-Wi-Fi support
-============
-
-Features included
-    - 802.11b/g/a/n/ac/ax
-    - 802.11d/k/v/w
-    - 802.11y (ECSA)
-    - 802.11e (WMM)
-    - 802.11i
-    - Wi-Fi STA and MicroAP Mode
-    - Wi-Fi IEEE power save
-    - Wi-Fi Secure FW boot
-    - wpa_supplicant
-        open/wpa2/wpa3
-        WPS
-        802.1x (EAP-TLS, EAP-PEAPv0/MSCHAPv2, EAP-PEAPv1/GTC, EAP-TTLS/MSCHAPv2)
-        Wi-Fi Eascy Connect (DPP)
-        STA mode Auto reconnect
-
-Wi-Fi applications supported in this release are
-    - wifi                      (samples/net/wifi)
-    - MFG tools                 (samples/boards/rd_rw612_bga/nxp_mfg_bridge)
-
-Limitations
-    - wpa_supplicant hardware accelerators for security cryptography are not supported yet
-
 How to get the code
 ===================
 
