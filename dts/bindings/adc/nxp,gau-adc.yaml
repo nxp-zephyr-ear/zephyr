@@ -17,6 +17,19 @@ properties:
   interrupts:
     required: true
 
+  resolution:
+    type: int
+    required: true
+    description: |
+      Resolution of ADC in bits, this is global to every channel.
+      Note that the Zephyr API will allow changing resolution
+      at channel_setup call, but this ADC cannot have different
+      resolutions for each channel.
+    enum:
+      - 11
+      - 13
+      - 15
+
   oversampling:
     type: int
     required: false
