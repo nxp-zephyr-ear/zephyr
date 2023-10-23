@@ -55,7 +55,6 @@ LOG_MODULE_REGISTER(wifi_nxp, CONFIG_WIFI_LOG_LEVEL);
 
 #define EVENT_SCAN_DONE     23
 #define WPL_SYNC_SCAN_GROUP EVENT_BIT(EVENT_SCAN_DONE)
-#define wifi_net_iface_num  2
 
 typedef enum _wpl_state {
 	WPL_NOT_INITIALIZED,
@@ -1013,6 +1012,16 @@ static int wifi_net_init(const struct device *dev)
 	return 0;
 }
 
+static int wifi_net_if_cnt(void)
+{
+	int if_count = 0;
+
+	STRUCT_SECTION_FOREACH(net_if, iface) {
+		if_count++;
+	}
+	return if_count;
+}
+
 static void wifi_net_iface_init(struct net_if *iface)
 {
 	static int init_cnt;
@@ -1024,8 +1033,8 @@ static void wifi_net_iface_init(struct net_if *iface)
 	net_if_flag_set(iface, NET_IF_NO_AUTO_START);
 	init_cnt++;
 
-	/* Not do the wlan init until the last wifi netif configured */
-	if (init_cnt == wifi_net_iface_num) {
+	/* Not do the wlan init until the last netif configured */
+	if (init_cnt == wifi_net_if_cnt()) {
 #ifdef RW610
 		IRQ_CONNECT(72, 1, WL_MCI_WAKEUP0_DriverIRQHandler, 0, 0);
 		irq_enable(72);
