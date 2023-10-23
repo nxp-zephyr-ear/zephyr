@@ -16,7 +16,7 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	trigger-source = "software";
+	conversion-mode = <GAU_ADC_ONE_SHOT>;
 
 	channel@0 {
 		reg = <0>;
