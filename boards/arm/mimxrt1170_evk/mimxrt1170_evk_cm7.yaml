@@ -25,7 +25,6 @@ supported:
   - kscan:touch
   - mipi_dsi
   - netif:eth
-  - sdhc
   - pwm
   - spi
   - usb_device
