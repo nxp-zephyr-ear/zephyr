@@ -3561,9 +3561,7 @@ void net_tcp_init(void)
 	tcp_recv_cb = tp_tcp_recv_cb;
 #endif
 
-#if defined(CONFIG_NET_TC_THREAD_PRIO_CUSTOM)
-#define THREAD_PRIORITY CONFIG_NET_TCP_WORK_QUEUE_THREAD_PRIO
-#elif defined(CONFIG_NET_TC_THREAD_COOPERATIVE)
+#if defined(CONFIG_NET_TC_THREAD_COOPERATIVE)
 #define THREAD_PRIORITY K_PRIO_COOP(0)
 #else
 #define THREAD_PRIORITY K_PRIO_PREEMPT(0)
