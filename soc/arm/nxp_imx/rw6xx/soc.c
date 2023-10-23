@@ -212,11 +212,7 @@ static ALWAYS_INLINE void clock_init(void)
 /* Clock flexcomms when used as SPI */
 #ifdef CONFIG_SPI
 #if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm0), nxp_lpc_spi, okay))
-	/* Set up Flexcomm0 FRG to clock at 260 MHz from main clock */
-	const clock_frg_clk_config_t flexcomm0_frg = {0, kCLOCK_FrgMainClk, 255, 0};
-
-	CLOCK_SetFRGClock(&flexcomm0_frg);
-	CLOCK_AttachClk(kFRG_to_FLEXCOMM0);
+	CLOCK_AttachClk(kSFRO_to_FLEXCOMM0);
 #endif
 #if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm1), nxp_lpc_spi, okay))
 	CLOCK_AttachClk(kSFRO_to_FLEXCOMM1);
