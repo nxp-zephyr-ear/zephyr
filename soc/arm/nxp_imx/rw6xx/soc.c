@@ -250,12 +250,6 @@ static ALWAYS_INLINE void clock_init(void)
 	CLOCK_AttachClk(kAUDIO_PLL_to_FLEXCOMM14);
 #endif
 #endif /* CONFIG_I2S */
-
-#ifdef CONFIG_NET_L2_ETHERNET
-	RESET_PeripheralReset(kENET_IPG_RST_SHIFT_RSTn);
-	RESET_PeripheralReset(kENET_IPG_S_RST_SHIFT_RSTn);
-	CLOCK_EnableClock(kCLOCK_TddrMciEnetClk);
-#endif /* CONFIG_NET_L2_ETHERNET */
 }
 
 /**
