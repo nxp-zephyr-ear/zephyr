@@ -76,9 +76,9 @@ static struct in_addr ipv4;
 
 const uint32_t TIME_US[] = { 60 * 1000 * 1000, 1000 * 1000, 1000, 0 };
 const char *TIME_US_UNIT[] = { "m", "s", "ms", "us" };
-const uint32_t KBPS[] = { 1000, 0 };
+const uint32_t KBPS[] = { 1024, 0 };
 const char *KBPS_UNIT[] = { "Mbps", "Kbps" };
-const uint32_t K[] = { 1000 * 1000, 1000, 0 };
+const uint32_t K[] = { 1024 * 1024, 1024, 0 };
 const char *K_UNIT[] = { "M", "K", "" };
 
 static void print_number(const struct shell *sh, uint32_t value,
@@ -275,7 +275,7 @@ static void udp_session_cb(enum zperf_status status,
 			rate_in_kbps = (uint32_t)
 				(((uint64_t)result->total_len * 8ULL *
 				  (uint64_t)USEC_PER_SEC) /
-				 ((uint64_t)result->time_in_us * 1000ULL));
+				 ((uint64_t)result->time_in_us * 1024ULL));
 		} else {
 			rate_in_kbps = 0U;
 		}
@@ -373,7 +373,7 @@ static void shell_udp_upload_print_stats(const struct shell *sh,
 			rate_in_kbps = (uint32_t)
 				(((uint64_t)results->total_len *
 				  (uint64_t)8 * (uint64_t)USEC_PER_SEC) /
-				 ((uint64_t)results->time_in_us * 1000U));
+				 ((uint64_t)results->time_in_us * 1024U));
 		} else {
 			rate_in_kbps = 0U;
 		}
@@ -383,7 +383,7 @@ static void shell_udp_upload_print_stats(const struct shell *sh,
 				(((uint64_t)results->nb_packets_sent *
 				  (uint64_t)results->packet_size * (uint64_t)8 *
 				  (uint64_t)USEC_PER_SEC) /
-				 ((uint64_t)results->client_time_in_us * 1000U));
+				 ((uint64_t)results->client_time_in_us * 1024U));
 		} else {
 			client_rate_in_kbps = 0U;
 		}
@@ -439,7 +439,7 @@ static void shell_tcp_upload_print_stats(const struct shell *sh,
 				(((uint64_t)results->nb_packets_sent *
 				  (uint64_t)results->packet_size * (uint64_t)8 *
 				  (uint64_t)USEC_PER_SEC) /
-				 ((uint64_t)results->client_time_in_us * 1000U));
+				 ((uint64_t)results->client_time_in_us * 1024U));
 		} else {
 			client_rate_in_kbps = 0U;
 		}
@@ -787,7 +787,7 @@ static int shell_cmd_upload(const struct shell *sh, size_t argc,
 
 	if (argc > 5) {
 		param.rate_kbps =
-			(parse_number(argv[start + 5], K, K_UNIT) + 999) / 1000;
+			(parse_number(argv[start + 5], K, K_UNIT) + 1023) / 1024;
 	} else {
 		param.rate_kbps = 10U;
 	}
@@ -925,7 +925,7 @@ static int shell_cmd_upload2(const struct shell *sh, size_t argc,
 
 	if (argc > 4) {
 		param.rate_kbps =
-			(parse_number(argv[start + 4], K, K_UNIT) + 999) / 1000;
+			(parse_number(argv[start + 4], K, K_UNIT) + 1023) / 1024;
 	} else {
 		param.rate_kbps = 10U;
 	}
@@ -998,7 +998,7 @@ static void tcp_session_cb(enum zperf_status status,
 			rate_in_kbps = (uint32_t)
 				(((uint64_t)result->total_len * 8ULL *
 				  (uint64_t)USEC_PER_SEC) /
-				 ((uint64_t)result->time_in_us * 1000ULL));
+				 ((uint64_t)result->time_in_us * 1024ULL));
 		} else {
 			rate_in_kbps = 0U;
 		}
