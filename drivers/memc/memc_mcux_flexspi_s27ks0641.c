@@ -122,10 +122,15 @@ static int memc_flexspi_s27ks0641_init(const struct device *dev)
 	}
 
 	if (memc_flexspi_set_device_config(data->controller, &config->config,
-	    (const uint32_t *) memc_flexspi_s27ks0641_lut,
-	    sizeof(memc_flexspi_s27ks0641_lut) / MEMC_FLEXSPI_CMD_SIZE,
-	    config->port)) {
+					   config->port)) {
 		LOG_ERR("Could not set device configuration");
+		return -EINVAL;
+	}
+
+	if (memc_flexspi_update_lut(data->controller, 0,
+				    (const uint32_t *) memc_flexspi_s27ks0641_lut,
+				    sizeof(memc_flexspi_s27ks0641_lut) / 4)) {
+		LOG_ERR("Could not update lut");
 		return -EINVAL;
 	}
 
