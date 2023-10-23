@@ -24,7 +24,7 @@
 		zephyr,reference = "ADC_REF_VDD_1";
 		zephyr,vref-mv = <1800>;
 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,resolution = <15>;
+		zephyr,resolution = <16>;
 		zephyr,input-positive = <0>;
 	};
 
@@ -34,7 +34,7 @@
 		zephyr,reference = "ADC_REF_VDD_1";
 		zephyr,vref-mv = <1800>;
 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,resolution = <15>;
+		zephyr,resolution = <16>;
 		zephyr,input-positive = <1>;
 	};
 };

@@ -226,15 +226,12 @@ static int do_read(const struct device *dev,
 	/* Set resolution of ADC */
 	base->ADC_REG_ANA &= ~ADC_ADC_REG_ANA_RES_SEL_MASK;
 	switch (sequence->resolution) {
-	case 11:
 	case 12:
 		res = kADC_Resolution12Bit;
 		break;
-	case 13:
 	case 14:
 		res = kADC_Resolution14Bit;
 		break;
-	case 15:
 	case 16:
 		res = kADC_Resolution16Bit;
 		break;
