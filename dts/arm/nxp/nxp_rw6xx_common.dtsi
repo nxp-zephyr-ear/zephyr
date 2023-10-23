@@ -43,12 +43,12 @@
 
 	sram_data: memory@20000000 {
 		compatible = "mmio-sram";
-		reg = <0x20040000 DT_SIZE_K(960)>;
+		reg = <0x20000000 DT_SIZE_K(1216)>;
 	};
 
 	sram_code: memory@0 {
 		compatible = "mmio-sram";
-		reg = <0x00000000 DT_SIZE_K(256)>;
+		reg = <0x00000000 DT_SIZE_K(1216)>;
 	};
 };
 
