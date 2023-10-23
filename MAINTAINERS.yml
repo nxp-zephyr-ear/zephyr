@@ -3015,7 +3015,7 @@ West:
     - brgl
     - pdgendt
   files:
-    - modules/lvgl/
+    - modules/Kconfig.lvgl
     - tests/lib/gui/lvgl/
   labels:
     - manifest-lvgl
