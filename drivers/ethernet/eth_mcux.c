@@ -1041,8 +1041,6 @@ static void eth_mcux_init(const struct device *dev)
 	enet_config.interrupt |= kENET_MiiInterrupt;
 #endif
 	enet_config.miiMode = kENET_RmiiMode;
-	enet_config.callback = eth_callback;
-	enet_config.userData = context;
 
 	if (IS_ENABLED(CONFIG_ETH_MCUX_PROMISCUOUS_MODE)) {
 		enet_config.macSpecialConfig |= kENET_ControlPromiscuousEnable;
@@ -1099,6 +1097,7 @@ static void eth_mcux_init(const struct device *dev)
 	/* Enable reclaim of tx descriptors that will have the tx timestamp */
 	ENET_SetTxReclaim(&context->enet_handle, true, 0);
 #endif
+	ENET_SetCallback(&context->enet_handle, eth_callback, context);
 
 	eth_mcux_phy_start(context);
 }
