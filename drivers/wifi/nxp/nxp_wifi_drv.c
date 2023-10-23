@@ -1002,54 +1002,68 @@ static int WPL_Status(const struct device *dev, struct wifi_iface_status *status
 	return 0;
 }
 
+K_THREAD_STACK_DEFINE(net_wifi_init_stack, CONFIG_WIFI_INIT_STACK_SIZE);
+struct k_thread net_wifi_thread;
+
 #ifdef RW610
 extern void WL_MCI_WAKEUP0_DriverIRQHandler(void);
 #endif
+
+/* IW416 network init thread */
+static void wifi_drv_init(void *dev, void *arg2, void *arg3)
+{
+	int ret;
+
+#ifdef RW610
+	IRQ_CONNECT(72, 1, WL_MCI_WAKEUP0_DriverIRQHandler, 0, 0);
+	irq_enable(72);
+#endif
+
+	/* Initialize the wifi subsystem */
+	ret = WPL_Init();
+	if (ret) {
+		LOG_ERR("wlan initialization failed");
+		return;
+	}
+	ret = WPL_Start(LinkStatusChangeCallback);
+	if (ret) {
+		LOG_ERR("could not start wlan threads");
+		return;
+	}
+}
 
 static int wifi_net_init(const struct device *dev)
 {
 	return 0;
 }
 
-static int wifi_net_if_cnt(void)
+static int wifi_net_init_thread(const struct device *dev)
 {
-	int if_count = 0;
+	g_mlan.state.interface = WLAN_BSS_TYPE_STA;
+	g_uap.state.interface = WLAN_BSS_TYPE_UAP;
 
-	STRUCT_SECTION_FOREACH(net_if, iface) {
-		if_count++;
-	}
-	return if_count;
+	/* kickoff init thread to avoid stack overflow */
+	k_thread_create(&net_wifi_thread, net_wifi_init_stack,
+			K_THREAD_STACK_SIZEOF(net_wifi_init_stack), wifi_drv_init, (void *)dev,
+			NULL, NULL, 0, 0, K_NO_WAIT);
+
+	return 0;
 }
 
 static void wifi_net_iface_init(struct net_if *iface)
 {
-	static int init_cnt;
+	static int init_done = 0;
 	const struct device *dev = net_if_get_device(iface);
 	interface_t *intf = dev->data;
-	int ret;
 
 	intf->netif = iface;
-	net_if_flag_set(iface, NET_IF_NO_AUTO_START);
-	init_cnt++;
 
-	/* Not do the wlan init until the last netif configured */
-	if (init_cnt == wifi_net_if_cnt()) {
-#ifdef RW610
-		IRQ_CONNECT(72, 1, WL_MCI_WAKEUP0_DriverIRQHandler, 0, 0);
-		irq_enable(72);
-#endif
-		/* Initialize the wifi subsystem */
-		ret = WPL_Init();
-		if (ret) {
-			LOG_ERR("wlan initialization failed");
-			return;
-		}
-		ret = WPL_Start(LinkStatusChangeCallback);
-		if (ret) {
-			LOG_ERR("wlan start failed");
-			return;
-		}
+	if (!init_done) {
+		wifi_net_init_thread(dev);
+		init_done = 1;
 	}
+
+	net_if_flag_set(iface, NET_IF_NO_AUTO_START);
 }
 
 #ifdef CONFIG_NET_STATISTICS_WIFI
