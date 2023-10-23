@@ -12,7 +12,7 @@ toolchain:
   - zephyr
   - gnuarmemb
   - xtools
-ram: 1216
-flash: 62500
+ram: 4608	#TODO
+flash: 65536 	#TODO
 supported:
   - gpio
