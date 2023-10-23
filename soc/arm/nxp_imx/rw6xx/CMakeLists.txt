@@ -22,7 +22,3 @@ zephyr_linker_sources_ifdef(CONFIG_NXP_RW6XX_BOOT_HEADER
 zephyr_code_relocate(FILES flexspi_clock_setup.c LOCATION RAM)
 
 zephyr_linker_sources(RAM_SECTIONS sections.ld)
-
-if (CONFIG_FLASH_MCUX_FLEXSPI_XIP)
-  zephyr_code_relocate(FILES flexspi_clock_setup.c LOCATION RAM)
-endif()
