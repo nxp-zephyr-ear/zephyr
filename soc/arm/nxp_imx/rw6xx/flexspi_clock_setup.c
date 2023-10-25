@@ -13,7 +13,7 @@
 /**
  * @brief Set flexspi clock
  */
-void set_flexspi_clock(FLEXSPI_Type *base, uint32_t src, uint32_t divider)
+void __ramfunc set_flexspi_clock(FLEXSPI_Type *base, uint32_t src, uint32_t divider)
 {
 	CLKCTL0->FLEXSPIFCLKSEL = CLKCTL0_FLEXSPIFCLKSEL_SEL(src);
 	CLKCTL0->FLEXSPIFCLKDIV |=
@@ -32,7 +32,7 @@ void set_flexspi_clock(FLEXSPI_Type *base, uint32_t src, uint32_t divider)
  * is used by the clock control framework to set the clock frequency of
  * the FlexSPI
  */
-uint32_t flexspi_clock_set_freq(uint32_t clock_name, uint32_t rate)
+uint32_t __ramfunc flexspi_clock_set_freq(uint32_t clock_name, uint32_t rate)
 {
 	uint32_t root_rate;
 	uint32_t divider;
