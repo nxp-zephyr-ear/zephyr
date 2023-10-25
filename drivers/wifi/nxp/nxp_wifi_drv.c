@@ -92,6 +92,7 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 	char ip[16];
 	static int auth_fail = 0;
 	wlan_uap_client_disassoc_t *disassoc_resp = data;
+	struct wlan_network *network = NULL;
 
 	printSeparator();
 	LOG_INF("app_cb: WLAN: received event %d", reason);
@@ -170,14 +171,20 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 
 		net_inet_ntoa(addr.ipv4.address, ip);
 
-		ret = wlan_get_current_network(&sta_network);
-		if (ret != WM_SUCCESS) {
-			LOG_ERR("Failed to get External AP network");
+		network = (struct wlan_network *)os_mem_alloc(sizeof(struct wlan_network));
+		if (!network) {
+			LOG_ERR("failed to malloc sta network memory");
 			return 0;
 		}
 
+		ret = wlan_get_current_network(network);
+		if (ret != WM_SUCCESS) {
+			LOG_ERR("Failed to get External AP network");
+			goto sta_err;
+		}
+
 		LOG_INF("Connected to following BSS:");
-		LOG_INF("SSID = [%s]", sta_network.ssid);
+		LOG_INF("SSID = [%s]", network->ssid);
 		if (addr.ipv4.address != 0U) {
 			LOG_INF("IPv4 Address: [%s]", ip);
 		}
@@ -187,7 +194,7 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		for (i = 0; i < CONFIG_MAX_IPV6_ADDRESSES; i++) {
 			if (ip6_addr_isvalid(addr.ipv6[i].addr_state))
 #else
-		for (i = 0; i < CONFIG_MAX_IPV6_ADDRESSES && i < sta_network.ip.ipv6_count; i++) {
+		for (i = 0; i < CONFIG_MAX_IPV6_ADDRESSES && i < network->ip.ipv6_count; i++) {
 			if ((addr.ipv6[i].addr_state == NET_ADDR_TENTATIVE) ||
 			    (addr.ipv6[i].addr_state == NET_ADDR_PREFERRED))
 #endif
@@ -203,6 +210,11 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		auth_fail = 0;
 		s_wplStaConnected = true;
 		wifi_mgmt_raise_connect_result_event(g_mlan.netif, 0);
+
+sta_err:
+		if (network != NULL) {
+			os_mem_free(network);
+		}
 		break;
 	case WLAN_REASON_CONNECT_FAILED:
 		net_eth_carrier_off(g_mlan.netif);
@@ -245,24 +257,35 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 	case WLAN_REASON_UAP_SUCCESS:
 		net_eth_carrier_on(g_uap.netif);
 		LOG_INF("app_cb: WLAN: UAP Started");
-		ret = wlan_get_current_uap_network(&uap_network);
 
-		if (ret != WM_SUCCESS) {
-			LOG_ERR("Failed to get Soft AP network");
+		network = (struct wlan_network *)os_mem_alloc(sizeof(struct wlan_network));
+		if (!network) {
+			LOG_ERR("failed to malloc uap network memory");
 			return 0;
 		}
 
+		ret = wlan_get_current_uap_network(network);
+		if (ret != WM_SUCCESS) {
+			LOG_ERR("Failed to get Soft AP network");
+			goto uap_start_err;
+		}
+
 		printSeparator();
-		LOG_INF("Soft AP \"%s\" started successfully", uap_network.ssid);
+		LOG_INF("Soft AP \"%s\" started successfully", network->ssid);
 		printSeparator();
 		if (dhcp_server_start(net_get_uap_handle())) {
 			LOG_ERR("Error in starting dhcp server");
-			break;
+			goto uap_start_err;
 		}
 
 		LOG_INF("DHCP Server started successfully");
 		printSeparator();
 		s_wplUapActivated = true;
+
+uap_start_err:
+		if (network != NULL) {
+			os_mem_free(network);
+		}
 		break;
 	case WLAN_REASON_UAP_CLIENT_ASSOC:
 		LOG_INF("app_cb: WLAN: UAP a Client Associated");
@@ -293,7 +316,20 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		net_eth_carrier_off(g_uap.netif);
 		LOG_INF("app_cb: WLAN: UAP Stopped");
 		printSeparator();
-		LOG_INF("Soft AP \"%s\" stopped successfully", uap_network.ssid);
+
+		network = (struct wlan_network *)os_mem_alloc(sizeof(struct wlan_network));
+		if (!network) {
+			LOG_ERR("failed to malloc uap network memory");
+			return 0;
+		}
+
+		ret = wlan_get_current_uap_network(network);
+		if (ret != WM_SUCCESS) {
+			LOG_ERR("Failed to get Soft AP network");
+			goto uap_stop_err;
+		}
+
+		LOG_INF("Soft AP \"%s\" stopped successfully", network->ssid);
 		printSeparator();
 
 		dhcp_server_stop();
@@ -301,6 +337,11 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		LOG_INF("DHCP Server stopped successfully");
 		printSeparator();
 		s_wplUapActivated = false;
+
+uap_stop_err:
+		if (network != NULL) {
+			os_mem_free(network);
+		}
 		break;
 	case WLAN_REASON_PS_ENTER:
 		LOG_INF("app_cb: WLAN: PS_ENTER");
@@ -642,10 +683,8 @@ static int WPL_Connect(const struct device *dev, struct wifi_connect_req_params 
 	wpl_ret_t status = WPLRET_SUCCESS;
 	int ret;
 
-	if ((s_wplState != WPL_STARTED) || (s_wplStaConnected != false)) {
+	if (s_wplState != WPL_STARTED) {
 		status = WPLRET_NOT_READY;
-		wifi_mgmt_raise_connect_result_event(g_mlan.netif, -1);
-		return -EALREADY;
 	}
 
 	if (status == WPLRET_SUCCESS) {
@@ -655,6 +694,8 @@ static int WPL_Connect(const struct device *dev, struct wifi_connect_req_params 
 	}
 
 	if (status == WPLRET_SUCCESS) {
+		wlan_disconnect();
+
 		wlan_remove_network(sta_network.name);
 
 		wlan_initialize_sta_network(&sta_network);
@@ -817,6 +858,10 @@ static int WPL_Status(const struct device *dev, struct wifi_iface_status *status
 
 	if (s_wplState != WPL_STARTED) {
 		status->state = WIFI_STATE_INTERFACE_DISABLED;
+
+		if (network != NULL) {
+			os_mem_free(network);
+		}
 		return WPLRET_SUCCESS;
 	}
 
@@ -850,6 +895,10 @@ static int WPL_Status(const struct device *dev, struct wifi_iface_status *status
 				      : network->security.mfpc ? WIFI_MFP_OPTIONAL
 							       : 0;
 		}
+	}
+
+	if (network != NULL) {
+		os_mem_free(network);
 	}
 
 	return 0;
