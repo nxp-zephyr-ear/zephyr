@@ -1,3 +1,42 @@
+Product release candidate of Zephyr for the NXP RW61x Reference Design
+=================================================================
+
+Release: PRC1.0
+
+This document summarizes the contents of the product release candidate for
+the Zephyr support of the NXP RW61X reference design.
+
+Changes from: EAR2.0
+
+- Increased maximal connections for bt_tester application to 16
+- Enabled self low power control for the BLE controller.
+- Support of BLE bonding. NVS back-end storage can be
+  used to store settings.
+
+BLE support
+============
+
+BLE applications supported in this release are:
+	- peripheral_ht   (samples/bluetooth/peripheral_ht)
+	- central_ht      (samples/bluetooth/central_ht)
+	- peripheral_ots  (samples/bluetooth/peripheral_ots)
+	- peripheral_dis  (samples/bluetooth/peripheral_dis)
+	- bt_tester       (tests/bluetooth/tester)
+	- shell           (tests/bluetooth/shell)
+	- peripheral      (samples/bluetooth/peripheral)
+
+`peripheral` application can be used to experiment the bonding process.
+
+Limitations:
+	- Hardware accelerators for security cryptography are not supported yet.
+	- Some shell BLE commands may be unsupported for now.
+	- Low power with BLE is still undergoing trials. Therefore it's not enabled by default
+	  for BLE applications. Please add this Kconfig `CONFIG_PM` to your application 
+	  to enable low power capabilities. 
+	  Low power was only tested on peripheral_ht and central_ht.
+	- Enforcement of ATT flow control (BT_ATT_ENFORCE_FLOW) is disabled
+	  for all BLE applications.
+
 Early Access Release of Zephyr for the NXP RW61x Reference Design
 =================================================================
 
