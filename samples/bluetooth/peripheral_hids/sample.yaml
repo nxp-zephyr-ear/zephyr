@@ -4,7 +4,9 @@ sample:
 tests:
   sample.bluetooth.peripheral_hids:
     harness: bluetooth
-    platform_allow: qemu_x86
+    platform_allow:
+      - qemu_x86
+      - rd_rw612_bga
     tags: bluetooth
     integration_platforms:
       - qemu_x86
@@ -12,7 +14,9 @@ tests:
     harness: bluetooth
     extra_configs:
       - CONFIG_SAMPLE_BT_USE_AUTHENTICATION=n
-    platform_allow: qemu_x86
+    platform_allow:
+      - qemu_x86
+      - rd_rw612_bga
     tags: bluetooth
     integration_platforms:
       - qemu_x86
