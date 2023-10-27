@@ -408,6 +408,11 @@ static ALWAYS_INLINE void clock_init(void)
 #endif
 #endif /* CONFIG_COUNTER_MCUX_CTIMER */
 
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(lcdic), okay) && CONFIG_MIPI_DBI_NXP_LCDIC
+	CLOCK_AttachClk(kMAIN_CLK_to_LCD_CLK);
+	RESET_PeripheralReset(kLCDIC_RST_SHIFT_RSTn);
+#endif
+
 	/* Leave this disabled for A0 parts */
 	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
 		POWER_EnableGDetVSensors();
