@@ -5,23 +5,9 @@ description: ST7796S Display controller
 
 compatible: "sitronix,st7796s"
 
-include: [spi-device.yaml, display-controller.yaml]
+include: [mipi-dbi-spi-device.yaml, display-controller.yaml]
 
 properties:
-  reset-gpios:
-    type: phandle-array
-    required: true
-    description: |
-      RESET pin for ST7796S controller. Active low signal.
-
-  cmd-data-gpios:
-    type: phandle-array
-    required: true
-    description: |
-      DCX pin for ST7796S. This pin signals if the transmitted bytes are
-      a command or data. Low signal implies command bytes, High implies
-      data bytes.
-
   frmctl1:
     type: uint8-array
     default: [0xA0, 0x10]
