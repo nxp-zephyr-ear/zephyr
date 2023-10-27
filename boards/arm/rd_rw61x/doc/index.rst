@@ -65,6 +65,8 @@ Supported Features
 +-----------+------------+-----------------------------------+
 | CTIMER    | on-chip    | counter                           |
 +-----------+------------+-----------------------------------+
+| LCDIC     | on-chip    | mipi-dbi                          |
++-----------+------------+-----------------------------------+
 
 The default configuration can be found in the defconfig file:
 
@@ -132,6 +134,97 @@ should see the following message in the terminal:
 
    ***** Booting Zephyr OS zephyr-v3.4.0 *****
    Hello World! rd_rw612_bga
+
+Attached Display
+================
+
+The RW61x board is configured to drive an ST7796S based display controller,
+with a FT7401 touch IC. The display can be driven via the LCDIC, or Flexcomm
+SPI.
+
+When driving the display via the LCDIC, the following board modifications
+must be made:
+
+* Populate R125, R123, R12, R124, R15, R243, R239, R236, R233, R286, R246
+
+* Remove R9, R11, R20, R19, R242, R241, R237, R235, R245
+
+When driving the display via the LCDIC, use the following connections:
+
++--------+--------+----------------------------------+
+| Pin #  | Signal | Header                           |
++========+========+==================================+
+| 1      | VDD    | J5.8 (+3.3V)                     |
++--------+--------+----------------------------------+
+| 2      | RST    | J6.8 (LCD_SPI_RESETN)            |
++--------+--------+----------------------------------+
+| 3      | SDO    | J5.5 (SPI_MISO)                  |
++--------+--------+----------------------------------+
+| 4      | CS     | J5.3 (LCD_SPI_SS)                |
++--------+--------+----------------------------------+
+| 5      | SCLK   | J5.6 (LCD_SPI_SCK)               |
++--------+--------+----------------------------------+
+| 6      | GND    | J5.7 (GND)                       |
++--------+--------+----------------------------------+
+| 7      | MOSI   | J5.4 (LCD_SPI_SDIO)              |
++--------+--------+----------------------------------+
+| 8      | CD     | J5.1 (LCD_SPI_DC)                |
++--------+--------+----------------------------------+
+| 9      | TE     | J5.2 (LCD_SPI_TE, not enabled)   |
++--------+--------+----------------------------------+
+
+When driving the display via the Flexcomm SPI, set the following jumpers:
+
+* JP19
+
+* JP49 (connect pins 1-2)
+
+use the following connections:
+
++-------+--------+---------------+
+| Pin # | Signal | Header        |
++=======+========+===============+
+| 1     | VDD    | J13.7 (+3.3V) |
++-------+--------+---------------+
+| 2     | RST    | J11.2 (INT)   |
++-------+--------+---------------+
+| 3     | SDO    | J13.5 (MISO)  |
++-------+--------+---------------+
+| 4     | CS     | J13.3 (CS)    |
++-------+--------+---------------+
+| 5     | SCLK   | J13.4 (SCK)   |
++-------+--------+---------------+
+| 6     | GND    | J13.8 (GND)   |
++-------+--------+---------------+
+| 7     | MOSI   | J13.6 (MOSI)  |
++-------+--------+---------------+
+| 8     | CD     | J11.1 (PWM)   |
++-------+--------+---------------+
+
+The touch controller requires the following connections:
+
+* Populate JP3 and JP50
+
++--------+--------+---------------+
+| Pin #  | Signal | Header        |
++========+========+===============+
+| 1      | VDD    | J8.2 (+3.3V)  |
++--------+--------+---------------+
+| 2      | IOVDD  | J8.4 (+3.3V)  |
++--------+--------+---------------+
+| 3      | SCL    | J5.10 (SCL)   |
++--------+--------+---------------+
+| 4      | SDA    | J5.9 (SDA)    |
++--------+--------+---------------+
+| 5      | INT    | Not Connected |
++--------+--------+---------------+
+| 6      | RST    | J6.4 (D3)     |
++--------+--------+---------------+
+| 7      | GND    | J8.6 (GND)    |
++--------+--------+---------------+
+| 8      | GND    | J8.7 (GND)    |
++--------+--------+---------------+
+
 
 Resources
 =========

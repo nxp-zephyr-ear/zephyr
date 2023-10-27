@@ -14,13 +14,22 @@ endchoice
 
 if LVGL
 
+SWAP_BYTES := nxp,swap-bytes
+
 # Swap color order for the default display panel
 config LV_COLOR_16_SWAP
-	default y
+	default y if SPI
+	# This will enable color swapping if the LCDIC does not have
+	# the nxp,swap-bytes property set.
+	default y if !$(dt_nodelabel_bool_prop,lcdic,$(SWAP_BYTES))
 
 # Enable DMA mode if using SPI
 config SPI_MCUX_FLEXCOMM_DMA
 	default y if SPI
+
+# Enable DMA for LCDIC as well
+config MIPI_DBI_NXP_LCDIC_DMA
+	default y if MIPI_DBI
 
 # Increase descriptor count. LVGL will allocate a 30KB buffer,
 # and the SPI driver sets up RX and TX side. Since LPC DMA has
