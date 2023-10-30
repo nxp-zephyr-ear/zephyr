@@ -1061,7 +1061,7 @@ static void bt_ready(int err)
 
 #if defined(CONFIG_BT_CONN)
 	default_conn = NULL;
-
+	bt_conn_cb_unregister(&conn_callbacks);
 	bt_conn_cb_register(&conn_callbacks);
 #endif /* CONFIG_BT_CONN */
 
