@@ -393,6 +393,21 @@ static ALWAYS_INLINE void clock_init(void)
 	CLOCK_EnableClock(kCLOCK_TddrMciEnetClk);
 #endif /* CONFIG_NET_L2_ETHERNET */
 
+#ifdef CONFIG_COUNTER_MCUX_CTIMER
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(ctimer0), nxp_lpc_ctimer, okay))
+	CLOCK_AttachClk(kSFRO_to_CTIMER0);
+#endif
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(ctimer1), nxp_lpc_ctimer, okay))
+	CLOCK_AttachClk(kSFRO_to_CTIMER1);
+#endif
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(ctimer2), nxp_lpc_ctimer, okay))
+	CLOCK_AttachClk(kSFRO_to_CTIMER2);
+#endif
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(ctimer3), nxp_lpc_ctimer, okay))
+	CLOCK_AttachClk(kSFRO_to_CTIMER3);
+#endif
+#endif /* CONFIG_COUNTER_MCUX_CTIMER */
+
 	/* Leave this disabled for A0 parts */
 	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
 		POWER_EnableGDetVSensors();
