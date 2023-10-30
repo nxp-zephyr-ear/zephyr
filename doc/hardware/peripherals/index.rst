@@ -38,6 +38,7 @@ Peripherals
    kscan.rst
    led.rst
    mdio.rst
+   mipi_dbi.rst
    mipi_dsi.rst
    mbox.rst
    pcie.rst
