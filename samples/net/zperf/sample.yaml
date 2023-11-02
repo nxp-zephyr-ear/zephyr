@@ -14,7 +14,9 @@ sample:
 tests:
   sample.net.zperf:
     harness: net
-    platform_allow: qemu_x86
+    platform_allow:
+      - qemu_x86
+      - rw_rw612_bga
   sample.net.zperf_st:
     harness: console
     harness_config:
