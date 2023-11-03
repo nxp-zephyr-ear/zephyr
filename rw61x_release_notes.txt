@@ -1,20 +1,20 @@
 Product release candidate of Zephyr for the NXP RW61x Reference Design
 =================================================================
 
-Release: PRC1.0
+Release: EAR3.0
 
 This document summarizes the contents of the product release candidate for
 the Zephyr support of the NXP RW61X reference design.
 
-Changes from: EAR2.0
 
+BLE support
+============
+
+Changes from EAR2.0:
 - Increased maximal connections for bt_tester application to 16
 - Enabled self low power control for the BLE controller.
 - Support of BLE bonding. NVS back-end storage can be
   used to store settings.
-
-BLE support
-============
 
 BLE applications supported in this release are:
 	- peripheral_ht   (samples/bluetooth/peripheral_ht)
@@ -37,12 +37,18 @@ Limitations:
 	- Enforcement of ATT flow control (BT_ATT_ENFORCE_FLOW) is disabled
 	  for all BLE applications.
 
+
 Base Enablement
 ===============
 
-Support for the display module has the following improvements from EAR2.0:
+- Support for the display module has the following improvements from EAR2.0:
 	- Rendering performance has been improved with double bufferring
 	- Support for touchscreen IC FT7401 has been enabled
+- Added support for the general analog unit digital-to-analog converter (GAU DAC)
+- Enablement of existing eth_mcux ethernet on rd_rw612_bga board
+- Corrected number of USB endpoints
+- Updated SOC initialization to re-enable voltage glitch detect sensor after clock setup
+
 
 Early Access Release of Zephyr for the NXP RW61x Reference Design
 =================================================================
