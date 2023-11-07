@@ -10,6 +10,8 @@
 #include "fsl_power.h"
 
 #include <zephyr/logging/log.h>
+#include <zephyr/drivers/timer/system_timer.h>
+
 LOG_MODULE_DECLARE(soc, CONFIG_SOC_LOG_LEVEL);
 
 /* Active mode */
@@ -25,13 +27,13 @@ LOG_MODULE_DECLARE(soc, CONFIG_SOC_LOG_LEVEL);
 
 #define NODE_ID DT_INST(0, nxp_pdcfg_power)
 
+extern void clock_init(void);
+
 power_sleep_config_t slp_cfg;
 
 /* Invoke Low Power/System Off specific Tasks */
 __weak void pm_state_set(enum pm_state state, uint8_t substate_id)
 {
-
-
 	ARG_UNUSED(substate_id);
 
 	/* Set PRIMASK */
@@ -46,6 +48,14 @@ __weak void pm_state_set(enum pm_state state, uint8_t substate_id)
 		break;
 	case PM_STATE_SUSPEND_TO_IDLE:
 		POWER_EnterPowerMode(POWER_MODE2, &slp_cfg);
+		break;
+	case PM_STATE_STANDBY:
+		POWER_EnterPowerMode(POWER_MODE3, &slp_cfg);
+
+		clock_init();
+
+		sys_clock_idle_exit();
+
 		break;
 	default:
 		LOG_DBG("Unsupported power state %u", state);
