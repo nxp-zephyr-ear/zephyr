@@ -102,6 +102,7 @@ static void load_gdet_cfg(struct otp_gdet_data *data, uint32_t pack)
 
 	/* Enable ELS */
 	MCUX_CSSL_FP_FUNCTION_CALL_BEGIN(result, token, mcuxClEls_Enable_Async());
+
 	if ((token != MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Enable_Async)) ||
 	    (result != MCUXCLELS_STATUS_OK_WAIT)) {
 		assert(false);
@@ -206,8 +207,12 @@ static void config_svc_sensor(void)
 
 /**
  * @brief Initialize the system clocks and peripheral clocks
+ *
+ * This function is called from the power management code as the
+ * clock needs to be re-initialized on exit from Standby mode. Hence
+ * this function is relocated to RAM.
  */
-static ALWAYS_INLINE void clock_init(void)
+__ramfunc void clock_init()
 {
 	POWER_DisableGDetVSensors();
 
@@ -231,6 +236,7 @@ static ALWAYS_INLINE void clock_init(void)
 	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
 		config_svc_sensor();
 	}
+
 	/* Move FLEXSPI clock source to T3 256m / 4 to avoid instruction/data fetch issue in XIP
 	 * when updating PLL and main clock.
 	 */
