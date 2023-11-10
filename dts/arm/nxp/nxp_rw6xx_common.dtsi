@@ -29,12 +29,37 @@
 			reg = <0>;
 			#address-cells = <1>;
 			#size-cells = <1>;
+			cpu-power-states = <&idle &suspend>;
 
 			mpu: mpu@e000ed90 {
 				compatible = "arm,armv8m-mpu";
 				reg = <0xe000ed90 0x40>;
 			};
 		};
+
+		power-states {
+			/* This is the setting for Idle Mode */
+			idle: idle {
+				compatible = "zephyr,power-state";
+				power-state-name = "runtime-idle";
+				min-residency-us = <0>;
+				exit-latency-us = <0>;
+			};
+			/* This is the setting for Standby Mode */
+			suspend: suspend {
+				compatible = "nxp,pdcfg-power", "zephyr,power-state";
+				power-state-name = "suspend-to-idle";
+				/* TODO: Revisit latency numbers */
+				min-residency-us = <500>;
+				exit-latency-us = <120>;
+				deep-sleep-config = <0x180000>,
+							<0x0>,
+							<0x4>,
+							<0x100>,
+							<0x0>;
+			};
+		};
+
 	};
 
 	smu1: sram@41380000 {
