@@ -218,7 +218,7 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		s_wplStaConnected = true;
 		wifi_mgmt_raise_connect_result_event(g_mlan.netif, 0);
 
-sta_err:
+	sta_err:
 		if (network != NULL) {
 			os_mem_free(network);
 		}
@@ -289,7 +289,7 @@ sta_err:
 		printSeparator();
 		s_wplUapActivated = true;
 
-uap_start_err:
+	uap_start_err:
 		if (network != NULL) {
 			os_mem_free(network);
 		}
@@ -345,7 +345,7 @@ uap_start_err:
 		printSeparator();
 		s_wplUapActivated = false;
 
-uap_stop_err:
+	uap_stop_err:
 		if (network != NULL) {
 			os_mem_free(network);
 		}
@@ -533,7 +533,8 @@ static int WPL_Start_AP(const struct device *dev, struct wifi_connect_req_params
 		}
 #ifdef CONFIG_WPA_SUPP
 		else if (params->security == WIFI_SECURITY_TYPE_PSK_SHA256) {
-			uap_network.security.type = WLAN_SECURITY_WPA2_SHA256;
+			uap_network.security.type = WLAN_SECURITY_WPA2;
+			uap_network.security.key_mgmt |= WLAN_KEY_MGMT_PSK_SHA256;
 			uap_network.security.psk_len = params->psk_length;
 			strncpy(uap_network.security.psk, params->psk, params->psk_length);
 		}
@@ -733,7 +734,8 @@ static int WPL_Connect(const struct device *dev, struct wifi_connect_req_params 
 		}
 #ifdef CONFIG_WPA_SUPP
 		else if (params->security == WIFI_SECURITY_TYPE_PSK_SHA256) {
-			sta_network.security.type = WLAN_SECURITY_WPA2_SHA256;
+			sta_network.security.type = WLAN_SECURITY_WPA2;
+			sta_network.security.key_mgmt |= WLAN_KEY_MGMT_PSK_SHA256;
 			sta_network.security.psk_len = params->psk_length;
 			strncpy(sta_network.security.psk, params->psk, params->psk_length);
 		}
@@ -841,10 +843,6 @@ static inline enum wifi_security_type WPL_key_mgmt_to_zephyr(enum wlan_security_
 		return WIFI_SECURITY_TYPE_NONE;
 	case WLAN_SECURITY_WPA2:
 		return WIFI_SECURITY_TYPE_PSK;
-#ifdef CONFIG_WPA_SUPP
-	case WLAN_SECURITY_WPA2_SHA256:
-		return WIFI_SECURITY_TYPE_PSK_SHA256;
-#endif
 	case WLAN_SECURITY_WPA3_SAE:
 		return WIFI_SECURITY_TYPE_SAE;
 	default:
