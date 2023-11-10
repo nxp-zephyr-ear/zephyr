@@ -29,7 +29,7 @@
 			reg = <0>;
 			#address-cells = <1>;
 			#size-cells = <1>;
-			cpu-power-states = <&idle &suspend>;
+			cpu-power-states = <&idle &suspend &standby>;
 
 			mpu: mpu@e000ed90 {
 				compatible = "arm,armv8m-mpu";
@@ -58,8 +58,21 @@
 							<0x100>,
 							<0x0>;
 			};
+			/* This is the setting for Sleep Mode */
+			standby: standby {
+				compatible = "nxp,pdcfg-power", "zephyr,power-state";
+				power-state-name = "standby";
+				/* TODO: Revisit latency numbers */
+				min-residency-us = <5000>;
+				exit-latency-us = <1000>;
+				deep-sleep-config = <0x180000>,
+							<0x0>,
+							<0x4>,
+							<0x100>,
+							<0x0>;
+				status = "disabled";
+			};
 		};
-
 	};
 
 	smu1: sram@41380000 {
