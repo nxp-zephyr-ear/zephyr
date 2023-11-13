@@ -129,6 +129,10 @@
 	cpu-power-states = <&idle &suspend>;
 };
 
+&systick {
+	status = "disabled";
+};
+
 &dma0 {
 	status = "okay";
 };
