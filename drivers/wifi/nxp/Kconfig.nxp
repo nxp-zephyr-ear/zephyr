@@ -8,6 +8,16 @@ menuconfig WIFI_NXP
 	select NET_L2_WIFI_MGMT
 	select NET_SOCKETPAIR
 	select WIFI_USE_NATIVE_NETWORKING
+	select NET_IPV4
+	select NET_IPV6
+	select NET_DHCPV4
+	select NET_MGMT_EVENT
+	select NET_L2_ETHERNET
+	select NET_L2_ETHERNET_MGMT
+	select POSIX_CLOCK
+	imply NET_IPV6_DAD
+	imply NET_IPV6_FRAGMENT
+	imply MBEDTLS
 
 if WIFI_NXP
 
@@ -78,6 +88,8 @@ config SD8978
 
 config RW610
 	bool "RW610-based Chipset"
+	select NXP_FW_LOADER
+	select NXP_RF_IMU
 	help
 	  Select this option if you have a NXP RW610-based
 	  Wireless chip. This option will enable support
