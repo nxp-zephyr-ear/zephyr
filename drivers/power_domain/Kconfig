@@ -55,6 +55,14 @@ config POWER_DOMAIN_INTEL_ADSP_INIT_PRIORITY
 
 endif #POWER_DOMAIN_INTEL_ADSP
 
+config POWER_DOMAIN_DEVICEONOFF
+	bool "Turn on devices"
+	default y
+	depends on DT_HAS_POWER_DOMAIN_DEVICEONOFF_ENABLED
+	select DEVICE_DEPS
+	help
+	  Generic power domain control to turn on devices
+
 config POWER_DOMAIN_GPIO_MONITOR
 	bool "GPIO monitor for sensing power on rail"
 	default y
