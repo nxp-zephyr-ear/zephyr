@@ -109,6 +109,20 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		LOG_INF("app_cb: WLAN initialized");
 		printSeparator();
 
+#ifdef CONFIG_NET_INTERFACE_NAME
+		ret = net_if_set_name(g_mlan.netif, "ml");
+		if (ret < 0) {
+			LOG_ERR("Failed to set STA network interface name");
+			return 0;
+		}
+
+		ret = net_if_set_name(g_uap.netif, "ua");
+		if (ret < 0) {
+			LOG_ERR("Failed to set uAP network interface name");
+			return 0;
+		}
+#endif
+
 #ifdef CONFIG_WIFI_NXP_CLI
 		ret = wlan_basic_cli_init();
 		if (ret != WM_SUCCESS) {
