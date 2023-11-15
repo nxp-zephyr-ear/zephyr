@@ -394,3 +394,7 @@ zephyr_udc0: &usb_otg {
 		madctl = <0x28>;
 	};
 };
+
+&mrt0_channel0 {
+	status = "okay";
+};
