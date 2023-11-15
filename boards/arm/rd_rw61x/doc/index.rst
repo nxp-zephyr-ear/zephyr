@@ -235,7 +235,8 @@ In order to use ethernet on this board, the following modification needs to be d
 - Load R485, R486, R487, R488, R489, R491, R490, R522, R521, R520, R524, R523, R508, R505
 - Remove R518, R507, R506
 
-This rework will disable RTC because the ethernet phy shares pins with the XTAL.
+This rework will affect peripherals (such as RTC) that use the XTAL32K clock because the
+ethernet phy shares pins with the XTAL32K clock source.
 
 To build, use the board target `rd_rw612_bga_ethernet`.
 
