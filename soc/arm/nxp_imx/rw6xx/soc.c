@@ -346,7 +346,7 @@ __ramfunc void clock_init()
 #if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm14), nxp_lpc_i2c, okay)) && CONFIG_I2C
 	CLOCK_AttachClk(kSFRO_to_FLEXCOMM14);
 #endif
-#if DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(rtc), nxp_lpc_rtc, okay)
+#if CONFIG_XTAL32K
 	CLOCK_EnableXtal32K(true);
 	CLOCK_AttachClk(kXTAL32K_to_CLK32K);
 #endif
