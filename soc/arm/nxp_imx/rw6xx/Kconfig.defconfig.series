@@ -126,6 +126,9 @@ config COUNTER
 config MCUX_OS_TIMER_PM_POWERED_OFF
 	default y
 
+config IDLE_STACK_SIZE
+	default 640
+
 endif # PM
 
 if PM_DEVICE
