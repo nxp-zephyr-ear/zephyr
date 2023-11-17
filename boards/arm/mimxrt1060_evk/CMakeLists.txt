@@ -24,6 +24,9 @@ if(CONFIG_NXP_IMX_RT_BOOT_HEADER)
   elseif(CONFIG_BOARD_MIMXRT1060_EVKB)
     set(FLASH_CONF evkbmimxrt1060_flexspi_nor_config.c)
     set(BOARD_NAME evkbmimxrt1060)
+  elseif(CONFIG_BOARD_MIMXRT1060_EVKC)
+    set(FLASH_CONF evkbmimxrt1060_flexspi_nor_config.c)
+    set(BOARD_NAME evkbmimxrt1060)
   else()
     message(WARNING "It appears you are using the board definition for "
      "the MIMXRT1060-EVK, but targeting a custom board. You may need to "
