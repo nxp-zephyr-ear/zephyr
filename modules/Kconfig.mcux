@@ -378,4 +378,9 @@ config NXP_RF_IMU
 	help
 	   RF_IMU adapter is needed for intercore messaging.
 
+config MCUX_ELS_PKC
+	bool "Build els_pkc"
+	help
+	    Include the els_pkc component from the NXP MCU SDK in the build.
+
 endif # HAS_MCUX
