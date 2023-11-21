@@ -1,4 +1,5 @@
 # Copyright (c) 2022 Nordic Semiconductor ASA
+# Copyright 2023 NXP
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_INIT_PRIORITY
@@ -6,3 +7,26 @@ config BOARD_INIT_PRIORITY
 	default 45
 	help
 	  Board initialization priority.
+
+config USE_ELS_PKC_HUK
+	bool "For TF-M, use a die internal HUK"
+	depends on BUILD_WITH_TFM && MCUX_PSA_CRYPTO_DRIVER_ELS_PKC
+	default y
+	help
+	  For TF-M, use a HUK that is derived from the die internal master key of the ELS.
+
+config USE_ELS_PKC_IAK
+	bool "For TF-M, use ELS-backed key for initial attestation"
+	depends on BUILD_WITH_TFM && MCUX_PSA_CRYPTO_DRIVER_ELS_PKC
+	default y
+	help
+	  For TF-M, use a IAK that is an ELS internal key derived from the NXP root of trust.
+
+config USE_HARDENED_PLATFORM_INIT
+	bool "For TF-M, use hardened platform initialization code"
+	depends on BUILD_WITH_TFM
+	default y
+	help
+	  For TF-M, use platform initialization code that is hardened against fault injections.
+	  For critical registers, the written value is read back and compared against the wanted
+	  value to ensure correctness.

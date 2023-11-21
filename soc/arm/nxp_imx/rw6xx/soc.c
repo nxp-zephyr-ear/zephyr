@@ -437,6 +437,7 @@ static ALWAYS_INLINE void clock_init(void)
 static int nxp_rw600_init(void)
 {
 
+#if ! CONFIG_TRUSTED_EXECUTION_NONSECURE
 #if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(wwdt), nxp_lpc_wwdt, okay))
 	POWER_EnableResetSource(kPOWER_ResetSourceWdt);
 #endif
@@ -448,13 +449,17 @@ static int nxp_rw600_init(void)
 	POWER_PowerOnGau();
 #endif
 
+#endif /* ! CONFIG_TRUSTED_EXECUTION_NONSECURE */
+
 	return 0;
 }
 
 void z_arm_platform_init(void)
 {
+#if ! CONFIG_TRUSTED_EXECUTION_NONSECURE
 	/* This is provided by the SDK */
 	SystemInit();
+#endif /* ! CONFIG_TRUSTED_EXECUTION_NONSECURE */
 }
 
 SYS_INIT(nxp_rw600_init, PRE_KERNEL_1, 0);
