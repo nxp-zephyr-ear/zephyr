@@ -1,6 +1,6 @@
 # RD_RW612_BGA board
 
-# Copyright 2022 NXP
+# Copyright 2022-2023 NXP
 # SPDX-License-Identifier: Apache-2.0
 
 if BOARD_RD_RW612_BGA
@@ -91,5 +91,38 @@ config NET_L2_ETHERNET
 	default y
 
 endif # DT_HAS_NXP_KINETIS_ETHERNET_ENABLED && NETWORKING
+
+if BUILD_WITH_TFM
+
+	config PLATFORM_DEFAULT_CRYPTO_KEYS
+		bool
+		default n
+
+	config FLASH_BASE_ADDRESS
+		default 0x080A0000
+		# Parts of Flash are used by TF-M SPE. This denotes the base address of the memory available
+		# for the NSPE. It needs to match with the memory layout configured in TF-M (see
+		# flash_layout.h in TF-M) as TF-M is in control of memory firewalls.
+
+	config SRAM_BASE_ADDRESS
+		default 0x2009a000
+		# Parts of RAM are used by TF-M SPE. This denotes the base address of memory available for
+		# the NSPE. It needs to be in line with the memory layout configured in TF-M (see
+		# region_defs.h in TF-M).
+
+	config SRAM_SIZE
+		default 600
+		default 599 if TFM_PSA_TEST_CRYPTO
+		# Parts of RAM are used by TF-M SPE. This denotes the size of the memory available for the
+		# NSPE in KiB. It needs to be in line with the memory layout configured in TF-M (see
+		# region_defs.h in TF-M).
+
+	config TFM_MBEDCRYPTO_CONFIG_PATH
+		default "${ZEPHYR_TRUSTED_FIRMWARE_M_MODULE_DIR}/platform/ext/target/nxp/rdrw61x/mbedcrypto_config/tfm_mbedcrypto_config.h"
+
+	config TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH
+		default "${ZEPHYR_TRUSTED_FIRMWARE_M_MODULE_DIR}/platform/ext/target/nxp/rdrw61x/mbedcrypto_config/crypto_config.h"
+
+endif # BUILD_WITH_TFM
 
 endif # BOARD_RD_RW612_BGA
