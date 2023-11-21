@@ -31,7 +31,9 @@ tests:
     tags:
       - introduction
       - trusted-firmware-m
-    platform_allow: mps2_an521_ns
+    platform_allow:
+      - mps2_an521_ns
+      - rd_rw612_bga_ns
     extra_configs:
       - CONFIG_TFM_BL2=n
     harness: console
