@@ -2,6 +2,7 @@
 
 # Copyright (c) 2019, 2020 Linaro Limited
 # Copyright (c) 2020, 2021 Nordic Semiconductor ASA
+# Copyright 2023 NXP
 # SPDX-License-Identifier: Apache-2.0
 
 config ZEPHYR_TRUSTED_FIRMWARE_M_MODULE
@@ -10,6 +11,7 @@ config ZEPHYR_TRUSTED_FIRMWARE_M_MODULE
 config TFM_BOARD
 	string
 	default "nxp/lpcxpresso55s69" if BOARD_LPCXPRESSO55S69_CPU0
+	default "nxp/rdrw61x" if BOARD_RD_RW612_BGA
 	default "arm/mps2/an521" if BOARD_MPS2_AN521_CPU0_NS
 	default "arm/mps3/an547" if BOARD_MPS3_AN547
 	default "stm/b_u585i_iot02a" if BOARD_B_U585I_IOT02A
@@ -292,6 +294,14 @@ config TFM_MCUBOOT_PATH_DOWNLOAD
 
 endchoice
 
+config TFM_MCUBOOT_DATA_SHARING
+	bool "Share app-specific data between TF-M and MCUBoot"
+	help
+	  Add sharing of application specific data using the same
+	  shared data area as for the measured boot.
+
+endif # TFM_BL2
+
 config TFM_QCBOR_PATH
 	string
 	prompt "Path to QCBOR or DOWNLOAD to fetch automatically"
@@ -303,13 +313,6 @@ config TFM_QCBOR_PATH
 	  to their own checkout of this library, or set to DOWNLOAD to allow
 	  TF-M build system to automatically download this.
 
-config TFM_MCUBOOT_DATA_SHARING
-	bool "Share app-specific data between TF-M and MCUBoot"
-	help
-	  Add sharing of application specific data using the same
-	  shared data area as for the measured boot.
-
-endif # TFM_BL2
 
 choice TFM_MODEL
 	prompt "TF-M Firmware Framework model"

@@ -1,0 +1,61 @@
+#-------------------------------------------------------------------------------
+# Copyright 2023 NXP
+# SPDX-License-Identifier: Apache-2.0
+#
+#-------------------------------------------------------------------------------
+
+menu "Platform options"
+
+config PLATFORM_DEFAULT_BL1
+    bool
+    default y
+
+config PLATFORM_DEFAULT_ATTEST_HAL
+    bool
+    default y
+
+config PLATFORM_DEFAULT_NV_COUNTERS
+    bool
+    default y
+    depends on PLATFORM_DEFAULT_OTP_WRITEABLE
+
+config PLATFORM_DEFAULT_CRYPTO_KEYS
+    bool
+    default y
+
+config PLATFORM_DEFAULT_ROTPK
+    bool
+    default y
+
+config PLATFORM_DEFAULT_IAK
+    bool
+    default y
+
+config PLATFORM_DEFAULT_UART_STDOUT
+    bool
+    default y
+
+config PLATFORM_DEFAULT_NV_SEED
+    bool
+    default y
+
+config PLATFORM_DEFAULT_OTP
+    bool
+    default y
+
+config PLATFORM_DEFAULT_OTP_WRITEABLE
+    bool
+    default y
+
+config PLATFORM_DEFAULT_PROVISIONING
+    bool
+    default y
+
+config PLATFORM_DEFAULT_SYSTEM_RESET_HALT
+    bool
+    default y
+
+config PLATFORM_HAS_FIRMWARE_UPDATE_SUPPORT
+    bool
+    default n
+endmenu
