@@ -78,18 +78,23 @@ For RW610/612 board, before compiling the CPU3 image, there are three macros nee
   - CONFIG_SUPPORT_WIFI
   - CONFIG_SUPPORT_BLE
   - CONFIG_SUPPORT_15D4
-Here are some example about fw be used:
-By default:only download wifi fw
-  - CONFIG_SUPPORT_WIFI=1
-  - CONFIG_SUPPORT_BLE=0
-  - CONFIG_SUPPORT_15D4=0
+
+By default: Enable wifi and ble (15d4 is not supported yet)
 wifi+ble
   - CONFIG_SUPPORT_WIFI=1
   - CONFIG_SUPPORT_BLE=1
+  - CONFIG_SUPPORT_15D4=0
+
+Here are some example about fw be used:
+wifi only
+  - CONFIG_SUPPORT_WIFI=1
+  - CONFIG_SUPPORT_BLE=0
+  - CONFIG_SUPPORT_15D4=0
 wifi+ble+15d4
   - CONFIG_SUPPORT_WIFI=1
   - CONFIG_SUPPORT_BLE=1
   - CONFIG_SUPPORT_15D4=1
 wifi+15d4
   - CONFIG_SUPPORT_WIFI=1
+  - CONFIG_SUPPORT_BLE=0
   - CONFIG_SUPPORT_15D4=1
