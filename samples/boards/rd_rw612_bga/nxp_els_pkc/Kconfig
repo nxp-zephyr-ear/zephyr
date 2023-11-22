@@ -1,4 +1,4 @@
-# Copyright 2022-2024 NXP
+# Copyright 2023 NXP
 # SPDX-License-Identifier: Apache-2.0
 config MCUX_ELS_PKC_EXAMPLES
 	bool "Support of MCUX ELS PKC examples"
