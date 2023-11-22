@@ -1,8 +1,12 @@
 /*
- * Copyright 2022 NXP
+ * Copyright 2022-2023 NXP
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
+#include <mem.h>
+#include <arm/armv8-m.dtsi>
+#include <dt-bindings/gpio/gpio.h>
 
 / {
 	soc {
