@@ -767,9 +767,9 @@ static int WPL_Connect(const struct device *dev, struct wifi_connect_req_params 
 #endif
 		else if (params->security == WIFI_SECURITY_TYPE_SAE) {
 			sta_network.security.type = WLAN_SECURITY_WPA3_SAE;
-			sta_network.security.password_len = params->sae_password_length;
-			strncpy(sta_network.security.password, params->sae_password,
-				params->sae_password_length);
+			sta_network.security.password_len = params->psk_length;
+			strncpy(sta_network.security.password, params->psk,
+				params->psk_length);
 		} else {
 			status = WPLRET_BAD_PARAM;
 		}
