@@ -279,34 +279,23 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		net_eth_carrier_on(g_uap.netif);
 		LOG_INF("app_cb: WLAN: UAP Started");
 
-		network = (struct wlan_network *)os_mem_alloc(sizeof(struct wlan_network));
-		if (!network) {
-			LOG_ERR("failed to malloc uap network memory");
+		ret = wlan_get_current_uap_network(&uap_network);
+		if (ret != WM_SUCCESS) {
+			LOG_ERR("Failed to get Soft AP network");
 			return 0;
 		}
 
-		ret = wlan_get_current_uap_network(network);
-		if (ret != WM_SUCCESS) {
-			LOG_ERR("Failed to get Soft AP network");
-			goto uap_start_err;
-		}
-
 		printSeparator();
-		LOG_INF("Soft AP \"%s\" started successfully", network->ssid);
+		LOG_INF("Soft AP \"%s\" started successfully", uap_network.ssid);
 		printSeparator();
 		if (dhcp_server_start(net_get_uap_handle())) {
 			LOG_ERR("Error in starting dhcp server");
-			goto uap_start_err;
+			return 0;
 		}
 
 		LOG_INF("DHCP Server started successfully");
 		printSeparator();
 		s_wplUapActivated = true;
-
-	uap_start_err:
-		if (network != NULL) {
-			os_mem_free(network);
-		}
 		break;
 	case WLAN_REASON_UAP_CLIENT_ASSOC:
 		LOG_INF("app_cb: WLAN: UAP a Client Associated");
@@ -337,20 +326,7 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		net_eth_carrier_off(g_uap.netif);
 		LOG_INF("app_cb: WLAN: UAP Stopped");
 		printSeparator();
-
-		network = (struct wlan_network *)os_mem_alloc(sizeof(struct wlan_network));
-		if (!network) {
-			LOG_ERR("failed to malloc uap network memory");
-			return 0;
-		}
-
-		ret = wlan_get_current_uap_network(network);
-		if (ret != WM_SUCCESS) {
-			LOG_ERR("Failed to get Soft AP network");
-			goto uap_stop_err;
-		}
-
-		LOG_INF("Soft AP \"%s\" stopped successfully", network->ssid);
+		LOG_INF("Soft AP \"%s\" stopped successfully", uap_network.ssid);
 		printSeparator();
 
 		dhcp_server_stop();
@@ -358,11 +334,6 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		LOG_INF("DHCP Server stopped successfully");
 		printSeparator();
 		s_wplUapActivated = false;
-
-	uap_stop_err:
-		if (network != NULL) {
-			os_mem_free(network);
-		}
 		break;
 	case WLAN_REASON_PS_ENTER:
 		LOG_INF("app_cb: WLAN: PS_ENTER");
@@ -768,8 +739,7 @@ static int WPL_Connect(const struct device *dev, struct wifi_connect_req_params 
 		else if (params->security == WIFI_SECURITY_TYPE_SAE) {
 			sta_network.security.type = WLAN_SECURITY_WPA3_SAE;
 			sta_network.security.password_len = params->psk_length;
-			strncpy(sta_network.security.password, params->psk,
-				params->psk_length);
+			strncpy(sta_network.security.password, params->psk, params->psk_length);
 		} else {
 			status = WPLRET_BAD_PARAM;
 		}
