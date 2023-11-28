@@ -38,9 +38,9 @@ int main(void)
 {
 	uint8_t pass = 0;
 	uint8_t fail = 0;
-	printf("\n============================\n");
-	printf("ELS hash example");
-	printf("\n============================\n");
+	printf("\n================\n");
+	printf("ELS hash example\n");
+	printf("================\n");
 
 	printf("SHA224 one shot:");
 	if (mcuxClHashModes_sha224_oneshot_example() == true) {
@@ -96,9 +96,9 @@ int main(void)
 		printf("fail \n");
 	}
 
-	printf("\n============================\n");
-	printf("ELS PKC asymmetric cipher example");
-	printf("\n============================\n");
+	printf("\n=================================\n");
+	printf("ELS PKC asymmetric cipher example\n");
+	printf("=================================\n");
 
 	printf("PKC ECC keygen sign verify:");
 	if (mcuxClEls_Ecc_Keygen_Sign_Verify_example() == true) {
@@ -163,9 +163,9 @@ int main(void)
 		printf("fail \n");
 	}
 
-	printf("\n============================\n");
-	printf("ELS PKC common example");
-	printf("\n============================\n");
+	printf("\n======================\n");
+	printf("ELS PKC common example\n");
+	printf("======================\n");
 
 	printf("ELS get info:");
 	if (mcuxClEls_Common_Get_Info_example() == true) {
@@ -240,8 +240,8 @@ int main(void)
 	}
 
 	printf("\n============================\n");
-	printf("ELS symmetric cipher example");
-	printf("\n============================\n");
+	printf("ELS symmetric cipher example\n");
+	printf("============================\n");
 
 	printf("AES128-CBC encryption:");
 	if (mcuxClEls_Cipher_Aes128_Cbc_Encrypt_example() == true) {
@@ -270,14 +270,13 @@ int main(void)
 		printf("fail \n");
 	}
 
-	printf("\n============================\n");
-	printf("RESULT: ");
+	printf("\nRESULT: ");
 	if (fail == 0) {
 		printf("All %d test PASS!!\n", pass);
 	} else {
 		printf("%d / %d test PASSED, %d FAILED!!\n", pass, pass + fail, fail);
 	}
 
-	printf("ELS-PKC stand-alone examples END \n");
+	printf("ELS-PKC stand-alone examples end \n");
 	return 0;
 }
