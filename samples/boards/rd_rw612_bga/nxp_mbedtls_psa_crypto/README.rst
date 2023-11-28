@@ -1,7 +1,7 @@
-.. _rd_rw612_bga_nxp-mfg-bridge-sample:
+.. _nxp_mbedtls_psa_crypto:
 
-RD-RW612-BGA MFG Bridge Sample Application
-###############################
+NXP Mbedtls Psa Crypto Test Sample
+##################################
 
 Overview
 ********
@@ -27,7 +27,9 @@ Building, Flashing and Running
    :goals: build flash
    :compact:
 
-Flashing:
+
+Flashing
+********
 
 .. code-block:: console
 
@@ -35,19 +37,13 @@ Flashing:
     $ cd build/zephyr
     $ loadbin C:xxx\build\zephyr.bin, 0x08000000
 
-Running:
+Sample Output
+=============
 
-1. Connect the board with Windows PC.
-2. You should be able to see following output.
+.. code-block:: console
 
-*** Booting Zephyr OS build zephyr-v3.5.0-751-g3b4b91a76c4a ***
-
-Mbedtls - PSA - Crypto - examples
-
-============================
-cipher encrypt/decrypt AES CBC no padding:
-        success!
-cipher encrypt/decrypt AES CBC PKCS7 multipart:
-        success!
-cipher encrypt/decrypt AES CTR multipart:
-        success!
+    Mbedtls - PSA - Crypto - examples
+    =================================
+    cipher encrypt/decrypt AES CBC no padding: success!
+    cipher encrypt/decrypt AES CBC PKCS7 multipart: success!
+    cipher encrypt/decrypt AES CTR multipart: success!
