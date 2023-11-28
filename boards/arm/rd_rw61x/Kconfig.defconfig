@@ -73,7 +73,7 @@ endif # LVGL
 # Limit flash load size to avoid overwriting fw storage partition
 # Flash load size must be given in hex, as a number of bytes
 config FLASH_LOAD_SIZE
-	default 0x400000 if !BOOTLOADER_MCUBOOT
+	default 0x400000 if !BOOTLOADER_MCUBOOT && !NXP_FW_LOADER_MONOLITHIC
 
 # This is a workaround for not being able to define the BOOT_MAX_IMG_SECTORS
 # within the MCUBoot board .conf file, since no fork of MCUBoot is maintained
