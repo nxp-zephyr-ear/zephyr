@@ -372,6 +372,12 @@ config NXP_FW_LOADER
 	   The firmware loader is used to load firmwares to embedded tranceivers.
 	   It is needed to enable connectivity features.
 
+config NXP_FW_LOADER_MONOLITHIC
+	bool "NXP firmware loader monolithic build"
+	help
+	  If enabled, the firmwares used by the device will be linked with the application
+	  directly.
+
 config NXP_RF_IMU
 	bool "Include RF_IMU adapter for intercore messaging"
 	select EVENTS
