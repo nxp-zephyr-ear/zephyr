@@ -1079,7 +1079,6 @@ static int mcux_flexcomm_pm_action(const struct device *dev, enum pm_device_acti
 			/* Do not execute the Resume code if the UART is disabled. */
 			break;
 		}
-
 		break;
 	case PM_DEVICE_ACTION_SUSPEND:
 		break;
