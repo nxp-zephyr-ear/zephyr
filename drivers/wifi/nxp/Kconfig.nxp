@@ -519,19 +519,13 @@ endif
 
 config HOST_SLEEP
        bool "Host Sleep"
-       default y if PM_DEVICE
+       default y if PM
        help
          This option enables Host sleep feature in the Wi-Fi driver.
 
-config NXP_WIFI_POWER_MANAGER
-       bool "WIFI Power Manager Support"
-       default y if PM_DEVICE
-       help
-         This option enables Power Manager support in the Wi-Fi driver.
-
 config MEF_CFG
        bool "MEF config"
-       default y if PM_DEVICE
+       default y if PM
        help
          This option enables Memory Efficient Filtering support in the Wi-Fi driver.
 
