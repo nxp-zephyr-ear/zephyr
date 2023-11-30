@@ -24,10 +24,20 @@ LOG_MODULE_REGISTER(wifi_nxp, CONFIG_WIFI_LOG_LEVEL);
 #ifdef CONFIG_WPA_SUPP
 #include "wifi_nxp.h"
 #endif
+#ifdef CONFIG_PM_DEVICE
+#include <zephyr/pm/device.h>
+#endif
 
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+
+#define DT_DRV_COMPAT nxp_imu_wifi
+
+#define IMU_IRQ_N        DT_INST_IRQ_BY_IDX(0, 0, irq)
+#define IMU_IRQ_P        DT_INST_IRQ_BY_IDX(0, 0, priority)
+#define IMU_WAKEUP_IRQ_N DT_INST_IRQ_BY_IDX(0, 1, irq)
+#define IMU_WAKEUP_IRQ_P DT_INST_IRQ_BY_IDX(0, 1, priority)
 
 #define MAX_JSON_NETWORK_RECORD_LENGTH 185
 
@@ -67,6 +77,12 @@ extern interface_t g_uap;
 extern const rtos_wpa_supp_dev_ops wpa_supp_ops;
 #endif
 
+#ifdef CONFIG_PM_DEVICE
+extern int is_hs_handshake_done;
+extern int wlan_host_sleep_state;
+struct k_timer wake_timer;
+#endif
+
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
@@ -76,6 +92,9 @@ static void LinkStatusChangeCallback(bool linkState);
 static int WPL_Disconnect(const struct device *dev);
 static void WPL_AutoConnect(void);
 extern int low_level_output(const struct device *dev, struct net_pkt *pkt);
+#ifdef CONFIG_PM_DEVICE
+static void wake_timer_cb(os_timer_arg_t arg);
+#endif
 
 static void printSeparator(void)
 {
@@ -138,6 +157,9 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		LOG_INF("WLAN CLIs are initialized");
 		printSeparator();
 #ifdef RW610
+#ifdef CONFIG_PM_DEVICE
+		k_timer_init(&wake_timer, wake_timer_cb, NULL);
+#endif
 		ret = wlan_enhanced_cli_init();
 		if (ret != WM_SUCCESS) {
 			LOG_ERR("Failed to initialize WLAN CLIs");
@@ -145,16 +167,6 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		}
 		LOG_INF("ENHANCED WLAN CLIs are initialized");
 		printSeparator();
-
-#ifdef CONFIG_HOST_SLEEP
-		ret = host_sleep_cli_init();
-		if (ret != WM_SUCCESS) {
-			LOG_ERR("Failed to initialize WLAN CLIs");
-			return 0;
-		}
-		LOG_INF("HOST SLEEP CLIs are initialized");
-		printSeparator();
-#endif
 #endif
 
 #ifdef CONFIG_RF_TEST_MODE
@@ -945,6 +957,7 @@ static void WPL_AutoConnect(void)
 
 #ifdef RW610
 extern void WL_MCI_WAKEUP0_DriverIRQHandler(void);
+extern void WL_MCI_WAKEUP_DONE0_DriverIRQHandler(void);
 #endif
 
 static int wifi_net_init(const struct device *dev)
@@ -971,8 +984,13 @@ static void wifi_net_iface_init(struct net_if *iface)
 		g_uap.state.interface = WLAN_BSS_TYPE_UAP;
 
 #ifdef RW610
-		IRQ_CONNECT(72, 1, WL_MCI_WAKEUP0_DriverIRQHandler, 0, 0);
-		irq_enable(72);
+		IRQ_CONNECT(IMU_IRQ_N, IMU_IRQ_P, WL_MCI_WAKEUP0_DriverIRQHandler, 0, 0);
+		irq_enable(IMU_IRQ_N);
+		IRQ_CONNECT(IMU_WAKEUP_IRQ_N, IMU_WAKEUP_IRQ_P, WL_MCI_WAKEUP_DONE0_DriverIRQHandler, 0, 0);
+		irq_enable(IMU_WAKEUP_IRQ_N);
+#if (DT_INST_PROP(0, wakeup_source))
+		EnableDeepSleepIRQ(IMU_IRQ_N);
+#endif
 #endif
 		/* Initialize the wifi subsystem */
 		ret = WPL_Init();
@@ -1047,7 +1065,96 @@ static const struct net_wifi_mgmt_offload wifi_netif_apis = {
 	.wifi_mgmt_api = &nxp_wifi_mgmt,
 };
 
-NET_DEVICE_INIT_INSTANCE(wifi_nxp_sta, "ml", 0, wifi_net_init, NULL, &g_mlan,
+#ifdef CONFIG_PM_DEVICE
+static void wake_timer_cb(os_timer_arg_t arg)
+{
+	if(wakelock_isheld())
+		wakelock_put();
+}
+
+void device_pm_dump_wakeup_source()
+{
+	if(POWER_GetWakeupStatus(IMU_IRQ_N))
+	{
+		LOG_INF("Wakeup by WLAN");
+		POWER_ClearWakeupStatus(IMU_IRQ_N);
+	}
+	else if(POWER_GetWakeupStatus(41))
+	{
+		LOG_INF("Wakeup by OSTIMER");
+		POWER_ClearWakeupStatus(41);
+	}
+}
+
+static int device_wlan_pm_action(const struct device *dev,
+				 enum pm_device_action pm_action)
+{
+	int ret = 0;
+
+	switch(pm_action)
+	{
+		case PM_DEVICE_ACTION_SUSPEND:
+			if(!wlan_host_sleep_state || !wlan_is_started() || wakelock_isheld()
+#ifdef CONFIG_WMM_UAPSD
+			   || wlan_is_wmm_uapsd_enabled()
+#endif
+			)
+				return -EBUSY;
+			/* Trigger host sleep handshake here. Before handshake is done, host is not allowed to enter low power mode */
+			if (!is_hs_handshake_done)
+			{
+				is_hs_handshake_done = WLAN_HOSTSLEEP_IN_PROCESS;
+				ret = powerManager_send_event(HOST_SLEEP_HANDSHAKE, NULL);
+				if (ret != 0)
+					return -EFAULT;
+				return -EBUSY;
+			}
+			if (is_hs_handshake_done == WLAN_HOSTSLEEP_IN_PROCESS)
+				return -EBUSY;
+			if (is_hs_handshake_done == WLAN_HOSTSLEEP_FAIL)
+			{
+				is_hs_handshake_done = 0;
+				return -EFAULT;
+			}
+			break;
+		case PM_DEVICE_ACTION_RESUME:
+			/* Cancel host sleep in firmware and dump wakekup source.
+			 * If sleep state is periodic, start timer to keep host in full power state for 5s.
+			 * User can use this time to issue other commands.
+			 */
+			if (is_hs_handshake_done == WLAN_HOSTSLEEP_SUCCESS)
+			{
+				ret = powerManager_send_event(HOST_SLEEP_EXIT, NULL);
+				if (ret != 0)
+					return -EFAULT;
+				device_pm_dump_wakeup_source();
+				/* reset hs hanshake flag after waking up */
+				is_hs_handshake_done = 0;
+				if(wlan_host_sleep_state == HOST_SLEEP_ONESHOT)
+					wlan_host_sleep_state = HOST_SLEEP_DISABLE;
+				else if(wlan_host_sleep_state == HOST_SLEEP_PERIODIC)
+				{
+					wakelock_get();
+					k_timer_start(&wake_timer, K_TICKS(50000), K_NO_WAIT);
+				}
+			}
+			break;
+		default:
+			break;
+	}
+	return ret;
+}
+
+int wlan_pm_init(const struct device *dev)
+{
+	return 0;
+}
+
+PM_DEVICE_DT_INST_DEFINE(0, device_wlan_pm_action);
+#endif
+
+NET_DEVICE_INIT_INSTANCE(wifi_nxp_sta, "ml", 0, wifi_net_init, PM_DEVICE_DT_INST_GET(0),
+			 &g_mlan,
 #ifdef CONFIG_WPA_SUPP
 			 &wpa_supp_ops,
 #else
