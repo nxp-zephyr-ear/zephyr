@@ -1,22 +1,72 @@
+NXP RW61X Zephyr Early Access Release Notes
+
+How to get the code
+===================
+
+Use the getting Zephyr started guide to setup your development environment. However,
+the west init command is as follows:
+
+ $ west init -m git@github.com:nxp-ea-7/zephyr.git -–mr rw61x_ear
+
+Then, run:
+ $ west update
+ 
+If you previously setup your environment please run the following command to update to a subsequent release:
+
+ $ cd /to/your/zephyr/clone
+ $ git fetch 
+ $ git checkout -b rw61x_ear origin/rw61x_ear
+ $ west update
+
+
+The Zephyr getting started guide can be found at: https://docs.zephyrproject.org/latest/develop/getting_started/index.html
+
+
 Release: EAR4.0
 
-Changes from EAR3.0:
-- Added Support for CTIMER counter
+Base Enablement
+===============
+- Synchronized Zephyr codebase to Zephyr Project v3.5.0 release (tag: zephyr-v3.5.0) onto
+  new rw61x_ear branch
+- Added support for CTIMER counter
+- Added support for RTC
+- Added Ethernet 
+- Added support for multirate timer (MRT)
 - Enabled support for driving ST7796S based display using LCDIC
 
-Product release candidate of Zephyr for the NXP RW61x Reference Design
-=================================================================
+BLE support
+============
+<<TBD>>
+
+Wi-Fi support
+============
+<<TBD>>
+
+TF-M / mbedTLS / Crypto
+=======================
+<<TBD>>
+
+Repositories:
+=============
+
+- Zephyr
+
+   Repository: git@github.com:nxp-ea-7/zephyr.git
+   Branch: rw61x_ear
+   Tag: rw61x_ear_4.0
+
+- HAL for RW61X
+
+   Repository: git@github.com:nxp-ea-7/nxp_hal.git
+   Branch: feature/rw61x_v3.4.0
+   Tag: rw61x_ear_4.0
+
 
 Release: EAR3.0
-
-This document summarizes the contents of the product release candidate for
-the Zephyr support of the NXP RW61X reference design.
-
 
 BLE support
 ============
 
-Changes from EAR2.0:
 - Increased maximal connections for bt_tester application to 16
 - Enabled self low power control for the BLE controller.
 - Support of BLE bonding. NVS back-end storage can be
@@ -60,14 +110,7 @@ Base Enablement
 - Corrected number of USB endpoints
 - Updated SOC initialization to re-enable voltage glitch detect sensor after clock setup
 
-
-Early Access Release of Zephyr for the NXP RW61x Reference Design
-=================================================================
-
 Release: EAR2.0
-
-This document summarizes the contents of the early access release for
-the Zephyr support of the NXP RW61X reference design.
 
 Changes from: 1.1
 - Suppressed spi_bus_bridge DT warning
@@ -181,18 +224,5 @@ Wi-Fi applications supported in this release are
 
 Limitations
     - wpa_supplicant hardware accelerators for security cryptography are not supported yet
-
-How to get the code
-===================
-
-Use the getting Zephyr started guide to setup your development environment. However,
-the west init command is as follows:
-
- $ west init -m git@github.com:nxp-ea-7/zephyr.git -–mr rw61x_ear_v3.4.0
-
-Then, run:
- $ west update
-
-The Zephyr getting started guide can be found at: https://docs.zephyrproject.org/latest/develop/getting_started/index.html
 
 
