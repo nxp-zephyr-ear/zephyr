@@ -55,6 +55,8 @@
 #define MCUX_FLEXSPI_CLK		35
 #define MCUX_FLEXSPI2_CLK		36
 
+#define MCUX_DMIC_CLK			37
+
 #define MCUX_MRT_CLK			40
 
 /* RW IP */

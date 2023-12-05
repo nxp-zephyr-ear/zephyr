@@ -200,6 +200,11 @@ static int mcux_lpc_syscon_clock_control_get_subsys_rate(
 		*rate = CLOCK_GetDcPixelClkFreq();
 		break;
 #endif
+#if defined(CONFIG_AUDIO_DMIC_MCUX)
+	case MCUX_DMIC_CLK:
+		*rate = CLOCK_GetDmicClkFreq();
+		break;
+#endif
 
 /* Part of RW IP */
 #if defined(CONFIG_ADC_MCUX_GAU)
