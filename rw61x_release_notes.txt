@@ -44,7 +44,16 @@ Wi-Fi support
 
 TF-M / mbedTLS / Crypto
 =======================
-<<TBD>>
+- els_pkc crypto module updated to v1.7
+- psa_crypto_driver interface is added to provide hardware acceleration against psa-apis.
+- Mbedtls v3.4.0 with support of HW acceleration via psa-apis for RW61x
+- TF-M v1.8 enablement for RW61x platform with zephyr
+- Supported features in TF-M:
+  - Enabled use of Hardware TRNG as entropy source
+  - Use of ELS based key for initial attestation.
+  - Use of ELS die internal key as ROT for HUK.
+  - NV counters in OCOTP
+  - Added inline prince encryption and decryption (IPED) - encryption of external Flash - support to ITS.
 
 Repositories:
 =============
@@ -61,6 +70,17 @@ Repositories:
    Branch: feature/rw61x_v3.4.0
    Tag: rw61x_ear_4.0
 
+   Repository: git@github.com:nxp-ea-7/zephyr_mbedtls.git
+   Branch: feature/rw61x-mbedtls3.4.0
+   Tag: rw61x_ear_4.0
+
+   Repository: git@github.com:nxp-ea-7/zephyr_tf-m.git
+   Branch: feature/rw61x-tfm1.8
+   Tag: rw61x_ear_4.0
+
+   Repository: git@github.com:nxp-ea-7/zephyr_psa_arch_test.git
+   Branch: feature/rw61x-tfm1.8
+   Tag: rw61x_ear_4.0
 
 Release: EAR3.0
 
