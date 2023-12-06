@@ -89,7 +89,7 @@ struct otp_gdet_data {
 	uint32_t CFG5;
 	uint32_t TRIM0;
 };
-
+#if ! CONFIG_TRUSTED_EXECUTION_NONSECURE
 static void load_gdet_cfg(struct otp_gdet_data *data, uint32_t pack)
 {
 	data->CFG3 = POWER_TrimSvc(data->CFG3, pack);
@@ -144,7 +144,9 @@ static void load_gdet_cfg(struct otp_gdet_data *data, uint32_t pack)
 	while ((ELS->ELS_STATUS & ELS_ELS_STATUS_ELS_BUSY_MASK) != 0U) {
 	}
 }
+#endif /* ! CONFIG_TRUSTED_EXECUTION_NONSECURE */
 
+#if ! CONFIG_TRUSTED_EXECUTION_NONSECURE
 /* Configure voltage sensor and glitch detect blocks.
  * The configuration values are read from the OCOTP block
  */
@@ -204,6 +206,7 @@ static void config_svc_sensor(void)
 
 	OCOTP_OtpDeinit();
 }
+#endif /* ! CONFIG_TRUSTED_EXECUTION_NONSECURE */
 
 /**
  * @brief Initialize the system clocks and peripheral clocks
@@ -214,6 +217,7 @@ static void config_svc_sensor(void)
  */
 __ramfunc void clock_init()
 {
+#if ! CONFIG_TRUSTED_EXECUTION_NONSECURE
 	POWER_DisableGDetVSensors();
 
 	if ((PMU->CAU_SLP_CTRL & PMU_CAU_SLP_CTRL_SOC_SLP_RDY_MASK) == 0U) {
@@ -428,6 +432,7 @@ __ramfunc void clock_init()
 	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
 		POWER_EnableGDetVSensors();
 	}
+#endif /* ! CONFIG_TRUSTED_EXECUTION_NONSECURE */
 }
 
 /**
