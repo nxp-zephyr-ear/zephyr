@@ -40,7 +40,17 @@ BLE support
 
 Wi-Fi support
 ============
-<<TBD>>
+- Support RF test mode in samples/net/wifi
+- Stability issues fix for Wi-Fi MGMT offload APIs
+- 3 antenna manual selection mode
+- Wakeup over WLAN
+- Low power mode PM1, PM2 supported in sample/net/wifi
+- wpa_supplicant hardware accelerators for security cryptography
+
+Limitations
+	- MCU low power mode (PM3) for Wi-Fi application is not enabled, known issues under debug.
+	- Some DPP2 and DPP3 known issues under debug.
+	- Low power mode periodic sleep known issues under debug.
 
 TF-M / mbedTLS / Crypto
 =======================
