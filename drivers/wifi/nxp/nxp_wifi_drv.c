@@ -174,6 +174,11 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		LOG_INF("WLAN Test Mode CLIs are initialized");
 		printSeparator();
 #endif
+		ret = wpa_cli_init();
+		if (ret != WM_SUCCESS) {
+			LOG_ERR("Failed to initialize WPA SUPP CLI\r\n");
+			return 0;
+		}
 
 		help_command(0, NULL);
 		printSeparator();
