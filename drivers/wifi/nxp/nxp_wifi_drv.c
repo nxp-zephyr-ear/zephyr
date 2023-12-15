@@ -92,9 +92,6 @@ static void LinkStatusChangeCallback(bool linkState);
 static int WPL_Disconnect(const struct device *dev);
 static void WPL_AutoConnect(void);
 extern int low_level_output(const struct device *dev, struct net_pkt *pkt);
-#ifdef CONFIG_PM_DEVICE
-static void wake_timer_cb(os_timer_arg_t arg);
-#endif
 
 static void printSeparator(void)
 {
@@ -1076,6 +1073,9 @@ void device_pm_dump_wakeup_source()
 	} else if (POWER_GetWakeupStatus(41)) {
 		LOG_INF("Wakeup by OSTIMER");
 		POWER_ClearWakeupStatus(41);
+	} else if (POWER_GetWakeupStatus(32)) {
+		LOG_INF("Wakeup by RTC");
+		POWER_ClearWakeupStatus(32);
 	}
 }
 
