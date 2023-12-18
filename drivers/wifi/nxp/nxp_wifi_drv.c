@@ -23,6 +23,7 @@ LOG_MODULE_REGISTER(wifi_nxp, CONFIG_WIFI_LOG_LEVEL);
 #include "wifi_shell.h"
 #ifdef CONFIG_WPA_SUPP
 #include "wifi_nxp.h"
+#include "wpa_cli.h"
 #endif
 #ifdef CONFIG_PM_DEVICE
 #include <zephyr/pm/device.h>
@@ -174,12 +175,13 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		LOG_INF("WLAN Test Mode CLIs are initialized");
 		printSeparator();
 #endif
+#ifdef CONFIG_WPA_SUPP
 		ret = wpa_cli_init();
 		if (ret != WM_SUCCESS) {
 			LOG_ERR("Failed to initialize WPA SUPP CLI\r\n");
 			return 0;
 		}
-
+#endif
 		help_command(0, NULL);
 		printSeparator();
 #endif
@@ -986,7 +988,7 @@ static void wifi_net_iface_init(struct net_if *iface)
 		IRQ_CONNECT(IMU_IRQ_N, IMU_IRQ_P, WL_MCI_WAKEUP0_DriverIRQHandler, 0, 0);
 		irq_enable(IMU_IRQ_N);
 		IRQ_CONNECT(IMU_WAKEUP_IRQ_N, IMU_WAKEUP_IRQ_P,
-				WL_MCI_WAKEUP_DONE0_DriverIRQHandler, 0, 0);
+			    WL_MCI_WAKEUP_DONE0_DriverIRQHandler, 0, 0);
 		irq_enable(IMU_WAKEUP_IRQ_N);
 #if (DT_INST_PROP(0, wakeup_source))
 		EnableDeepSleepIRQ(IMU_IRQ_N);
