@@ -1083,6 +1083,8 @@ static int mcux_flexcomm_pm_action(const struct device *dev, enum pm_device_acti
 	case PM_DEVICE_ACTION_SUSPEND:
 		break;
 	case PM_DEVICE_ACTION_TURN_OFF:
+		while (!(USART_GetStatusFlags(config->base) & kUSART_TxIdleFlag)) {
+		}
 		config->base->CTL |= USART_CTL_TXDIS_MASK;
 		config->base->CFG &= ~USART_CFG_ENABLE_MASK;
 		return 0;
