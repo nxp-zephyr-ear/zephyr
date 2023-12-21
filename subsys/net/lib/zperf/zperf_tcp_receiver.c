@@ -174,7 +174,7 @@ static void tcp_server_session(void)
 						  &in4_addr->sin_addr);
 			if (ret < 0) {
 				NET_WARN("Unable to set IPv4");
-				goto use_existing_ipv4;
+				goto use_any_ipv4;
 			}
 		} else if (tcp_server_iface_name[0]) {
 			addr = zperf_get_if_in4_addr(&tcp_server_iface_name[0],
@@ -187,15 +187,8 @@ static void tcp_server_session(void)
 			memcpy(&in4_addr->sin_addr, addr,
 				sizeof(struct in_addr));
 		} else {
-use_existing_ipv4:
-			/* Use existing IP */
-			addr = zperf_get_default_if_in4_addr();
-			if (!addr) {
-				NET_ERR("Unable to get IPv4 by default");
-				goto error;
-			}
-			memcpy(&in4_addr->sin_addr, addr,
-				sizeof(struct in_addr));
+use_any_ipv4:
+			in4_addr->sin_addr.s_addr = INADDR_ANY;
 		}
 
 		in4_addr->sin_port = htons(tcp_server_port);
@@ -237,18 +230,12 @@ use_existing_ipv4:
 						  &in6_addr->sin6_addr);
 			if (ret < 0) {
 				NET_WARN("Unable to set IPv6");
-				goto use_existing_ipv6;
+				goto use_any_ipv6;
 			}
 		} else {
-use_existing_ipv6:
-			/* Use existing IP */
-			addr = zperf_get_default_if_in6_addr();
-			if (!addr) {
-				NET_ERR("Unable to get IPv6 by default");
-				goto error;
-			}
-			memcpy(&in6_addr->sin6_addr, addr,
-				sizeof(struct in6_addr));
+use_any_ipv6:
+			memcpy(&in6_addr->sin6_addr, net_ipv6_unspecified_address(),
+			       sizeof(struct in6_addr));
 		}
 
 		in6_addr->sin6_port = htons(tcp_server_port);
