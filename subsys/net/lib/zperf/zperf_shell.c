@@ -208,6 +208,11 @@ static int zperf_bind_host(const struct shell *sh,
 		memcpy(&param->addr, &addr, sizeof(struct sockaddr));
 	}
 
+	if (argc >= 4) {
+		strncpy(param->if_name, argv[3], Z_DEVICE_MAX_NAME_LEN - 1);
+		param->if_name[Z_DEVICE_MAX_NAME_LEN - 1] = '\0';
+	}
+
 	return 0;
 }
 
@@ -372,11 +377,6 @@ static int cmd_udp_download(const struct shell *sh, size_t argc,
 				      "Unable to bind host.\n");
 			shell_help(sh);
 			return -ENOEXEC;
-		}
-
-		if (argc >= 4) {
-			strncpy(param.if_name, argv[3], Z_DEVICE_MAX_NAME_LEN - 1);
-			param.if_name[Z_DEVICE_MAX_NAME_LEN - 1] = '\0';
 		}
 
 		ret = zperf_udp_download(&param, udp_session_cb, (void *)sh);
