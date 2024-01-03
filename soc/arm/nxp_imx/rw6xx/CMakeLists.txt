@@ -19,4 +19,8 @@ zephyr_library_include_directories(
 zephyr_linker_sources_ifdef(CONFIG_NXP_RW6XX_BOOT_HEADER
   ROM_START SORT_KEY 0 boot_header.ld)
 
+if(CONFIG_NXP_FW_LOADER_MONOLITHIC)
+	zephyr_linker_sources(RODATA firmwares.ld)
+endif()
+
 zephyr_linker_sources(RAM_SECTIONS sections.ld)
