@@ -321,6 +321,12 @@ config COMPRESS_TX_PWTBL
    help
      This option enables compress TX power table in the Wi-Fi driver.
 
+config COMPRESS_RU_TX_PWTBL
+   bool "Set Tx-power"
+   default y
+   help
+     This set Tx-power for different RU index to match regulatory requiremnnts on RW610.
+
 config WIFI_MAX_PRIO
    int "Wi-Fi maximum priority"
    default 1
