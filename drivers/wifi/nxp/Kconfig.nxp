@@ -465,6 +465,17 @@ config WIFI_CLOCKSYNC
 	help
 		This option enables clock synchronization of TSF latches.
 
+config FW_VDLLV2
+	bool "Firmware virtaul dynamic link library version 2"
+	default y
+	help
+	  This option is to load some firmware features in run-time.
+
+config AUTO_NULL_TX
+	bool "Auto send null frame"
+	default y
+	help
+	  This option is to support sending null frame in period for CSI.
 endif
 
 if IW61x
