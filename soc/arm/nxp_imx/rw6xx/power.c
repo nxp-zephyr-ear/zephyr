@@ -117,6 +117,8 @@ __weak void pm_state_set(enum pm_state state, uint8_t substate_id)
 	/* Set BASEPRI to 0 */
 	irq_unlock(0);
 
+	POWER_DisableGDetVSensors();
+
 	switch (state) {
 	case PM_STATE_RUNTIME_IDLE:
 		POWER_SetSleepMode(POWER_MODE1);
@@ -146,6 +148,10 @@ __weak void pm_state_set(enum pm_state state, uint8_t substate_id)
 	default:
 		LOG_DBG("Unsupported power state %u", state);
 		break;
+	}
+
+	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
+		POWER_EnableGDetVSensors();
 	}
 }
 
