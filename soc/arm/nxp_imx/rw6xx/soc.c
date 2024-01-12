@@ -460,6 +460,15 @@ __ramfunc void clock_init()
 		SOCCIU_TST_TSTBUS_CTRL2_CLK_OUT_SEL(14);
 #endif
 
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(dmic0), okay) && CONFIG_AUDIO_DMIC_MCUX
+	/* Clock DMIC from Audio PLL. PLL output is sourced from AVPLL
+	 * channel 1, which is clocked at 12.288 MHz. We can divide this
+	 * by 4 to achieve the desired DMIC bit clk of 3.072 MHz
+	 */
+	CLOCK_AttachClk(kAUDIO_PLL_to_DMIC_CLK);
+	CLOCK_SetClkDiv(kCLOCK_DivDmicClk, 4);
+#endif
+
 #endif /* ! CONFIG_TRUSTED_EXECUTION_NONSECURE */
 }
 
