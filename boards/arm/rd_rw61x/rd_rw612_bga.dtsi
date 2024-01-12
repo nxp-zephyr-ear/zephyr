@@ -16,6 +16,7 @@
 		sw0 = &sw_4;
 		watchdog0 = &wwdt;
 		pwm-0 = &sc_timer;
+		dmic-dev = &dmic0;
 	};
 
 	chosen {
@@ -371,4 +372,45 @@ zephyr_udc0: &usb_otg {
 
 &mrt0_channel0 {
 	status = "okay";
+};
+
+&dmic0 {
+	pinctrl-0 = <&pinmux_dmic0>;
+	pinctrl-names = "default";
+	use2fs;
+	status = "okay";
+};
+
+/* Configure pdm channels 0-3 with gain, and cutoff settings
+ * appropriate for the attached MEMS microphones.
+ * Note that PDCM0/PDMC1 and PDMC2/PDMC3 are each connected to the same
+ * microphone. For best results, read from PDM HW channel 0 as left channel,
+ * and PDM HW channel 1 as right channel.
+ */
+&pdmc0 {
+	status = "okay";
+	gainshift = <3>;
+	dc-cutoff = "155hz";
+	dc-gain = <1>;
+};
+
+&pdmc1 {
+	status = "okay";
+	gainshift = <3>;
+	dc-cutoff = "155hz";
+	dc-gain = <1>;
+};
+
+&pdmc2 {
+	status = "okay";
+	gainshift = <3>;
+	dc-cutoff = "155hz";
+	dc-gain = <1>;
+};
+
+&pdmc3 {
+	status = "okay";
+	gainshift = <3>;
+	dc-cutoff = "155hz";
+	dc-gain = <1>;
 };
