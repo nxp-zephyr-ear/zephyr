@@ -208,6 +208,18 @@ static void config_svc_sensor(void)
 }
 #endif /* ! CONFIG_TRUSTED_EXECUTION_NONSECURE */
 
+
+#ifdef CONFIG_RW_CLKOUT
+/* Weak function. Can be overridden to select a different clock output */
+__weak void rw_clockout_attach(void)
+{
+	/* By default, attach main clock to clock out */
+	CLOCK_AttachClk(kMAIN_CLK_to_CLKOUT);
+	/* Divider of 100. We expect pin's frequency to be 2.6 MHz */
+	CLOCK_SetClkDiv(kCLOCK_DivClockOut, 100U);
+}
+#endif
+
 /**
  * @brief Initialize the system clocks and peripheral clocks
  *
@@ -432,6 +444,22 @@ __ramfunc void clock_init()
 	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
 		POWER_EnableGDetVSensors();
 	}
+
+#ifdef CONFIG_RW_CLKOUT
+	/* Attach clock */
+	rw_clockout_attach();
+	/* Mux clock out pin. NOTE: This muxing does not follow
+	 * the definition in the RM. However, it selects the clock
+	 * output from the CLKOUTSELx registers for use on GPIO[12]
+	 */
+	SOCCTRL->TST_TSTBUS_CTRL2 = (SOCCTRL->TST_TSTBUS_CTRL2 &
+				     ~(SOCCIU_TST_TSTBUS_CTRL2_CLK_OUT_PAGE_SEL_MASK |
+				       SOCCIU_TST_TSTBUS_CTRL2_CLK_OUT_SEL_MASK)) |
+		SOCCIU_TST_TSTBUS_CTRL2_CLK_OUT_EN_MASK |
+		SOCCIU_TST_TSTBUS_CTRL2_CLK_OUT_PAGE_SEL(3) |
+		SOCCIU_TST_TSTBUS_CTRL2_CLK_OUT_SEL(14);
+#endif
+
 #endif /* ! CONFIG_TRUSTED_EXECUTION_NONSECURE */
 }
 
