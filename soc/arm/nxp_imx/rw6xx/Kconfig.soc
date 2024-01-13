@@ -120,4 +120,12 @@ config XTAL32K
 	help
 	  This clock is used by certain peripherals such as RTC.
 
+config RW_CLKOUT
+	bool "Enable debug clock output on GPIO[12]"
+	help
+	  Enable debug clock output on GPIO pin 12. By default, the main clock
+	  divided by 100 is selected. The user can override the weak function
+	  "rw_clockout_attach" in order to select a different clock for
+	  the CLKOUT source.
+
 endif # SOC_SERIES_RW6XX
