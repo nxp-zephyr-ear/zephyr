@@ -6,6 +6,17 @@ common:
   integration_platforms:
     - native_sim
 tests:
+  bluetooth.shell.main_coex:
+    extra_configs:
+      - CONFIG_NATIVE_UART_0_ON_STDINOUT=y
+    platform_allow:
+      - rd_rw612_bga
+    extra_args: CONF_FILE="prj.conf;overlay-wifi-nxp.conf"
+    integration_platforms:
+      - rd_rw612_bga
+    tags: bluetooth
+    harness: keyboard
+    min_flash: 145
   bluetooth.shell.main:
     extra_configs:
       - CONFIG_NATIVE_UART_0_ON_STDINOUT=y
