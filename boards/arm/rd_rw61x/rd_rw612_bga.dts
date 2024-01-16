@@ -91,7 +91,7 @@
 	/*
 	 * Settings to connect this display:
 	 * Populate JP19 to connect SPI
-	 * Set JP49 to connect pins 1 and 2 (Connects SSEL0 to CS pin)
+	 * Set JP30 to connect pins 1 and 2 (Connects SSEL0 to CS pin)
 	 * Display can be connected to MikoBus header (J13/J11)
 	 * Pin #1 | Signal | Header
 	 * -------------------------------
