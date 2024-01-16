@@ -459,12 +459,6 @@ config WIFI_CLOCKSYNC
 	help
 		This option enables clock synchronization of TSF latches.
 
-config FW_VDLLV2
-	bool "Firmware virtaul dynamic link library version 2"
-	default y
-	help
-	  This option is to load some firmware features in run-time.
-
 endif
 
 if IW61x
