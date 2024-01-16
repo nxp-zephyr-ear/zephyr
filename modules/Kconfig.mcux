@@ -380,14 +380,12 @@ config NXP_RF_IMU
 
 config MCUX_ELS_PKC
 	bool "Build els_pkc"
-	default y if BUILD_WITH_TFM
 	help
 	    Include the els_pkc component from the NXP MCU SDK in the build.
 
 config MCUX_PSA_CRYPTO_DRIVER_ELS_PKC
 	bool "Build psa_crypto_driver for els_pkc"
 	depends on MCUX_ELS_PKC
-	default y if BUILD_WITH_TFM
 	help
 	    Include the psa_crypto_driver component from the NXP MCU SDK in the build.
 	    This provides an abstraction on top of the els_pkc component in order to be
