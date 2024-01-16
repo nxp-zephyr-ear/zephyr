@@ -55,12 +55,16 @@ static int mcux_gau_adc_channel_setup(const struct device *dev,
 	struct mcux_gau_adc_data *data = dev->data;
 	adc_input_gain_t gain;
 	adc_vref_source_t ref;
-	adc_warm_up_time_t warmup;
 	ADC_Type *base = config->base;
 	uint8_t channel_id = channel_cfg->channel_id;
 	uint8_t source_channel = channel_cfg->input_positive;
 
 	/* Input validations */
+
+	if (channel_cfg->acquisition_time != ADC_ACQ_TIME_DEFAULT) {
+		LOG_ERR("Invalid acquisition time");
+		return -EINVAL;
+	}
 
 	if (channel_cfg->differential) {
 		LOG_ERR("Differential channels not yet supported");
@@ -76,18 +80,6 @@ static int mcux_gau_adc_channel_setup(const struct device *dev,
 		LOG_ERR("Invalid source channel");
 		return -EINVAL;
 	}
-
-	/* Set Acquisition/Warmup time */
-	LOG_DBG("Acquisition/Warmup time is global to entire ADC peripheral, "
-		 "i.e. channel_setup will override this property for all previous channels.");
-	base->ADC_REG_INTERVAL &= ~ADC_ADC_REG_INTERVAL_WARMUP_TIME_MASK;
-	if (channel_cfg->acquisition_time >= 32) {
-		warmup = kADC_WarmUpStateBypass;
-		LOG_DBG("ADC warmup is bypassed");
-	} else {
-		warmup = channel_cfg->acquisition_time;
-	}
-	base->ADC_REG_INTERVAL |= ADC_ADC_REG_INTERVAL_WARMUP_TIME(warmup);
 
 	/* Set Input Gain */
 	LOG_DBG("Input gain is global to entire ADC peripheral, "
