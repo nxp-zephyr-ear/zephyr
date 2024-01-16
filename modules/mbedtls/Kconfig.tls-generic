@@ -481,10 +481,4 @@ config MBEDTLS_SSL_DTLS_CONNECTION_ID
 	  which allows to identify DTLS connections across changes
 	  in the underlying transport.
 
-config MBEDTLS_HKDF_C
-	bool "HMAC key derivation functions"
-	select MBEDTLS_MD
-	help
-	   "Enable HMAC key derivation functions"
-
 endmenu
