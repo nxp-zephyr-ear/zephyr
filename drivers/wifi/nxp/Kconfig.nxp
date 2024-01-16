@@ -393,12 +393,6 @@ config TX_RX_HISTOGRAM
    help
      This option enables TX/RX statistics in the Wi-Fi driver.
 
-config MULTI_BSSID_SUPPORT
-    bool "MBSSID support"
-    default y
-    help
-     This option enables MBSSID in the Wi-Fi driver.
-
 config COEX_DUTY_CYCLE
    bool "Set duty cycle"
    default y
