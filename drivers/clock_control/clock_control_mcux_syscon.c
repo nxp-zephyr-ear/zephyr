@@ -19,12 +19,16 @@ static int mcux_lpc_syscon_clock_control_on(const struct device *dev,
 			      clock_control_subsys_t sub_system)
 {
 #if defined(CONFIG_CAN_MCUX_MCAN)
-	if ((uint32_t)sub_system == MCUX_MCAN_CLK) {
+	uint32_t clock_name = (uint32_t)sub_system;
+
+	if (clock_name == MCUX_MCAN_CLK) {
 		CLOCK_EnableClock(kCLOCK_Mcan);
 	}
 #endif /* defined(CONFIG_CAN_MCUX_MCAN) */
 #if defined(CONFIG_MIPI_DBI_NXP_LCDIC)
-	if ((uint32_t)sub_system == MCUX_LCDIC_CLK) {
+	uint32_t clock_name = (uint32_t)sub_system;
+
+	if (clock_name == MCUX_LCDIC_CLK) {
 		CLOCK_EnableClock(kCLOCK_Lcdic);
 	}
 #endif
