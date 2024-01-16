@@ -34,15 +34,15 @@ choice
 	default SD8987
 
 config SD8987
-	bool "8987-based Chipset"
-	select SDHC
-	select SD_STACK
-	select SDIO_STACK
-	help
-	  Select this option if you have a NXP 8987-based
-		Wireless chip. This option will enable support
-		for NXP 8987-based wireless chip with
-		RT series boards.
+       bool "8987-based Chipset"
+       select SDHC
+       select SD_STACK
+       select SDIO_STACK
+       help
+	 Select this option if you have a NXP 8987-based
+         Wireless chip. This option will enable support
+         for NXP 8987-based wireless chip with
+         RT series boards.
 
 config SD8978
 	bool "8978-based Chipset"
@@ -53,7 +53,7 @@ config SD8978
 	  Select this option if you have a NXP 8978-based
 	  Wireless chip. This option will enable support
 	  for NXP 8978-based wireless chip with
-		RT series boards.
+          RT series boards.
 
 config RW610
 	bool "RW610-based Chipset"
@@ -71,18 +71,18 @@ config IW61x
 	  Select this option if you have a NXP IW61x-based
 	  Wireless chip. This option will enable support
 	  for NXP IW61x-based wireless chip with
-		RT series boards.
+          RT series boards.
 
 config SD8801
-	bool "8801-based Chipset"
-	select SDHC
-	select SD_STACK
-	select SDIO_STACK
-	help
-	  Select this option if you have a NXP 8801-based
-		Wireless chip. This option will enable support
-		for NXP 8801-based wireless chip with
-		RT series boards.
+       bool "8801-based Chipset"
+       select SDHC
+       select SD_STACK
+       select SDIO_STACK
+       help
+	 Select this option if you have a NXP 8801-based
+         Wireless chip. This option will enable support
+         for NXP 8801-based wireless chip with
+         RT series boards.
 endchoice
 
 # Increase default heap size, driver needs memory allocation
@@ -90,90 +90,39 @@ config WIFI_NET_HEAP_SIZE
 	int
 	default 16384
 
+config WIFI_INIT_STACK_SIZE
+	int "Init Stack Size"
+	default 4096
+
 config MAX_AP_ENTRIES
-	int "Maximum scan entries"
-	range 1 30
-	default 10
-	help
-	  This is the maximum number of entries in the
-		list of APs stored by wifi driver. Each entry takes
-		about 400 bytes of RAM. The value should
-		be decided based on number of AP's expected
-		to be present in the end user environment.
-		Note that the wifi driver automatically keeps
-		only the highest signal strength APs in the list.
+       int "Maximum scan entries"
+       range 1 30
+       default 10
+       help
+	This is the maximum number of entries in the
+	list of APs stored by wifi driver. Each entry takes
+	about 400 bytes of RAM. The value should
+	be decided based on number of AP's expected
+	to be present in the end user environment.
+	Note that the wifi driver automatically keeps
+	only the highest signal strength APs in the list.
 
 config WLAN_KNOWN_NETWORKS
-	int "Maximum Network Profiles"
-	range 1 10
-	default 5
-	help
+       int "Maximum Network Profiles"
+       range 1 10
+       default 5
+       help
 		WLC manager keeps a list of known networks.
-		These include the ones added using the wlan-add
-		command and one loaded from the psm. This
-		configuration defines the size of that list. Note
-		that this is not the size of the scan entries.
+		 These include the ones added using the wlan-add
+		 command and one loaded from the psm. This
+		 configuration defines the size of that list. Note
+		 that this is not the size of the scan entries.
 
 config SDIO_MULTI_PORT_RX_AGGR
-	bool "SDIO Multiport Rx Aggregation"
-	def_bool y
-	help
-	  This option enables SDIO Multiport Rx Aggregation support in the Wi-Fi driver.
-
-config WIFI_OFFLOAD
-	bool "Support offloaded Wi-Fi device drivers"
-	select NET_OFFLOAD
-	help
-	  Enable support for Full-MAC Wi-Fi devices.
-
-config MON_THREAD_STACK_SIZE
-	int "Mon thread stack size"
-	default 1152
-	help
-	  This option specifies the size of the stack used by the mon thread.
-
-config WLCMGR_STACK_SIZE
-	int "Wlcmgr thread stack size"
-	default 5120
-	help
-	  This option specifies the size of the stack used by the wlcmgr thread.
-
-config WPS_STACK_SIZE
-	int "WPS thread stack size"
-	default 5120
-	help
-	  This option specifies the size of the stack used by the wps thread.
-
-config WIFI_POWERSAVE_STACK_SIZE
-	int "Wifi powersave thread stack size"
-	default 512
-	help
-	  This option specifies the size of the stack used by the wifi powersave thread.
-
-config WIFI_TX_STACK_SIZE
-	int "Wifi driver TX thread stack size"
-	default 2048
-	depends on WMM
-	help
-	  This option specifies the size of the stack used by the wifi driver tx thread.
-
-config WIFI_DRIVER_STACK_SIZE
-	int "Wifi driver thread stack size"
-	default 2048
-	help
-	  This option specifies the size of the stack used by the wifi driver thread.
-
-config WIFI_SCAN_STACK_SIZE
-	int "Wifi scan thread stack size"
-	default 2048
-	help
-	  This option specifies the size of the stack used by the wifi scan thread.
-
-config DHCP_SERVER_STACK_SIZE
-	int "DHCP server thread stack size"
-	default 2048
-	help
-	  This option specifies the size of the stack used by the DHCP server thread.
+       bool "SDIO Multiport Rx Aggregation"
+       def_bool y
+       help
+	 This option enables SDIO Multiport Rx Aggregation support in the Wi-Fi driver.
 
 if RW610
 
