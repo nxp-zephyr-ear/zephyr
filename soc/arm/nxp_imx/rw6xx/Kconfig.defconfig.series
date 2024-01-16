@@ -39,9 +39,6 @@ config BT_HCI_ACL_FLOW_CONTROL
 config BT_ATT_ENFORCE_FLOW
 	default n
 
-config HCI_NXP_ENABLE_AUTO_SLEEP
-	default y
-
 endif # BT
 
 config NXP_FW_LOADER
