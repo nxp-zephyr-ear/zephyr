@@ -36,11 +36,7 @@ Base Enablement
 
 BLE support
 ============
-- Low power is enabled by default on the following samples:
-	- peripheral_ht   (samples/bluetooth/peripheral_ht)
-	- central_ht      (samples/bluetooth/central_ht)
-
-Low power capabilities are limited to PM1 and PM2 power modes. 
+<<TBD>>
 
 Wi-Fi support
 ============
