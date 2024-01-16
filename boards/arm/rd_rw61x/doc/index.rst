@@ -226,19 +226,6 @@ The touch controller requires the following connections:
 +--------+--------+---------------+
 
 
-How to use Ethernet
-===================
-
-By default, the standard configuration of the board does not support the use of ethernet.
-In order to use ethernet on this board, the following modification needs to be done:
-
-- Load R485, R486, R487, R488, R489, R491, R490, R522, R521, R520, R524, R523, R508, R505
-- Remove R518, R507, R506
-
-This rework will disable RTC because the ethernet phy shares pins with the XTAL.
-
-To build, use the board target `rd_rw612_bga_ethernet`.
-
 Resources
 =========
 
