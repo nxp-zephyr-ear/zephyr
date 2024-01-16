@@ -16,7 +16,9 @@ LOG_MODULE_REGISTER(mcux_rtc, CONFIG_COUNTER_LOG_LEVEL);
 
 struct mcux_lpc_rtc_data {
 	counter_alarm_callback_t alarm_callback;
+	counter_top_callback_t top_callback;
 	void *alarm_user_data;
+	void *top_user_data;
 };
 
 struct mcux_lpc_rtc_config {
@@ -33,7 +35,7 @@ static int mcux_lpc_rtc_start(const struct device *dev)
 	const struct mcux_lpc_rtc_config *config =
 		CONTAINER_OF(info, struct mcux_lpc_rtc_config, info);
 
-	RTC_EnableTimer(config->base, true);
+	RTC_StartTimer(config->base);
 
 	return 0;
 }
@@ -44,7 +46,7 @@ static int mcux_lpc_rtc_stop(const struct device *dev)
 	const struct mcux_lpc_rtc_config *config =
 		CONTAINER_OF(info, struct mcux_lpc_rtc_config, info);
 
-	RTC_EnableTimer(config->base, false);
+	RTC_StopTimer(config->base);
 
 	/* clear out any set alarms */
 	RTC_SetSecondsTimerMatch(config->base, 0);
@@ -126,7 +128,26 @@ static int mcux_lpc_rtc_cancel_alarm(const struct device *dev, uint8_t chan_id)
 static int mcux_lpc_rtc_set_top_value(const struct device *dev,
 				  const struct counter_top_cfg *cfg)
 {
-	return -ENOTSUP;
+	const struct counter_config_info *info = dev->config;
+	const struct mcux_lpc_rtc_config *config =
+			CONTAINER_OF(info, struct mcux_lpc_rtc_config, info);
+	struct mcux_lpc_rtc_data *data = dev->data;
+
+	if (cfg->ticks != info->max_top_value) {
+		LOG_ERR("Wrap can only be set to 0x%x.", info->max_top_value);
+		return -ENOTSUP;
+	}
+
+	if (!(cfg->flags & COUNTER_TOP_CFG_DONT_RESET)) {
+		RTC_StopTimer(config->base);
+		RTC_SetSecondsTimerCount(config->base, 0);
+		RTC_StartTimer(config->base);
+	}
+
+	data->top_callback = cfg->callback;
+	data->top_user_data = cfg->user_data;
+
+	return 0;
 }
 
 static uint32_t mcux_lpc_rtc_get_pending_int(const struct device *dev)
@@ -153,7 +174,6 @@ static void mcux_lpc_rtc_isr(const struct device *dev)
 	struct mcux_lpc_rtc_data *data = dev->data;
 	counter_alarm_callback_t cb;
 	uint32_t current = mcux_lpc_rtc_read(dev);
-	uint32_t enable = (config->base->CTRL & RTC_CTRL_RTC_EN_MASK);
 
 
 	LOG_DBG("Current time is %d ticks", current);
@@ -165,19 +185,21 @@ static void mcux_lpc_rtc_isr(const struct device *dev)
 		cb(dev, 0, current, data->alarm_user_data);
 	}
 
+	if (data->top_callback) {
+		data->top_callback(dev, data->top_user_data);
+	}
+
 	/*
 	 * Clear any conditions to ack the IRQ
 	 *
 	 * callback may have already reset the alarm flag if a new
 	 * alarm value was programmed to the TAR
 	 */
-	RTC_EnableTimer(config->base, false);
+	RTC_StopTimer(config->base);
 	if (RTC_GetStatusFlags(config->base) & RTC_CTRL_ALARM1HZ_MASK) {
 		RTC_ClearStatusFlags(config->base, kRTC_AlarmFlag);
 	}
-	if (enable) {
-		RTC_EnableTimer(config->base, true);
-	}
+	RTC_StartTimer(config->base);
 }
 
 static int mcux_lpc_rtc_init(const struct device *dev)
@@ -187,9 +209,6 @@ static int mcux_lpc_rtc_init(const struct device *dev)
 		CONTAINER_OF(info, struct mcux_lpc_rtc_config, info);
 
 	RTC_Init(config->base);
-
-	/* Issue a software reset to set the registers to init state */
-	RTC_Reset(config->base);
 
 	config->irq_config_func(dev);
 
