@@ -126,6 +126,13 @@ static ALWAYS_INLINE void clock_init(void)
 	CLOCK_InitTddrRefClk(kCLOCK_TddrFlexspiDiv10);
 	CLOCK_EnableClock(kCLOCK_TddrMciFlexspiClk); /* 320MHz */
 
+	/* Enable AUX0 PLL to 260MHz. */
+	CLOCK_SetClkDiv(kCLOCK_DivAux0PllClk, 1U);
+
+	/* Init AVPLL and enable both channels. */
+	CLOCK_InitAvPll(&g_avpllConfig_BOARD_BootClockRUN);
+	CLOCK_SetClkDiv(kCLOCK_DivAudioPllClk, 1U);
+
 	/* Configure MainPll to 260MHz, then let CM33 run on Main PLL. */
 	CLOCK_SetClkDiv(kCLOCK_DivSysCpuAhbClk, 1U);
 	CLOCK_SetClkDiv(kCLOCK_DivMainPllClk, 1U);
