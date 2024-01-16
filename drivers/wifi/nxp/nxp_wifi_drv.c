@@ -223,13 +223,18 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		}
 #ifdef CONFIG_IPV6
 		int i;
-
+#ifndef CONFIG_ZEPHYR
 		for (i = 0; i < CONFIG_MAX_IPV6_ADDRESSES; i++) {
+			if (ip6_addr_isvalid(addr.ipv6[i].addr_state))
+#else
+		for (i = 0; i < CONFIG_MAX_IPV6_ADDRESSES && i < network->ip.ipv6_count; i++) {
 			if ((addr.ipv6[i].addr_state == NET_ADDR_TENTATIVE) ||
-			    (addr.ipv6[i].addr_state == NET_ADDR_PREFERRED)) {
+			    (addr.ipv6[i].addr_state == NET_ADDR_PREFERRED))
+#endif
+			{
 				LOG_INF("IPv6 Address: %-13s:\t%s (%s)",
-					ipv6_addr_type_to_desc((struct net_ipv6_config *)&addr.ipv6[i]),
-					ipv6_addr_addr_to_desc((struct net_ipv6_config *)&addr.ipv6[i]),
+					ipv6_addr_type_to_desc(&addr.ipv6[i]),
+					ipv6_addr_addr_to_desc(&addr.ipv6[i]),
 					ipv6_addr_state_to_desc(addr.ipv6[i].addr_state));
 			}
 		}
@@ -884,9 +889,8 @@ static int WPL_Status(const struct device *dev, struct wifi_iface_status *status
 		status->state = WIFI_STATE_COMPLETED;
 
 		if (!wlan_get_current_network(network)) {
-			strncpy(status->ssid, network->ssid, WIFI_SSID_MAX_LEN - 1);
-			status->ssid[WIFI_SSID_MAX_LEN - 1] = '\0';
-			status->ssid_len = strlen(status->ssid);
+			strncpy(status->ssid, network->ssid, strlen(network->ssid));
+			status->ssid_len = strlen(network->ssid);
 
 			memcpy(status->bssid, network->bssid, WIFI_MAC_ADDR_LEN);
 
