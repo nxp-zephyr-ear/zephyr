@@ -15,7 +15,6 @@ menuconfig WIFI_NXP
 	select NET_L2_ETHERNET
 	select NET_L2_ETHERNET_MGMT
 	select POSIX_CLOCK
-	select NET_IPV4_IGMP
 	imply NET_IPV6_DAD
 	imply NET_IPV6_FRAGMENT
 	imply MBEDTLS
