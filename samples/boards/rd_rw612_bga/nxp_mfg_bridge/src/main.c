@@ -530,11 +530,7 @@ static hal_rpmsg_status_t rpmsg_init(void)
 	return state;
 }
 
-#define RW610_PACKAGE_TYPE_QFN 0
-#define RW610_PACKAGE_TYPE_CSP 1
-#define RW610_PACKAGE_TYPE_BGA 2
-
-void wifi_cau_temperature_enable(void)
+static void wifi_cau_temperature_enable(void)
 {
 	uint32_t val;
 
@@ -544,59 +540,11 @@ void wifi_cau_temperature_enable(void)
 	WIFI_WRITE_REG32(WLAN_CAU_ENABLE_ADDR, val);
 }
 
-static uint32_t wifi_get_board_type(void)
-{
-	status_t status;
-	static uint32_t wifi_rw610_package_type = 0xFFFFFFFF;
-
-	if (wifi_rw610_package_type == 0xFFFFFFFF) {
-		OCOTP_OtpInit();
-		status = OCOTP_ReadPackage(&wifi_rw610_package_type);
-		if (status != kStatus_Success) {
-			/*If status error, use BGA as default type*/
-			wifi_rw610_package_type = RW610_PACKAGE_TYPE_BGA;
-		}
-		OCOTP_OtpDeinit();
-	}
-
-	return wifi_rw610_package_type;
-}
-
-uint32_t wifi_get_temperature(void)
+static void wifi_cau_temperature_write_to_firmware(void)
 {
 	uint32_t val;
-	uint32_t board_type = 0;
 
 	val = WIFI_REG32(WLAN_CAU_TEMPERATURE_ADDR);
-	val = ((val & 0XFFC00) >> 10);
-	board_type = wifi_get_board_type();
-
-	switch (board_type) {
-	case RW610_PACKAGE_TYPE_QFN:
-		val = (uint32_t)((484260 * val - 220040600) / 1000000);
-		break;
-
-	case RW610_PACKAGE_TYPE_CSP:
-		val = (uint32_t)((480560 * val - 220707000) / 1000000);
-		break;
-
-	case RW610_PACKAGE_TYPE_BGA:
-		val = (uint32_t)((480561 * val - 220707400) / 1000000);
-		break;
-
-	default:
-		val = (uint32_t)((480561 * val - 220707400) / 1000000);
-		break;
-	}
-
-	return val;
-}
-
-void wifi_cau_temperature_write_to_firmware(void)
-{
-	uint32_t val = 0;
-
-	val = wifi_get_temperature();
 	WIFI_WRITE_REG32(WLAN_CAU_TEMPERATURE_FW_ADDR, val);
 }
 
