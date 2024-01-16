@@ -83,6 +83,8 @@ const clock_avpll_config_t avpll_config = {
  */
 static ALWAYS_INLINE void clock_init(void)
 {
+#ifdef CONFIG_SOC_RW610
+
 	if ((PMU->CAU_SLP_CTRL & PMU_CAU_SLP_CTRL_SOC_SLP_RDY_MASK) == 0U) {
 		/* LPOSC not enabled, enable it */
 		CLOCK_EnableClock(kCLOCK_RefClkCauSlp);
@@ -161,7 +163,7 @@ static ALWAYS_INLINE void clock_init(void)
 
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(usb_otg), okay) && CONFIG_USB_DC_NXP_EHCI
 	/* Enable system xtal from Analog */
-	SYSCTL2->ANA_GRP_CTRL |= (1UL << SYSCTL2_ANA_GRP_CTRL_PU_AG_SHIFT);
+	SYSCTL2->ANA_GRP_CTRL |= (1UL << SYSCTL2_ANA_GRP_CTRL_PU_SHIFT);
 	/* reset USB */
 	RESET_PeripheralReset(kUSB_RST_SHIFT_RSTn);
 	/* enable usb clock */
@@ -248,6 +250,8 @@ static ALWAYS_INLINE void clock_init(void)
 	CLOCK_AttachClk(kAUDIO_PLL_to_FLEXCOMM14);
 #endif
 #endif /* CONFIG_I2S */
+
+#endif /* CONFIG_SOC_RW610 */
 }
 
 /**
@@ -262,8 +266,6 @@ static ALWAYS_INLINE void clock_init(void)
 
 static int nxp_rw600_init(void)
 {
-
-	POWER_DisableGDetVSensors();
 
 	/* Initialize clock */
 	clock_init();
