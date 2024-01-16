@@ -179,6 +179,10 @@ zephyr_udc0: &usb_otg {
 	status = "okay";
 };
 
+&adc1 {
+	status = "okay";
+};
+
 &sc_timer {
 	status = "okay";
 	pinctrl-0 = <&pinmux_pwm0>;
