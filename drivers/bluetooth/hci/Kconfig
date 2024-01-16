@@ -95,11 +95,6 @@ config BT_PSOC6_BLESS
 	  PSOC6 BLESS driver with BLE Controller which operates in
 	  Single CPU mode.
 
-config BT_NXP
-	bool "NXP HCI driver"
-	help
-	  NXP HCI bluetooth interface
-
 config BT_NO_DRIVER
 	bool "No default HCI driver"
 	select BT_HAS_HCI_VS
@@ -146,7 +141,6 @@ menuconfig BT_CYW43XXX
 	  IEEE 802.11a/b/g/n/ac/ax Wi-Fi and Bluetooth® 5.2 in a single-chip
 	  solution to enable small-form-factor IoT designs.
 source "drivers/bluetooth/hci/Kconfig.infineon"
-source "drivers/bluetooth/hci/Kconfig.nxp"
 
 config BT_DRIVER_QUIRK_NO_AUTO_DLE
 	bool "Host auto-initiated Data Length Update quirk"
