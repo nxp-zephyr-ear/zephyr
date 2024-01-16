@@ -23,7 +23,6 @@ supported:
   - gpio
   - i2c
   - i2s
-  - nvs
   - pwm
   - spi
   - usb_device
