@@ -28,15 +28,6 @@ static int mcux_lpc_syscon_clock_control_on(const struct device *dev,
 		CLOCK_EnableClock(kCLOCK_Lcdic);
 	}
 #endif
-#if defined(CONFIG_COUNTER_NXP_MRT)
-	if ((uint32_t)sub_system == MCUX_MRT_CLK) {
-#if defined(CONFIG_SOC_FAMILY_LPC)
-		CLOCK_EnableClock(kCLOCK_Mrt);
-#elif defined(CONFIG_SOC_FAMILY_IMX)
-		CLOCK_EnableClock(kCLOCK_Mrt0);
-#endif
-	}
-#endif /* defined(CONFIG_COUNTER_NXP_MRT) */
 
 	return 0;
 }
@@ -157,9 +148,6 @@ static int mcux_lpc_syscon_clock_control_get_subsys_rate(
 		break;
 #endif
 
-#if defined(CONFIG_COUNTER_NXP_MRT)
-	case MCUX_MRT_CLK:
-#endif
 #if defined(CONFIG_PWM_MCUX_SCTIMER)
 	case MCUX_SCTIMER_CLK:
 #ifdef CONFIG_SOC_SERIES_RW6XX
