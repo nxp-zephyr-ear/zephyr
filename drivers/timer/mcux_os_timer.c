@@ -15,7 +15,6 @@
 #include <zephyr/spinlock.h>
 #include "fsl_ostimer.h"
 #include "fsl_power.h"
-#include "soc.h"
 
 #define CYC_PER_TICK ((uint32_t)((uint64_t)sys_clock_hw_cycles_per_sec()	\
 			      / (uint64_t)CONFIG_SYS_CLOCK_TICKS_PER_SEC))
