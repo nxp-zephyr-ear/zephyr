@@ -4,7 +4,6 @@
 
 zephyr_sources(
   soc.c
-  flexspi_clock_setup.c
   )
 
 zephyr_library_include_directories(
@@ -14,5 +13,3 @@ zephyr_library_include_directories(
 
 zephyr_linker_sources_ifdef(CONFIG_NXP_RW6XX_BOOT_HEADER
   ROM_START SORT_KEY 0 boot_header.ld)
-
-zephyr_code_relocate(FILES flexspi_clock_setup.c LOCATION RAM)

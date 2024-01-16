@@ -25,7 +25,6 @@
 #include <fsl_common.h>
 #include <fsl_device_registers.h>
 #include "soc.h"
-#include "flexspi_clock_setup.h"
 
 #ifdef CONFIG_NXP_RW6XX_BOOT_HEADER
 extern char z_main_stack[];
@@ -97,8 +96,6 @@ static ALWAYS_INLINE void clock_init(void)
 	CLOCK_EnableClock(kCLOCK_T3PllMciIrcClk);
 	/* Enable T3 256M clock and SFRO */
 	CLOCK_EnableClock(kCLOCK_T3PllMci256mClk);
-
-	flexspi_safe_config();
 
 	/* First let M33 run on SOSC */
 	CLOCK_AttachClk(kSYSOSC_to_MAIN_CLK);
