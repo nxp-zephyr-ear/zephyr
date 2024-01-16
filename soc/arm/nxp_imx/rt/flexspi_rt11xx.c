@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <fsl_clock.h>
-#include <fsl_flexspi.h>
-#include <soc.h>
 #include <errno.h>
 #include <zephyr/irq.h>
 #include <zephyr/dt-bindings/clock/imx_ccm_rev2.h>
+#include <soc.h>
+#include <fsl_clock.h>
+#include <fsl_flexspi.h>
 
 uint32_t flexspi_clock_set_freq(uint32_t clock_name, uint32_t rate)
 {
