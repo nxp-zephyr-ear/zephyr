@@ -413,11 +413,6 @@ static ALWAYS_INLINE void clock_init(void)
 	RESET_PeripheralReset(kLCDIC_RST_SHIFT_RSTn);
 #endif
 
-#ifdef CONFIG_COUNTER_NXP_MRT
-	RESET_PeripheralReset(kMRT_RST_SHIFT_RSTn);
-	RESET_PeripheralReset(kFREEMRT_RST_SHIFT_RSTn);
-#endif
-
 	/* Leave this disabled for A0 parts */
 	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
 		POWER_EnableGDetVSensors();
