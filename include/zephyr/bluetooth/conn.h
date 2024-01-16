@@ -1067,14 +1067,6 @@ struct bt_conn_cb {
  */
 void bt_conn_cb_register(struct bt_conn_cb *cb);
 
-/** @brief Unregister connection callbacks.
- *
- *  Unregister the state of connections callbacks.
- *
- *  @param cb Callback struct. Must point to memory that remains valid.
- */
-void bt_conn_cb_unregister(struct bt_conn_cb *cb);
-
 /**
  *  @brief Register a callback structure for connection events.
  *
