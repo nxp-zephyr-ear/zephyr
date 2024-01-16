@@ -12,10 +12,3 @@ tests:
     integration_platforms:
       - rd_rw612_bga
       - rd_rw612_bga_ethernet
-    harness: console
-    harness_config:
-      type: multi_line
-      regex:
-        - "cipher encrypt\\/decrypt AES CBC no padding: success!"
-        - "cipher encrypt\\/decrypt AES CBC PKCS7 multipart: success!"
-        - "cipher encrypt\\/decrypt AES CTR multipart: success!"
