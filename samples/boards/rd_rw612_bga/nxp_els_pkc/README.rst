@@ -1,7 +1,7 @@
-.. _nxp_els_pkc:
+.. _rd_rw612_bga_nxp_els_pkc-sample:
 
 RD-RW612-BGA els_pkc Sample Application
-#######################################
+###############################
 
 Overview
 ********
@@ -27,59 +27,112 @@ Building, Flashing and Running
    :goals: build flash
    :compact:
 
-Flashing
-********
+Flashing:
 
-  .. code-block:: console
+.. code-block:: console
 
     # You can find "zephyr.bin" and "zephyr.elf" under the "build/zephyr/" path.
     $ cd build/zephyr
     $ loadbin C:xxx\build\zephyr.bin, 0x08000000
 
-Sample Output
-=============
+Running:
 
-.. code-block:: console
+1. Connect the board with Windows PC.
+2. You should be able to see following output.
 
-    ================
-    ELS hash example
-    ================
-    SHA224 one shot:pass
-    SHA256 one shot:pass
-    SHA256 streaming example:pass
-    SHA256 long message example:pass
-    SHA384 one shot:pass
-    SHA512 one shot:pass
+*** Booting Zephyr OS build v3.4.0-214-g511ea50ce883 ***
 
-    =================================
-    ELS PKC asymmetric cipher example
-    =================================
-    PKC ECC keygen sign verify:pass
-    PKC RSA no-verify:pass
-    PKC RSA sign no-encode:pass
-    PKC RSA-PSS sign SHA256:pass
-    PKC RSA-PSS verify SHA256:pass
-    PKC ECC Curve25519:pass
-    TLS Master session keys:pass
 
-    ======================
-    ELS PKC common example
-    ======================
-    ELS get info:pass
-    RNG PRNG random:pass
-    Flow protection:pass
-    Memory data invariant compare:pass
-    Memory data invariant copy:pass
-    Key component operations:pass
-    ELS power down wake-up init:pass
-    PKC power down wake-up init:pass
+============================
 
-    ============================
-    ELS symmetric cipher example
-    ============================
-    AES128-CBC encryption:pass
-    AES128-ECB encryption:pass
-    CMAC AES128:pass
 
-    RESULT: All 24 test PASS!!
-    ELS-PKC stand-alone examples end
+ELS hash example
+
+
+============================
+
+SHA224 one shot:pass
+
+SHA256 one shot:pass
+
+SHA256 streaming example:pass
+
+SHA256 long message example:pass
+
+SHA384 one shot:pass
+
+SHA512 one shot:pass
+
+
+
+============================
+
+
+ELS PKC asymmetric cipher example
+
+
+============================
+
+PKC ECC keygen sign verify:pass
+
+PKC RSA no-verify:pass
+
+PKC RSA sign no-encode:pass
+
+PKC RSA-PSS sign SHA256:pass
+
+PKC RSA-PSS verify SHA256:pass
+
+PKC ECC Curve25519:pass
+
+TLS Master session keys:pass
+
+
+
+============================
+
+
+ELS PKC common example
+
+
+============================
+
+ELS get info:pass
+
+RNG PRNG random:pass
+
+Flow protection:pass
+
+Memory data invariant compare:pass
+
+Memory data invariant copy:pass
+
+Key component operations:pass
+
+ELS power down wake-up init:pass
+
+PKC power down wake-up init:pass
+
+
+
+============================
+
+
+ELS symmetric cipher example
+
+
+============================
+
+AES128-CBC encryption:pass
+
+AES128-ECB encryption:pass
+
+CMAC AES128:pass
+
+
+
+============================
+
+RESULT: All 24 test PASS!!
+
+ELS-PKC stand-alone examples END
