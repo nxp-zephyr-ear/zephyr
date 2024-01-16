@@ -381,6 +381,10 @@
 	clocks = <&clkctl1 MCUX_FLEXSPI_CLK>;
 };
 
+&systick {
+	status = "disabled";
+};
+
 &nvic {
 	arm,num-irq-priority-bits = <3>;
 };
