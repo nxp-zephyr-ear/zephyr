@@ -142,6 +142,14 @@
 		int-source = "pint";
 	};
 
+	flexspi: spi@134000 {
+		compatible = "nxp,imx-flexspi";
+		reg = <0x134000 0x1000>;
+		interrupts = <42 0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+	};
+
 	usb_otg: usbotg@145000 {
 		compatible = "nxp,mcux-usbd";
 		reg = <0x145000 0x200>;
@@ -289,14 +297,6 @@
 			status = "disabled";
 		};
 	};
-};
-
-&flexspi {
-	compatible = "nxp,imx-flexspi";
-	status = "disabled";
-	interrupts = <42 0>;
-	#address-cells = <1>;
-	#size-cells = <0>;
 };
 
 &systick {

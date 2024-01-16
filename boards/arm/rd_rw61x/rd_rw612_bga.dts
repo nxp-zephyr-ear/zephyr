@@ -24,11 +24,40 @@
 
 	chosen {
 		zephyr,sram = &sram_data;
-		zephyr,flash = &mx25u51245g;
+		zephyr,flash = &flash0;
 		zephyr,code-partition = &code_partition;
 		zephyr,console = &flexcomm3;
 		zephyr,shell-uart = &flexcomm3;
 		zephyr,display = &st7796s;
+	};
+
+	flash0: flash@18000000 {
+		reg = <0x18000000 DT_SIZE_M(64)>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			code_partition: partition@0 {
+				label = "application";
+				reg = <0x0 DT_SIZE_M(4)>;
+			};
+
+			/* This partition is reserved for connectivity firmwares storage
+			 * and shouldn't be moved.
+			 */
+			fw_storage: partition@400000 {
+				label = "fw_storage";
+				reg = <0x400000 0x280000>;
+				read-only;
+			};
+
+			storage_partition: partition@680000 {
+				label = "storage";
+				reg = <0x680000 0x3980000>;
+			};
+		};
 	};
 
 	leds {
@@ -195,41 +224,4 @@ zephyr_udc0: &usb_otg {
 	nxp,neg-input = "VIO";
 	nxp,vio-scaling-factor = <2>;
 	nxp,bias-prog = "fast";
-};
-
-&flexspi {
-	status = "okay";
-	/* Driver for MX25U512 flash not currently enabled */
-	mx25u51245g: mx25u51245g@0 {
-		compatible = "nxp,imx-flexspi-nor";
-		spi-max-frequency = <133000000>;
-		reg = <0>;
-		/* 64MB, 512MBit flash */
-		size = <DT_SIZE_M(64 * 8)>;
-
-		partitions {
-			compatible = "fixed-partitions";
-			#address-cells = <1>;
-			#size-cells = <1>;
-
-			code_partition: partition@0 {
-				label = "application";
-				reg = <0x0 DT_SIZE_M(4)>;
-			};
-
-			/* This partition is reserved for connectivity firmwares storage
-			 * and shouldn't be moved.
-			 */
-			fw_storage: partition@400000 {
-				label = "fw_storage";
-				reg = <0x400000 0x280000>;
-				read-only;
-			};
-
-			storage_partition: partition@680000 {
-				label = "storage";
-				reg = <0x680000 0x3980000>;
-			};
-		};
-	};
 };
