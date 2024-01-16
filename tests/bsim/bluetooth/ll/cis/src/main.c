@@ -106,7 +106,8 @@ static bt_addr_le_t peer_addr;
 
 #define BUF_ALLOC_TIMEOUT   (50) /* milliseconds */
 NET_BUF_POOL_FIXED_DEFINE(tx_pool, CONFIG_BT_ISO_TX_BUF_COUNT,
-			  BT_ISO_SDU_BUF_SIZE(CONFIG_BT_ISO_TX_MTU), 8, NULL);
+			  BT_ISO_SDU_BUF_SIZE(CONFIG_BT_ISO_TX_MTU),
+			  CONFIG_BT_CONN_TX_USER_DATA_SIZE, NULL);
 
 static bool data_cb(struct bt_data *data, void *user_data)
 {
@@ -413,11 +414,14 @@ static void test_cis_central(void)
 	cig_param.sca = BT_GAP_SCA_UNKNOWN;
 	cig_param.packing = 0U;
 	cig_param.framing = 0U;
-	cig_param.interval = ISO_INTERVAL_US;
+	cig_param.c_to_p_interval = ISO_INTERVAL_US;
+	cig_param.p_to_c_interval = ISO_INTERVAL_US;
 	if (IS_ENABLED(CONFIG_TEST_FT_SKIP_SUBEVENTS)) {
-		cig_param.latency = ISO_LATENCY_FT_MS;
+		cig_param.c_to_p_latency = ISO_LATENCY_FT_MS;
+		cig_param.p_to_c_latency = ISO_LATENCY_FT_MS;
 	} else {
-		cig_param.latency = ISO_LATENCY_MS;
+		cig_param.c_to_p_latency = ISO_LATENCY_MS;
+		cig_param.p_to_c_latency = ISO_LATENCY_MS;
 	}
 
 	printk("Create CIG...");

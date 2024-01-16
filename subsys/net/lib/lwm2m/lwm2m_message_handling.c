@@ -45,6 +45,7 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 #include "lwm2m_engine.h"
 #include "lwm2m_object.h"
 #include "lwm2m_obj_access_control.h"
+#include "lwm2m_obj_server.h"
 #include "lwm2m_rw_link_format.h"
 #include "lwm2m_rw_oma_tlv.h"
 #include "lwm2m_rw_plain_text.h"
@@ -304,6 +305,9 @@ STATIC int build_msg_block_for_send(struct lwm2m_message *msg, uint16_t block_nu
 		}
 		msg->cpkt.hdr_len = msg->body_encode_buffer.hdr_len;
 	} else {
+		/* Keep user data between blocks */
+		void *user_data = msg->reply ? msg->reply->user_data : NULL;
+
 		/* reuse message for next block. Copy token from the new query to allow
 		 * CoAP clients to use new token for every query of ongoing transaction
 		 */
@@ -322,6 +326,9 @@ STATIC int build_msg_block_for_send(struct lwm2m_message *msg, uint16_t block_nu
 			lwm2m_reset_message(msg, true);
 			LOG_ERR("Unable to init lwm2m message for next block!");
 			return ret;
+		}
+		if (msg->reply) {
+			msg->reply->user_data = user_data;
 		}
 	}
 
@@ -647,8 +654,7 @@ int lwm2m_init_message(struct lwm2m_message *msg)
 		goto cleanup;
 	}
 
-	r = coap_pending_init(msg->pending, &msg->cpkt, &msg->ctx->remote_addr,
-			      CONFIG_COAP_MAX_RETRANSMIT);
+	r = coap_pending_init(msg->pending, &msg->cpkt, &msg->ctx->remote_addr, NULL);
 	if (r < 0) {
 		LOG_ERR("Unable to initialize a pending "
 			"retransmission (err:%d).",
@@ -1089,7 +1095,7 @@ int lwm2m_write_handler(struct lwm2m_engine_obj_inst *obj_inst, struct lwm2m_eng
 				break;
 			}
 
-			len = strlen((char *)write_buf);
+			len = strlen((char *)write_buf) + 1;
 			break;
 
 		case LWM2M_RES_TYPE_TIME:
@@ -1251,8 +1257,10 @@ static int lwm2m_read_resource_data(struct lwm2m_message *msg, void *data_ptr, s
 		break;
 
 	case LWM2M_RES_TYPE_STRING:
-		ret = engine_put_string(&msg->out, &msg->path, (uint8_t *)data_ptr,
-					strlen((uint8_t *)data_ptr));
+		if (data_len) {
+			data_len -= 1; /* Remove the '\0' */
+		}
+		ret = engine_put_string(&msg->out, &msg->path, (uint8_t *)data_ptr, data_len);
 		break;
 
 	case LWM2M_RES_TYPE_U32:
@@ -2057,6 +2065,13 @@ static int parse_write_op(struct lwm2m_message *msg, uint16_t format)
 		if (block_num < block_ctx->expected) {
 			LOG_WRN("Block already handled %d, expected %d", block_num,
 				block_ctx->expected);
+			(void)coap_header_set_code(msg->out.out_cpkt, COAP_RESPONSE_CODE_CONTINUE);
+			/* Respond with the original Block1 header, original Ack migh have been
+			 * lost, and this is a retry. We don't know the original response, but
+			 * since it is handled, just assume we can continue.
+			 */
+			(void)coap_append_option_int(msg->out.out_cpkt, COAP_OPTION_BLOCK1,
+						     block_opt);
 			return 0;
 		}
 		if (block_num > block_ctx->expected) {
@@ -2079,30 +2094,35 @@ static int parse_write_op(struct lwm2m_message *msg, uint16_t format)
 		 * number.
 		 */
 		block_ctx->expected += GET_BLOCK_SIZE(block_opt) - block_ctx->ctx.block_size + 1;
-
-		/* Handle blockwise 1 (Part 1): Set response code */
-		if (!last_block) {
-			msg->code = COAP_RESPONSE_CODE_CONTINUE;
-		}
 	}
 
 	r = do_write_op(msg, format);
 
 	/* Handle blockwise 1 (Part 2): Append BLOCK1 option / free context */
 	if (block_ctx) {
-		if (r >= 0 && !last_block) {
-			/* More to come, ack with correspond block # */
+		if (r >= 0) {
+			/* Add block1 option to response.
+			 * As RFC7959 Section-2.3, More flag is off, because we have already
+			 * written the data.
+			 */
 			r = coap_append_block1_option(msg->out.out_cpkt, &block_ctx->ctx);
 			if (r < 0) {
 				/* report as internal server error */
-				LOG_ERR("Fail adding block1 option: %d", r);
+				LOG_DBG("Fail adding block1 option: %d", r);
 				r = -EINVAL;
+			}
+			if (!last_block) {
+				r = coap_header_set_code(msg->out.out_cpkt,
+							 COAP_RESPONSE_CODE_CONTINUE);
+				if (r < 0) {
+					LOG_DBG("Failed to modify response code");
+					r = -EINVAL;
+				}
 			}
 		}
 		if (r < 0 || last_block) {
 			/* Free context when finished or when there is error */
 			free_block_ctx(block_ctx);
-
 		}
 	}
 
@@ -2418,7 +2438,8 @@ static int handle_request(struct coap_packet *request, struct lwm2m_message *msg
 		goto error;
 	}
 #endif
-	if (msg->path.obj_id == LWM2M_OBJECT_SECURITY_ID && !msg->ctx->bootstrap_mode) {
+	if (msg->path.level > LWM2M_PATH_LEVEL_NONE &&
+	    msg->path.obj_id == LWM2M_OBJECT_SECURITY_ID && !msg->ctx->bootstrap_mode) {
 		r = -EACCES;
 		goto error;
 	}
@@ -2572,8 +2593,7 @@ static int lwm2m_response_promote_to_con(struct lwm2m_message *msg)
 		return -ENOMEM;
 	}
 
-	ret = coap_pending_init(msg->pending, &msg->cpkt, &msg->ctx->remote_addr,
-				CONFIG_COAP_MAX_RETRANSMIT);
+	ret = coap_pending_init(msg->pending, &msg->cpkt, &msg->ctx->remote_addr, NULL);
 	if (ret < 0) {
 		LOG_ERR("Unable to initialize a pending "
 			"retransmission (err:%d).",
@@ -3302,6 +3322,16 @@ cleanup:
 int do_composite_read_op_for_parsed_list(struct lwm2m_message *msg, uint16_t content_format,
 					 sys_slist_t *path_list)
 {
+	struct lwm2m_obj_path_list *entry;
+
+	/* Check access rights */
+	SYS_SLIST_FOR_EACH_CONTAINER(path_list, entry, node) {
+		if (entry->path.level > LWM2M_PATH_LEVEL_NONE &&
+		    entry->path.obj_id == LWM2M_OBJECT_SECURITY_ID && !msg->ctx->bootstrap_mode) {
+			return -EACCES;
+		}
+	}
+
 	switch (content_format) {
 
 #if defined(CONFIG_LWM2M_RW_SENML_JSON_SUPPORT)

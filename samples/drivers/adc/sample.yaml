@@ -2,7 +2,8 @@ sample:
   name: ADC driver sample
 tests:
   sample.drivers.adc:
-    tags: ADC
+    tags:
+      - adc
     depends_on: adc
     platform_allow:
       - nucleo_l073rz
@@ -26,6 +27,8 @@ tests:
       - gd32l233r_eval
       - lpcxpresso55s36
       - mr_canhubk3
+      - longan_nano
+      - longan_nano_lite
     integration_platforms:
       - nucleo_l073rz
       - nrf52840dk_nrf52840

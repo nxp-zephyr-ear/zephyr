@@ -14,7 +14,7 @@
 		clocks {
 			clk_hsi48: clk-hsi48 {
 				#clock-cells = <0>;
-				compatible = "fixed-clock";
+				compatible = "st,stm32-hsi48-clock";
 				clock-frequency = <DT_FREQ_M(48)>;
 				status = "disabled";
 			};
@@ -142,5 +142,13 @@
 	usb_fs_phy: usbphy {
 		compatible = "usb-nop-xceiv";
 		#phy-cells = <0>;
+	};
+
+	smbus3: smbus3 {
+		compatible = "st,stm32-smbus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		i2c = <&i2c3>;
+		status = "disabled";
 	};
 };

@@ -882,7 +882,7 @@ int can_mcan_send(const struct device *dev, const struct can_frame *frame, k_tim
 	}
 
 	if (!data->fd && ((frame->flags & (CAN_FRAME_FDF | CAN_FRAME_BRS)) != 0U)) {
-		LOG_ERR("CAN-FD format not supported in non-FD mode");
+		LOG_ERR("CAN FD format not supported in non-FD mode");
 		return -ENOTSUP;
 	}
 #else  /* CONFIG_CAN_FD_MODE */
@@ -900,7 +900,7 @@ int can_mcan_send(const struct device *dev, const struct can_frame *frame, k_tim
 
 	if ((frame->flags & CAN_FRAME_FDF) != 0U) {
 		if (frame->dlc > CANFD_MAX_DLC) {
-			LOG_ERR("DLC of %d for CAN-FD format frame", frame->dlc);
+			LOG_ERR("DLC of %d for CAN FD format frame", frame->dlc);
 			return -EINVAL;
 		}
 	} else {
@@ -1149,12 +1149,17 @@ void can_mcan_remove_rx_filter(const struct device *dev, int filter_id)
 	struct can_mcan_data *data = dev->data;
 	int err;
 
+	if (filter_id < 0) {
+		LOG_ERR("filter ID %d out of bounds", filter_id);
+		return;
+	}
+
 	k_mutex_lock(&data->lock, K_FOREVER);
 
 	if (filter_id >= cbs->num_std) {
 		filter_id -= cbs->num_std;
 		if (filter_id >= cbs->num_ext) {
-			LOG_ERR("Wrong filter id");
+			LOG_ERR("filter ID %d out of bounds", filter_id);
 			k_mutex_unlock(&data->lock);
 			return;
 		}

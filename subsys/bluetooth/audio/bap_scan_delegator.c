@@ -177,7 +177,7 @@ static void net_buf_put_recv_state(const struct bass_recv_state_internal *recv_s
 	for (int i = 0; i < state->num_subgroups; i++) {
 		const struct bt_bap_scan_delegator_subgroup *subgroup = &state->subgroups[i];
 
-		(void)net_buf_simple_add_le32(&read_buf, subgroup->bis_sync);
+		(void)net_buf_simple_add_le32(&read_buf, subgroup->bis_sync >> 1);
 		(void)net_buf_simple_add_u8(&read_buf, subgroup->metadata_len);
 		(void)net_buf_simple_add_mem(&read_buf, subgroup->metadata,
 					     subgroup->metadata_len);
@@ -459,7 +459,7 @@ static int scan_delegator_add_source(struct bt_conn *conn,
 	/* subtract 1 as the opcode has already been pulled */
 	if (buf->len < sizeof(struct bt_bap_bass_cp_add_src) - 1) {
 		LOG_DBG("Invalid length %u", buf->size);
-		return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+		return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 	}
 
 	internal_state = get_free_recv_state();
@@ -510,10 +510,14 @@ static int scan_delegator_add_source(struct bt_conn *conn,
 
 		if (buf->len < (sizeof(subgroup->bis_sync) + sizeof(subgroup->metadata_len))) {
 			LOG_DBG("Invalid length %u", buf->size);
-			return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+			return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 		}
 
 		internal_state->requested_bis_sync[i] = net_buf_simple_pull_le32(buf);
+		if (internal_state->requested_bis_sync[i] != BT_BAP_BIS_SYNC_NO_PREF) {
+			/* Received BIS Index bitfield uses BIT(0) for BIS Index 1 */
+			internal_state->requested_bis_sync[i] <<= 1;
+		}
 
 		if (internal_state->requested_bis_sync[i] &&
 		    pa_sync == BT_BAP_BASS_PA_REQ_NO_SYNC) {
@@ -545,7 +549,7 @@ static int scan_delegator_add_source(struct bt_conn *conn,
 		if (buf->len < subgroup->metadata_len) {
 			LOG_DBG("Invalid length %u", buf->size);
 
-			return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+			return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 		}
 
 
@@ -563,7 +567,7 @@ static int scan_delegator_add_source(struct bt_conn *conn,
 
 	if (buf->len != 0) {
 		LOG_DBG("Invalid length %u", buf->size);
-		return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+		return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 	}
 
 	if (pa_sync != BT_BAP_BASS_PA_REQ_NO_SYNC) {
@@ -625,7 +629,7 @@ static int scan_delegator_mod_src(struct bt_conn *conn,
 	if (buf->len < sizeof(struct bt_bap_bass_cp_mod_src) - 1) {
 		LOG_DBG("Invalid length %u", buf->len);
 
-		return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+		return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 	}
 
 	src_id = net_buf_simple_pull_u8(buf);
@@ -664,12 +668,17 @@ static int scan_delegator_mod_src(struct bt_conn *conn,
 
 		if (buf->len < (sizeof(subgroup->bis_sync) + sizeof(subgroup->metadata_len))) {
 			LOG_DBG("Invalid length %u", buf->len);
-			return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+			return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 		}
 
 		old_bis_sync_req = internal_state->requested_bis_sync[i];
 
 		internal_state->requested_bis_sync[i] = net_buf_simple_pull_le32(buf);
+		if (internal_state->requested_bis_sync[i] != BT_BAP_BIS_SYNC_NO_PREF) {
+			/* Received BIS Index bitfield uses BIT(0) for BIS Index 1 */
+			internal_state->requested_bis_sync[i] <<= 1;
+		}
+
 		if (internal_state->requested_bis_sync[i] &&
 		    pa_sync == BT_BAP_BASS_PA_REQ_NO_SYNC) {
 			LOG_DBG("Cannot sync to BIS without PA");
@@ -699,7 +708,7 @@ static int scan_delegator_mod_src(struct bt_conn *conn,
 
 		if (buf->len < subgroup->metadata_len) {
 			LOG_DBG("Invalid length %u", buf->len);
-			return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+			return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 		}
 
 		if (subgroup->metadata_len > CONFIG_BT_BAP_SCAN_DELEGATOR_MAX_METADATA_LEN) {
@@ -717,7 +726,7 @@ static int scan_delegator_mod_src(struct bt_conn *conn,
 	if (buf->len != 0) {
 		LOG_DBG("Invalid length %u", buf->size);
 
-		return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+		return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 	}
 
 	/* All input has been validated; update receive state and check for changes */
@@ -770,6 +779,20 @@ static int scan_delegator_mod_src(struct bt_conn *conn,
 
 			return err;
 		}
+	} else if (pa_sync == BT_BAP_BASS_PA_REQ_NO_SYNC &&
+		   (state->pa_sync_state == BT_BAP_PA_STATE_INFO_REQ ||
+		    state->pa_sync_state == BT_BAP_PA_STATE_SYNCED)) {
+		/* Terminate PA sync */
+		const int err = pa_sync_term_request(conn, &internal_state->state);
+
+		if (err != 0) {
+			LOG_DBG("PA sync term from %p was reject with reason %d",
+				conn, err);
+
+			return err;
+		}
+
+		state_changed = true;
 	}
 
 	/* Notify if changed */
@@ -797,7 +820,7 @@ static int scan_delegator_broadcast_code(struct bt_conn *conn,
 	/* subtract 1 as the opcode has already been pulled */
 	if (buf->len != sizeof(struct bt_bap_bass_cp_broadcase_code) - 1) {
 		LOG_DBG("Invalid length %u", buf->size);
-		return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+		return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 	}
 
 	src_id = net_buf_simple_pull_u8(buf);
@@ -830,12 +853,13 @@ static int scan_delegator_rem_src(struct bt_conn *conn,
 {
 	struct bass_recv_state_internal *internal_state;
 	struct bt_bap_scan_delegator_recv_state *state;
+	bool bis_sync_was_requested;
 	uint8_t src_id;
 
 	/* subtract 1 as the opcode has already been pulled */
 	if (buf->len != sizeof(struct bt_bap_bass_cp_rem_src) - 1) {
 		LOG_DBG("Invalid length %u", buf->size);
-		return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+		return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 	}
 
 	src_id = net_buf_simple_pull_u8(buf);
@@ -862,6 +886,14 @@ static int scan_delegator_rem_src(struct bt_conn *conn,
 		}
 	}
 
+	bis_sync_was_requested = false;
+	for (uint8_t i = 0U; i < state->num_subgroups; i++) {
+		if (internal_state->requested_bis_sync[i] != 0U) {
+			bis_sync_was_requested = true;
+			break;
+		}
+	}
+
 	LOG_DBG("Index %u: Removed source with ID 0x%02x",
 		internal_state->index, src_id);
 
@@ -873,6 +905,9 @@ static int scan_delegator_rem_src(struct bt_conn *conn,
 	(void)memset(internal_state->requested_bis_sync, 0,
 		     sizeof(internal_state->requested_bis_sync));
 
+	if (bis_sync_was_requested) {
+		bis_sync_request_updated(conn, internal_state);
+	}
 	receive_state_updated(conn, internal_state);
 
 	return 0;
@@ -891,7 +926,7 @@ static ssize_t write_control_point(struct bt_conn *conn,
 	if (offset != 0) {
 		return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
 	} else if (len == 0) {
-		return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+		return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 	}
 
 	net_buf_simple_init_with_data(&buf, (void *)data, len);
@@ -916,7 +951,7 @@ static ssize_t write_control_point(struct bt_conn *conn,
 
 		if (buf.len != 0) {
 			LOG_DBG("Invalid length %u", buf.size);
-			return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+			return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 		}
 
 		bap_broadcast_assistant->scanning = false;
@@ -926,7 +961,7 @@ static ssize_t write_control_point(struct bt_conn *conn,
 
 		if (buf.len != 0) {
 			LOG_DBG("Invalid length %u", buf.size);
-			return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+			return BT_GATT_ERR(BT_ATT_ERR_WRITE_REQ_REJECTED);
 		}
 		bap_broadcast_assistant->scanning = true;
 		break;
@@ -1320,6 +1355,11 @@ int bt_bap_scan_delegator_mod_src(const struct bt_bap_scan_delegator_mod_src_par
 
 	if (state->num_subgroups != param->num_subgroups) {
 		state->num_subgroups = param->num_subgroups;
+		state_changed = true;
+	}
+
+	if (state->encrypt_state != param->encrypt_state) {
+		state->encrypt_state = param->encrypt_state;
 		state_changed = true;
 	}
 

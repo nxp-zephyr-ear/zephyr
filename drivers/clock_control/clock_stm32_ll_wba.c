@@ -287,7 +287,7 @@ static int get_vco_input_range(uint32_t m_div, uint32_t *range)
 
 static void set_regu_voltage(uint32_t hclk_freq)
 {
-	if (hclk_freq < MHZ(16)) {
+	if (hclk_freq <= MHZ(16)) {
 		LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE2);
 	} else {
 		LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE1);
@@ -550,6 +550,9 @@ int stm32_clock_control_init(const struct device *dev)
 	if (old_flash_freq >= CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC) {
 		LL_SetFlashLatency(CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC);
 	}
+
+	/* Set voltage regulator to comply with targeted system frequency */
+	set_regu_voltage(CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC);
 
 	SystemCoreClock = CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC;
 

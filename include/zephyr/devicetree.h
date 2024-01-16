@@ -17,6 +17,7 @@
 #define DEVICETREE_H
 
 #include <devicetree_generated.h>
+#include <zephyr/irq_multilevel.h>
 
 #if !defined(_LINKER) && !defined(_ASMLANGUAGE)
 #include <stdint.h>
@@ -776,17 +777,6 @@
 #define DT_PROP_OR(node_id, prop, default_value) \
 	COND_CODE_1(DT_NODE_HAS_PROP(node_id, prop), \
 		    (DT_PROP(node_id, prop)), (default_value))
-
-/**
- * @deprecated Use DT_PROP(node_id, label)
- * @brief Equivalent to DT_PROP(node_id, label)
- *
- * This is a convenience for the Zephyr device API, which uses label
- * properties as device_get_binding() arguments.
- * @param node_id node identifier
- * @return node's label property value
- */
-#define DT_LABEL(node_id) DT_PROP(node_id, label) __DEPRECATED_MACRO
 
 /**
  * @brief Get a property value's index into its enumeration values
@@ -2410,6 +2400,77 @@
 #define DT_IRQ(node_id, cell) DT_IRQ_BY_IDX(node_id, 0, cell)
 
 /**
+ * @cond INTERNAL_HIDDEN
+ */
+
+/* DT helper macro to get interrupt-parent node  */
+#define DT_PARENT_INTC_INTERNAL(node_id) DT_PROP(node_id, interrupt_parent)
+/* DT helper macro to get the node's interrupt grandparent node  */
+#define DT_GPARENT_INTC_INTERNAL(node_id) DT_PARENT_INTC_INTERNAL(DT_PARENT_INTC_INTERNAL(node_id))
+/* DT helper macro to check if a node is an interrupt controller */
+#define DT_IS_INTC_INTERNAL(node_id) DT_NODE_HAS_PROP(node_id, interrupt_controller)
+/* DT helper macro to check if the node has a parent interrupt controller */
+#define DT_HAS_PARENT_INTC_INTERNAL(node_id)                                                       \
+	/* node has `interrupt-parent`? */                                                         \
+	IF_ENABLED(DT_NODE_HAS_PROP(node_id, interrupt_parent),                                    \
+		   /* `interrupt-parent` node is an interrupt controller? */                       \
+		   (IF_ENABLED(DT_IS_INTC_INTERNAL(DT_PARENT_INTC_INTERNAL(node_id)),              \
+			       /* `interrupt-parent` node has interrupt cell(s) ? 1 : 0 */         \
+			       (COND_CODE_0(DT_NUM_IRQS(DT_PARENT_INTC_INTERNAL(node_id)), (0),    \
+					    (1))))))
+/* DT helper macro to check if the node has a grandparent interrupt controller */
+#define DT_HAS_GPARENT_INTC_INTERNAL(node_id)                                                      \
+	IF_ENABLED(DT_HAS_PARENT_INTC_INTERNAL(node_id),                                           \
+		   (DT_HAS_PARENT_INTC_INTERNAL(DT_PARENT_INTC_INTERNAL(node_id))))
+
+/**
+ * DT helper macro to get the as-seen interrupt number in devicetree,
+ * or ARM GIC IRQ encoded output from `gen_defines.py`
+ */
+#define DT_IRQN_BY_IDX_INTERNAL(node_id, idx) DT_IRQ_BY_IDX(node_id, idx, irq)
+
+/* DT helper macro to get the node's parent intc's (only) irq number */
+#define DT_PARENT_INTC_IRQN_INTERNAL(node_id) DT_IRQ(DT_PARENT_INTC_INTERNAL(node_id), irq)
+/* DT helper macro to get the node's grandparent intc's (only) irq number */
+#define DT_GPARENT_INTC_IRQN_INTERNAL(node_id) DT_IRQ(DT_GPARENT_INTC_INTERNAL(node_id), irq)
+
+/* DT helper macro to encode a node's IRQN to level 2 according to the multi-level scheme */
+#define DT_IRQN_L2_INTERNAL(node_id, idx)                                                          \
+	(IRQ_TO_L2(DT_IRQN_BY_IDX_INTERNAL(node_id, idx)) |                            \
+	 DT_PARENT_INTC_IRQN_INTERNAL(node_id))
+/* DT helper macro to encode a node's IRQN to level 3 according to the multi-level scheme */
+#define DT_IRQN_L3_INTERNAL(node_id, idx)                                                          \
+	(IRQ_TO_L3(DT_IRQN_BY_IDX_INTERNAL(node_id, idx)) |                            \
+	 IRQ_TO_L2(DT_PARENT_INTC_IRQN_INTERNAL(node_id)) |                            \
+	 DT_GPARENT_INTC_IRQN_INTERNAL(node_id))
+/**
+ * DT helper macro to encode a node's interrupt number according to the Zephyr's multi-level scheme
+ * See doc/kernel/services/interrupts.rst for details
+ */
+#define DT_MULTI_LEVEL_IRQN_INTERNAL(node_id, idx)                                                 \
+	COND_CODE_1(DT_HAS_GPARENT_INTC_INTERNAL(node_id), (DT_IRQN_L3_INTERNAL(node_id, idx)),    \
+		    (COND_CODE_1(DT_HAS_PARENT_INTC_INTERNAL(node_id),                             \
+				 (DT_IRQN_L2_INTERNAL(node_id, idx)),                              \
+				 (DT_IRQN_BY_IDX_INTERNAL(node_id, idx)))))
+
+/**
+ * INTERNAL_HIDDEN @endcond
+ */
+
+/**
+ * @brief Get the node's Zephyr interrupt number at index
+ * If @kconfig{CONFIG_MULTI_LEVEL_INTERRUPTS} is enabled, the interrupt number at index will be
+ * multi-level encoded
+ * @param node_id node identifier
+ * @param idx logical index into the interrupt specifier array
+ * @return the Zephyr interrupt number
+ */
+#define DT_IRQN_BY_IDX(node_id, idx)                                                               \
+	COND_CODE_1(IS_ENABLED(CONFIG_MULTI_LEVEL_INTERRUPTS),                                     \
+		    (DT_MULTI_LEVEL_IRQN_INTERNAL(node_id, idx)),                                  \
+		    (DT_IRQN_BY_IDX_INTERNAL(node_id, idx)))
+
+/**
  * @brief Get a node's (only) irq number
  *
  * Equivalent to DT_IRQ(node_id, irq). This is provided as a convenience
@@ -2419,7 +2480,7 @@
  * @param node_id node identifier
  * @return the interrupt number for the node's only interrupt
  */
-#define DT_IRQN(node_id) DT_IRQ(node_id, irq)
+#define DT_IRQN(node_id) DT_IRQN_BY_IDX(node_id, 0)
 
 /**
  * @}
@@ -3189,16 +3250,6 @@
 #define DT_BUS(node_id) DT_CAT(node_id, _BUS)
 
 /**
- * @deprecated If used to obtain a device instance with device_get_binding,
- * consider using @c DEVICE_DT_GET(DT_BUS(node)).
- *
- * @brief Node's bus controller's `label` property
- * @param node_id node identifier
- * @return the label property of the node's bus controller DT_BUS(node)
- */
-#define DT_BUS_LABEL(node_id) DT_PROP(DT_BUS(node_id), label) __DEPRECATED_MACRO
-
-/**
  * @brief Is a node on a bus of a given type?
  *
  * Example devicetree overlay:
@@ -3510,14 +3561,6 @@
 	DT_PROP_LEN_OR(DT_DRV_INST(inst), prop, default_value)
 
 /**
- * @deprecated Use DT_INST_PROP(inst, label)
- * @brief Get a `DT_DRV_COMPAT` instance's `label` property
- * @param inst instance number
- * @return instance's label property value
- */
-#define DT_INST_LABEL(inst) DT_INST_PROP(inst, label) __DEPRECATED_MACRO
-
-/**
  * @brief Get a `DT_DRV_COMPAT` instance's string property's value as a
  *        token.
  *
@@ -3825,7 +3868,15 @@
  * @param inst instance number
  * @return the interrupt number for the node's only interrupt
  */
-#define DT_INST_IRQN(inst) DT_INST_IRQ(inst, irq)
+#define DT_INST_IRQN(inst) DT_IRQN(DT_DRV_INST(inst))
+
+/**
+ * @brief Get a `DT_DRV_COMPAT`'s irq number at index
+ * @param inst instance number
+ * @param idx logical index into the interrupt specifier array
+ * @return the interrupt number for the node's idx-th interrupt
+ */
+#define DT_INST_IRQN_BY_IDX(inst, idx) DT_IRQN_BY_IDX(DT_DRV_INST(inst), idx)
 
 /**
  * @brief Get a `DT_DRV_COMPAT`'s bus node identifier
@@ -3833,16 +3884,6 @@
  * @return node identifier for the instance's bus node
  */
 #define DT_INST_BUS(inst) DT_BUS(DT_DRV_INST(inst))
-
-/**
- * @deprecated If used to obtain a device instance with device_get_binding,
- * consider using @c DEVICE_DT_GET(DT_INST_BUS(inst)).
- *
- * @brief Get a `DT_DRV_COMPAT`'s bus node's label property
- * @param inst instance number
- * @return the label property of the instance's bus controller
- */
-#define DT_INST_BUS_LABEL(inst) DT_BUS_LABEL(DT_DRV_INST(inst)) __DEPRECATED_MACRO
 
 /**
  * @brief Test if a `DT_DRV_COMPAT`'s bus type is a given type

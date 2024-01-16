@@ -4953,7 +4953,8 @@ static void vs_read_tx_power_level(struct net_buf *buf, struct net_buf **evt)
 
 #if defined(CONFIG_BT_HCI_VS_FATAL_ERROR)
 /* A memory pool for vandor specific events for fatal error reporting purposes. */
-NET_BUF_POOL_FIXED_DEFINE(vs_err_tx_pool, 1, BT_BUF_EVT_RX_SIZE, 8, NULL);
+NET_BUF_POOL_FIXED_DEFINE(vs_err_tx_pool, 1, BT_BUF_EVT_RX_SIZE,
+			  sizeof(struct bt_buf_data), NULL);
 
 /* The alias for convenience of Controller HCI implementation. Controller is build for
  * a particular architecture hence the alias will allow to avoid conditional compilation.
@@ -6959,46 +6960,56 @@ static void le_ext_adv_report(struct pdu_data *pdu_data,
 		ptr = h->data;
 
 		if (h->adv_addr) {
-			bt_addr_le_t addr;
+			/* AdvA is RFU in AUX_CHAIN_IND */
+			if (node_rx_curr == node_rx ||
+			    node_rx_curr == node_rx->hdr.rx_ftr.extra) {
+				bt_addr_le_t addr;
 
-			adv_addr_type_curr = adv->tx_addr;
-			adv_addr_curr = ptr;
+				adv_addr_type_curr = adv->tx_addr;
+				adv_addr_curr = ptr;
 
-			addr.type = adv->tx_addr;
-			(void)memcpy(addr.a.val, ptr, sizeof(bt_addr_t));
+				addr.type = adv->tx_addr;
+				(void)memcpy(addr.a.val, ptr, sizeof(bt_addr_t));
+
+				LOG_DBG("    AdvA: %s", bt_addr_le_str(&addr));
+			}
+
 			ptr += BDADDR_SIZE;
-
-			LOG_DBG("    AdvA: %s", bt_addr_le_str(&addr));
 		}
 
 		if (h->tgt_addr) {
-			struct lll_scan *lll;
-			bt_addr_le_t addr;
+			/* TargetA is RFU in AUX_CHAIN_IND */
+			if (node_rx_curr == node_rx ||
+			    node_rx_curr == node_rx->hdr.rx_ftr.extra) {
+				struct lll_scan *lll;
+				bt_addr_le_t addr;
 
-			lll = node_rx->hdr.rx_ftr.param;
+				lll = node_rx->hdr.rx_ftr.param;
 
 #if defined(CONFIG_BT_CTLR_EXT_SCAN_FP)
-			direct_addr_type_curr =
-				ext_adv_direct_addr_type(lll,
-							 direct_resolved_curr,
-							 direct_report_curr,
-							 adv->rx_addr, ptr);
+				direct_addr_type_curr =
+					ext_adv_direct_addr_type(lll,
+								 direct_resolved_curr,
+								 direct_report_curr,
+								 adv->rx_addr, ptr);
 #else /* !CONFIG_BT_CTLR_EXT_SCAN_FP */
-			direct_addr_type_curr =
-				ext_adv_direct_addr_type(lll,
-							 direct_resolved_curr,
-							 false, adv->rx_addr,
-							 ptr);
+				direct_addr_type_curr =
+					ext_adv_direct_addr_type(lll,
+								 direct_resolved_curr,
+								 false, adv->rx_addr,
+								 ptr);
 #endif /* !CONFIG_BT_CTLR_EXT_SCAN_FP */
 
-			direct_addr_curr = ptr;
+				direct_addr_curr = ptr;
+
+				addr.type = adv->rx_addr;
+				(void)memcpy(addr.a.val, direct_addr_curr,
+					     sizeof(bt_addr_t));
+
+				LOG_DBG("    TgtA: %s", bt_addr_le_str(&addr));
+			}
+
 			ptr += BDADDR_SIZE;
-
-			addr.type = adv->rx_addr;
-			(void)memcpy(addr.a.val, direct_addr_curr,
-				     sizeof(bt_addr_t));
-
-			LOG_DBG("    TgtA: %s", bt_addr_le_str(&addr));
 		}
 
 		if (h->adi) {
@@ -7012,34 +7023,42 @@ static void le_ext_adv_report(struct pdu_data *pdu_data,
 
 		if (h->aux_ptr) {
 			struct pdu_adv_aux_ptr *aux_ptr;
-			uint8_t aux_phy;
 
-			aux_ptr = (void *)ptr;
+			/* AuxPtr is RFU for connectable or scannable AUX_ADV_IND */
+			if (node_rx_curr != node_rx->hdr.rx_ftr.extra ||
+			    evt_type_curr == 0U) {
+				uint8_t aux_phy;
 
-			/* Don't report if invalid phy or AUX_ADV_IND was not received
-			 * See BT Core 5.4, Vol 6, Part B, Section 4.4.3.5:
-			 * If the Controller does not listen for or does not receive the
-			 * AUX_ADV_IND PDU, no report shall be generated
-			 */
-			if ((node_rx_curr == node_rx && !node_rx_next) ||
-			    PDU_ADV_AUX_PTR_PHY_GET(aux_ptr) > EXT_ADV_AUX_PHY_LE_CODED) {
-				struct node_rx_ftr *ftr;
+				aux_ptr = (void *)ptr;
 
-				ftr = &node_rx->hdr.rx_ftr;
-				node_rx_extra_list_release(ftr->extra);
-				return;
+				/* Don't report if invalid phy or AUX_ADV_IND was not received
+				 * See BT Core 5.4, Vol 6, Part B, Section 4.4.3.5:
+				 * If the Controller does not listen for or does not receive the
+				 * AUX_ADV_IND PDU, no report shall be generated
+				 */
+				if ((node_rx_curr == node_rx && !node_rx_next) ||
+				    PDU_ADV_AUX_PTR_PHY_GET(aux_ptr) > EXT_ADV_AUX_PHY_LE_CODED) {
+					struct node_rx_ftr *ftr;
+
+					ftr = &node_rx->hdr.rx_ftr;
+					node_rx_extra_list_release(ftr->extra);
+					return;
+				}
+
+
+				sec_phy_curr = HCI_AUX_PHY_TO_HCI_PHY(
+					PDU_ADV_AUX_PTR_PHY_GET(aux_ptr));
+
+				aux_phy = BIT(PDU_ADV_AUX_PTR_PHY_GET(aux_ptr));
+
+				LOG_DBG("    AuxPtr chan_idx = %u, ca = %u, offs_units "
+				       "= %u offs = 0x%x, phy = 0x%x",
+				       aux_ptr->chan_idx, aux_ptr->ca,
+				       aux_ptr->offs_units, PDU_ADV_AUX_PTR_OFFSET_GET(aux_ptr),
+				       aux_phy);
 			}
 
 			ptr += sizeof(*aux_ptr);
-
-			sec_phy_curr = HCI_AUX_PHY_TO_HCI_PHY(PDU_ADV_AUX_PTR_PHY_GET(aux_ptr));
-
-			aux_phy = BIT(PDU_ADV_AUX_PTR_PHY_GET(aux_ptr));
-
-			LOG_DBG("    AuxPtr chan_idx = %u, ca = %u, offs_units "
-			       "= %u offs = 0x%x, phy = 0x%x",
-			       aux_ptr->chan_idx, aux_ptr->ca,
-			       aux_ptr->offs_units, PDU_ADV_AUX_PTR_OFFSET_GET(aux_ptr), aux_phy);
 		}
 
 		if (h->sync_info) {
@@ -7053,10 +7072,10 @@ static void le_ext_adv_report(struct pdu_data *pdu_data,
 			LOG_DBG("    SyncInfo offs = %u, offs_unit = 0x%x, "
 			       "interval = 0x%x, sca = 0x%x, "
 			       "chan map = 0x%x 0x%x 0x%x 0x%x 0x%x, "
-			       "AA = 0x%x, CRC = 0x%x 0x%x 0x%x, "
+			       "AA = 0x%x%x%x%x, CRC = 0x%x 0x%x 0x%x, "
 			       "evt cntr = 0x%x",
-			       sys_le16_to_cpu(si->offs),
-			       si->offs_units,
+			       PDU_ADV_SYNC_INFO_OFFSET_GET(si),
+			       PDU_ADV_SYNC_INFO_OFFS_UNITS_GET(si),
 			       sys_le16_to_cpu(si->interval),
 			       ((si->sca_chm[PDU_SYNC_INFO_SCA_CHM_SCA_BYTE_OFFSET] &
 				 PDU_SYNC_INFO_SCA_CHM_SCA_BIT_MASK) >>
@@ -7065,7 +7084,7 @@ static void le_ext_adv_report(struct pdu_data *pdu_data,
 			       si->sca_chm[3],
 			       (si->sca_chm[PDU_SYNC_INFO_SCA_CHM_SCA_BYTE_OFFSET] &
 				~PDU_SYNC_INFO_SCA_CHM_SCA_BIT_MASK),
-			       sys_le32_to_cpu(si->aa),
+			       si->aa[3], si->aa[2], si->aa[1], si->aa[0],
 			       si->crc_init[0], si->crc_init[1],
 			       si->crc_init[2], sys_le16_to_cpu(si->evt_cntr));
 		}
@@ -7120,9 +7139,10 @@ no_ext_hdr:
 			adi = adi_curr;
 			sec_phy = sec_phy_curr;
 			node_rx_data = node_rx_curr;
-			data_len = data_len_curr;
-			data_len_total = data_len;
-			data = data_curr;
+			/* Adv data in ADV_EXT_IND is RFU */
+			data_len = 0U;
+			data_len_total = 0U;
+			data = NULL;
 			scan_data_len_total = 0U;
 			tx_pwr = tx_pwr_curr;
 

@@ -298,6 +298,11 @@ int img_mgmt_erase_slot(int slot)
 			LOG_ERR("Failed to erase flash area: %d", rc);
 			rc = IMG_MGMT_ERR_FLASH_ERASE_FAILED;
 		}
+	} else if (rc == 1) {
+		/* A return value of 1 indicates that the slot is already erased, thus
+		 * return a success code to the client
+		 */
+		rc = 0;
 	}
 
 	flash_area_close(fa);
@@ -366,12 +371,12 @@ int img_mgmt_read(int slot, unsigned int offset, void *dst, unsigned int num_byt
 int img_mgmt_write_image_data(unsigned int offset, const void *data, unsigned int num_bytes,
 			      bool last)
 {
-	/* Even if CONFIG_HEAP_MEM_POOL_SIZE will be able to match size of the structure,
+	/* Even if K_HEAP_MEM_POOL_SIZE will be able to match size of the structure,
 	 * keep in mind that when application will put the heap under pressure, obtaining
 	 * of a flash image context may not be possible, so plan bigger heap size or
 	 * make sure to limit application pressure on heap when DFU is expected.
 	 */
-	BUILD_ASSERT(CONFIG_HEAP_MEM_POOL_SIZE >= (sizeof(struct flash_img_context)),
+	BUILD_ASSERT(K_HEAP_MEM_POOL_SIZE >= (sizeof(struct flash_img_context)),
 		     "Not enough heap mem for flash_img_context.");
 
 	int rc = IMG_MGMT_ERR_OK;

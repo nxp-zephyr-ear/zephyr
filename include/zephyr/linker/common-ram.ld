@@ -12,10 +12,6 @@
 #endif
 #endif /* NETWORKING */
 
-#if defined(CONFIG_BT_MESH)
-	ITERABLE_SECTION_RAM(bt_mesh_ext_adv, 4)
-#endif
-
 #if defined(CONFIG_GEN_SW_ISR_TABLE) && defined(CONFIG_DYNAMIC_INTERRUPTS)
 	SECTION_DATA_PROLOGUE(sw_isr_table,,)
 	{
@@ -137,9 +133,12 @@
 #endif /* CONFIG_SENSING */
 
 #if defined(CONFIG_ZBUS)
-	ITERABLE_SECTION_RAM(zbus_observer, 4)
 	ITERABLE_SECTION_RAM(zbus_channel_observation_mask, 1)
 #endif /* CONFIG_ZBUS */
+
+#if defined(CONFIG_DEVICE_MUTABLE)
+	ITERABLE_SECTION_RAM(device_mutable, 4)
+#endif
 
 #ifdef CONFIG_USERSPACE
 	_static_kernel_objects_end = .;

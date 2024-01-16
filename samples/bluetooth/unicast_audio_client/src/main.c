@@ -19,6 +19,8 @@
 
 static void start_scan(void);
 
+uint64_t unicast_audio_recv_ctr; /* This value is exposed to test code */
+
 static struct bt_bap_unicast_client_cb unicast_client_cbs;
 static struct bt_conn *default_conn;
 static struct k_work_delayable audio_send_work;
@@ -234,24 +236,28 @@ static int init_lc3(void)
 		return ret;
 	}
 
-	frame_duration_us = bt_audio_codec_cfg_get_frame_duration_us(codec_cfg);
+	ret = bt_audio_codec_cfg_get_frame_dur(codec_cfg);
+	if (ret > 0) {
+		frame_duration_us = bt_audio_codec_cfg_frame_dur_to_frame_dur_us(ret);
+	}
+
 	octets_per_frame = bt_audio_codec_cfg_get_octets_per_frame(codec_cfg);
 	frames_per_sdu = bt_audio_codec_cfg_get_frame_blocks_per_sdu(codec_cfg, true);
 	octets_per_frame = bt_audio_codec_cfg_get_octets_per_frame(codec_cfg);
 
 	if (freq_hz < 0) {
 		printk("Error: Codec frequency not set, cannot start codec.");
-		return;
+		return -1;
 	}
 
 	if (frame_duration_us < 0) {
 		printk("Error: Frame duration not set, cannot start codec.");
-		return;
+		return -1;
 	}
 
 	if (octets_per_frame < 0) {
 		printk("Error: Octets per frame not set, cannot start codec.");
-		return;
+		return -1;
 	}
 
 	frame_duration_100us = frame_duration_us / 100;
@@ -273,7 +279,9 @@ static int init_lc3(void)
 
 	if (lc3_encoder == NULL) {
 		printk("ERROR: Failed to setup LC3 encoder - wrong parameters?\n");
+		return -1;
 	}
+	return 0;
 }
 
 #else
@@ -394,7 +402,7 @@ static bool check_audio_support_and_connect(struct bt_data *data,
 	bt_addr_le_t *addr = user_data;
 	uint8_t announcement_type;
 	uint32_t audio_contexts;
-	struct bt_uuid *uuid;
+	const struct bt_uuid *uuid;
 	uint16_t uuid_val;
 	uint8_t meta_len;
 	size_t min_size;
@@ -558,7 +566,9 @@ static void stream_recv(struct bt_bap_stream *stream,
 			struct net_buf *buf)
 {
 	if (info->flags & BT_ISO_FLAGS_VALID) {
-		printk("Incoming audio on stream %p len %u\n", stream, buf->len);
+		unicast_audio_recv_ctr++;
+		printk("Incoming audio on stream %p len %u (%"PRIu64")\n", stream, buf->len,
+			unicast_audio_recv_ctr);
 	}
 }
 

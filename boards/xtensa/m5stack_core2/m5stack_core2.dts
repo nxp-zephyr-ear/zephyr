@@ -8,12 +8,13 @@
 #include <espressif/esp32/esp32_d0wd_v3.dtsi>
 #include "m5stack_core2-pinctrl.dtsi"
 #include "grove_connectors.dtsi"
+#include "m5stack_mbus_connectors.dtsi"
 #include <zephyr/dt-bindings/display/ili9xxx.h>
 #include <zephyr/dt-bindings/regulator/axp192.h>
 
 / {
-	model = "esp32";
-	compatible = "espressif,esp32";
+	model = "M5Stack Core2";
+	compatible = "m5stack,core2";
 
 	aliases {
 		pwr-led = &pwr_led;
@@ -167,8 +168,8 @@
 &i2c1 {
 	status = "disabled";
 	clock-frequency = <I2C_BITRATE_STANDARD>;
-	sda-gpios = <&gpio0 32 GPIO_OPEN_DRAIN>;
-	scl-gpios = <&gpio0 33 GPIO_OPEN_DRAIN>;
+	sda-gpios = <&gpio1 0 GPIO_OPEN_DRAIN>;
+	scl-gpios = <&gpio1 1 GPIO_OPEN_DRAIN>;
 	pinctrl-0 = <&i2c1_default>;
 	pinctrl-names = "default";
 };
@@ -181,10 +182,12 @@
 	pinctrl-names = "default";
 	dma-enabled;
 	clock-frequency = <20000000>;
-	cs-gpios = <&gpio0 5 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&gpio0 5 GPIO_ACTIVE_LOW>,
+			   <&gpio0 4 GPIO_ACTIVE_LOW>;
 
 	ili9342c: ili9342c@0 {
 		compatible = "ilitek,ili9342c";
+		status = "okay";
 		spi-max-frequency = <30000000>;
 		reg = <0>;
 		cmd-data-gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;
@@ -195,6 +198,18 @@
 		width = <320>;
 		height = <240>;
 		rotation = <0>;
+	};
+
+	sdhc0: sdhc@1 {
+		compatible = "zephyr,sdhc-spi-slot";
+		reg = <1>;
+		status = "okay";
+		spi-max-frequency = <20000000>;
+		mmc {
+			compatible = "zephyr,sdmmc-disk";
+			status = "okay";
+		};
+
 	};
 };
 

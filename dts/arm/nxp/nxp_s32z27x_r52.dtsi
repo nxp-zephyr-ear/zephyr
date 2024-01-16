@@ -7,6 +7,7 @@
 #include <mem.h>
 #include <arm/armv8-r.dtsi>
 #include <zephyr/dt-bindings/interrupt-controller/arm-gic.h>
+#include <zephyr/dt-bindings/clock/nxp_s32z2_clock.h>
 
 / {
 	cpus {
@@ -699,7 +700,7 @@
 			status = "disabled";
 			interrupts = <GIC_SPI 224 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>,
 					<GIC_SPI 225 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
-			interrupt-names = "RX_TX_DATA_IRQ", "INT_ERROR_IRQ";
+			interrupt-names = "rx_tx", "error";
 			clocks = <&clock NXP_S32_P5_CANXL_PE_CLK>;
 		};
 
@@ -712,7 +713,7 @@
 			status = "disabled";
 			interrupts = <GIC_SPI 226 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>,
 					<GIC_SPI 227 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
-			interrupt-names = "RX_TX_DATA_IRQ", "INT_ERROR_IRQ";
+			interrupt-names = "rx_tx", "error";
 			clocks = <&clock NXP_S32_P5_CANXL_PE_CLK>;
 		};
 	};

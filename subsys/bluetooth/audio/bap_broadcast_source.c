@@ -289,6 +289,9 @@ static int broadcast_source_setup_stream(uint8_t index, struct bt_bap_stream *st
 
 	bt_audio_codec_qos_to_iso_qos(iso->chan.qos->tx, qos);
 	bt_audio_codec_cfg_to_iso_path(iso->chan.qos->tx->path, codec_cfg);
+#if defined(CONFIG_BT_ISO_TEST_PARAMS)
+	iso->chan.qos->num_subevents = qos->num_subevents;
+#endif /* CONFIG_BT_ISO_TEST_PARAMS */
 
 	bt_bap_iso_unref(iso);
 
@@ -725,6 +728,11 @@ int bt_bap_broadcast_source_create(struct bt_bap_broadcast_source_param *param,
 	broadcast_source_set_state(source, BT_BAP_EP_STATE_QOS_CONFIGURED);
 	source->qos = qos;
 	source->packing = param->packing;
+#if defined(CONFIG_BT_ISO_TEST_PARAMS)
+	source->irc = param->irc;
+	source->pto = param->pto;
+	source->iso_interval = param->iso_interval;
+#endif /* CONFIG_BT_ISO_TEST_PARAMS */
 
 	source->encryption = param->encryption;
 	if (source->encryption) {
@@ -930,6 +938,7 @@ int bt_bap_broadcast_source_update_metadata(struct bt_bap_broadcast_source *sour
 	SYS_SLIST_FOR_EACH_CONTAINER(&source->subgroups, subgroup, _node) {
 		memset(subgroup->codec_cfg->meta, 0, sizeof(subgroup->codec_cfg->meta));
 		memcpy(subgroup->codec_cfg->meta, meta, meta_len);
+		subgroup->codec_cfg->meta_len = meta_len;
 	}
 
 	return 0;
@@ -980,6 +989,11 @@ int bt_bap_broadcast_source_start(struct bt_bap_broadcast_source *source, struct
 		(void)memcpy(param.bcode, source->broadcast_code,
 			     sizeof(param.bcode));
 	}
+#if defined(CONFIG_BT_ISO_TEST_PARAMS)
+	param.irc = source->irc;
+	param.pto = source->pto;
+	param.iso_interval = source->iso_interval;
+#endif /* CONFIG_BT_ISO_TEST_PARAMS */
 
 	/* Set the enabling state early in case that the BIS is connected before we can manage to
 	 * set it afterwards

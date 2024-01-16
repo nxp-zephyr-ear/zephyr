@@ -45,7 +45,6 @@ zephyr_library_sources_ifdef(CONFIG_NET_ROUTE        route.c)
 zephyr_library_sources_ifdef(CONFIG_NET_STATISTICS   net_stats.c)
 zephyr_library_sources_ifdef(CONFIG_NET_TCP          tcp.c)
 zephyr_library_sources_ifdef(CONFIG_NET_TEST_PROTOCOL           tp.c)
-zephyr_library_sources_ifdef(CONFIG_NET_TRICKLE      trickle.c)
 zephyr_library_sources_ifdef(CONFIG_NET_UDP          udp.c)
 zephyr_library_sources_ifdef(CONFIG_NET_PROMISCUOUS_MODE promiscuous.c)
 
@@ -59,14 +58,10 @@ if(CONFIG_NET_TCP_ISN_RFC6528)
 endif()
 endif()
 
+# To get private includes like net_shell.h
+zephyr_library_include_directories(. ${ZEPHYR_BASE}/subsys/net/lib)
+
 zephyr_library_include_directories(
   ${ZEPHYR_BASE}/kernel/include
   ${ARCH_DIR}/${ARCH}/include
   )
-
-if(CONFIG_NET_SHELL)
-zephyr_library_sources(net_shell.c)
-zephyr_library_include_directories(. ${ZEPHYR_BASE}/subsys/net/l2)
-zephyr_library_include_directories(. ${ZEPHYR_BASE}/subsys/net/lib)
-zephyr_library_link_libraries_ifdef(CONFIG_MBEDTLS mbedTLS)
-endif()

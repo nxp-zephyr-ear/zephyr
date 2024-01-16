@@ -451,6 +451,8 @@ static int mcp2515_start(const struct device *dev)
 		}
 	}
 
+	CAN_STATS_RESET(dev);
+
 	k_mutex_lock(&dev_data->mutex, K_FOREVER);
 
 	ret = mcp2515_set_mode_int(dev, dev_data->mcp2515_mode);
@@ -661,6 +663,11 @@ static void mcp2515_remove_rx_filter(const struct device *dev, int filter_id)
 {
 	struct mcp2515_data *dev_data = dev->data;
 
+	if (filter_id < 0 || filter_id >= CONFIG_CAN_MAX_FILTER) {
+		LOG_ERR("filter ID %d out of bounds", filter_id);
+		return;
+	}
+
 	k_mutex_lock(&dev_data->mutex, K_FOREVER);
 	dev_data->filter_usage &= ~BIT(filter_id);
 	k_mutex_unlock(&dev_data->mutex);
@@ -761,6 +768,20 @@ static int mcp2515_get_state(const struct device *dev, enum can_state *state,
 		err_cnt->tx_err_cnt = err_cnt_buf[0];
 		err_cnt->rx_err_cnt = err_cnt_buf[1];
 	}
+
+#ifdef CONFIG_CAN_STATS
+	if ((eflg & (MCP2515_EFLG_RX0OVR | MCP2515_EFLG_RX1OVR)) != 0U) {
+		CAN_STATS_RX_OVERRUN_INC(dev);
+
+		ret = mcp2515_cmd_bit_modify(dev, MCP2515_ADDR_EFLG,
+					     eflg & (MCP2515_EFLG_RX0OVR | MCP2515_EFLG_RX1OVR),
+					     0U);
+		if (ret < 0) {
+			LOG_ERR("Failed to clear RX overrun flags [%d]", ret);
+			return -EIO;
+		}
+	}
+#endif /* CONFIG_CAN_STATS */
 
 	return 0;
 }
@@ -868,8 +889,12 @@ static void mcp2515_handle_interrupts(const struct device *dev)
 	}
 }
 
-static void mcp2515_int_thread(const struct device *dev)
+static void mcp2515_int_thread(void *p1, void *p2, void *p3)
 {
+	ARG_UNUSED(p2);
+	ARG_UNUSED(p3);
+
+	const struct device *dev = p1;
 	struct mcp2515_data *dev_data = dev->data;
 
 	while (1) {
@@ -977,7 +1002,7 @@ static int mcp2515_init(const struct device *dev)
 
 	tid = k_thread_create(&dev_data->int_thread, dev_data->int_thread_stack,
 			      dev_cfg->int_thread_stack_size,
-			      (k_thread_entry_t) mcp2515_int_thread, (void *)dev,
+			      mcp2515_int_thread, (void *)dev,
 			      NULL, NULL, K_PRIO_COOP(dev_cfg->int_thread_priority),
 			      0, K_NO_WAIT);
 	(void)k_thread_name_set(tid, "mcp2515");

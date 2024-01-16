@@ -206,6 +206,22 @@ config BT_CTLR_CHECK_SAME_PEER_SYNC
 
 endif # BT_CTLR_ADV_EXT
 
+config BT_CTLR_ISOAL_LOG_DBG_VERBOSE
+	bool "ISO-AL verbose debug logging"
+	depends on BT_CTLR_ISOAL_LOG_LEVEL = 4
+	default n
+	help
+	  Use this option to enable ISO-AL verbose debug logging.
+
+config BT_CTLR_ISO_TX_SEG_PLAYLOAD_MIN
+	int "Minimum number of playload data bytes in a new segment"
+	depends on BT_CTLR_ADV_ISO || BT_CTLR_CONN_ISO
+	default 1
+	range 1 64
+	help
+	  Minimum number of payload bytes that would make inserting a new
+	  segment into a PDU worthwhile.
+
 config BT_CTLR_CONN_ISO_HCI_DATAPATH_SKIP_INVALID_DATA
 	bool "Do not pass invalid SDUs on HCI datapath"
 	depends on BT_CTLR_CONN_ISO
@@ -213,10 +229,16 @@ config BT_CTLR_CONN_ISO_HCI_DATAPATH_SKIP_INVALID_DATA
 	  This allows for applications to decide whether to
 	  forward invalid SDUs through HCI upwards.
 
-config BT_CTLR_ADVANCED_FEATURES
-	bool "Show advanced features"
+config BT_CTLR_CONN_ISO_AVOID_SEGMENTATION
+	bool "Avoid SDU fragmentation for framed mode"
+	depends on BT_CTLR_CENTRAL_ISO
 	help
-	  Makes advanced features visible to controller developers.
+	  When creating a CIG, the Max_PDU size is calculated according to BT
+	  Core 5.4 Vol 6, Part G, Section 2.2. However, HAP specifies a need for
+	  avoiding segmentation by forcing the Max_PDU to the appropriate value.
+	  Since there is no way to control the Max_PDU using the non-test
+	  interface, the config provides a way to force the Max_PDU to Max_SDU +
+	  5 (header + offset).
 
 choice
 	prompt "CIS Creation Policy Selection"
@@ -244,6 +266,11 @@ config BT_CTLR_TEST
 	bool "Run in-system unit tests"
 	help
 	  Run in-system unit tests
+
+config BT_CTLR_ADVANCED_FEATURES
+	bool "Show advanced features"
+	help
+	  Makes advanced features visible to controller developers.
 
 menu "Advanced features"
 	visible if BT_CTLR_ADVANCED_FEATURES
@@ -933,6 +960,13 @@ config BT_CTLR_SCAN_UNRESERVED
 	help
 	  Scanner will not use time space reservation for scan window when in
 	  continuous scan mode.
+
+config BT_CTLR_EARLY_ABORT_PREVIOUS_PREPARE
+	bool "Early abort previous prepare"
+	default y
+	help
+	  Early abort previous prepare present before a short prepare is
+	  enqueued in the prepare pipeline.
 
 config BT_MAYFLY_YIELD_AFTER_CALL
 	bool "Yield from mayfly thread after first call"

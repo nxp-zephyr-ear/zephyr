@@ -65,7 +65,7 @@ NET_BUF_POOL_FIXED_DEFINE(disc_pool, 1,
 			  BT_L2CAP_BUF_SIZE(
 				sizeof(struct bt_l2cap_sig_hdr) +
 				sizeof(struct bt_l2cap_disconn_req)),
-			  8, NULL);
+			  CONFIG_BT_CONN_TX_USER_DATA_SIZE, NULL);
 
 #define l2cap_lookup_ident(conn, ident) __l2cap_lookup_ident(conn, ident, false)
 #define l2cap_remove_ident(conn, ident) __l2cap_lookup_ident(conn, ident, true)
@@ -99,6 +99,20 @@ static void free_tx_meta_data(struct l2cap_tx_meta_data *data)
 
 static sys_slist_t servers;
 
+static void l2cap_tx_buf_destroy(struct bt_conn *conn, struct net_buf *buf, int err)
+{
+	struct l2cap_tx_meta_data *data = l2cap_tx_meta_data(buf);
+	bt_conn_tx_cb_t cb = data->cb;
+	void *cb_user_data = data->user_data;
+
+	free_tx_meta_data(data);
+	net_buf_unref(buf);
+
+	/* Make sure to call associated callback, if any */
+	if (cb) {
+		cb(conn, cb_user_data, err);
+	}
+}
 #endif /* CONFIG_BT_L2CAP_DYNAMIC_CHANNEL */
 
 /* L2CAP signalling channel specific context */
@@ -427,12 +441,12 @@ void bt_l2cap_disconnected(struct bt_conn *conn)
 	}
 }
 
-static struct net_buf *l2cap_create_le_sig_pdu(struct net_buf *buf,
-					       uint8_t code, uint8_t ident,
+static struct net_buf *l2cap_create_le_sig_pdu(uint8_t code, uint8_t ident,
 					       uint16_t len)
 {
 	struct bt_l2cap_sig_hdr *hdr;
 	struct net_buf_pool *pool = NULL;
+	struct net_buf *buf;
 
 #if defined(CONFIG_BT_L2CAP_DYNAMIC_CHANNEL)
 	if (code == BT_L2CAP_DISCONN_REQ) {
@@ -461,20 +475,22 @@ static struct net_buf *l2cap_create_le_sig_pdu(struct net_buf *buf,
  * Any other cleanup in failure to send should be handled by the disconnected
  * handler.
  */
-static inline void l2cap_send(struct bt_conn *conn, uint16_t cid,
-			      struct net_buf *buf)
+static inline int l2cap_send(struct bt_conn *conn, uint16_t cid, struct net_buf *buf)
 {
-	if (bt_l2cap_send(conn, cid, buf)) {
+	int err = bt_l2cap_send(conn, cid, buf);
+
+	if (err) {
 		net_buf_unref(buf);
 	}
+
+	return err;
 }
 
 #if defined(CONFIG_BT_L2CAP_DYNAMIC_CHANNEL)
 static void l2cap_chan_send_req(struct bt_l2cap_chan *chan,
 				struct net_buf *buf, k_timeout_t timeout)
 {
-	if (bt_l2cap_send(chan->conn, BT_L2CAP_CID_LE_SIG, buf)) {
-		net_buf_unref(buf);
+	if (l2cap_send(chan->conn, BT_L2CAP_CID_LE_SIG, buf)) {
 		return;
 	}
 
@@ -497,7 +513,7 @@ static int l2cap_le_conn_req(struct bt_l2cap_le_chan *ch)
 
 	ch->ident = get_ident();
 
-	buf = l2cap_create_le_sig_pdu(NULL, BT_L2CAP_LE_CONN_REQ,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_LE_CONN_REQ,
 				      ch->ident, sizeof(*req));
 	if (!buf) {
 		return -ENOMEM;
@@ -532,7 +548,7 @@ static int l2cap_ecred_conn_req(struct bt_l2cap_chan **chan, int channels)
 
 	ident = get_ident();
 
-	buf = l2cap_create_le_sig_pdu(NULL, BT_L2CAP_ECRED_CONN_REQ, ident,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_ECRED_CONN_REQ, ident,
 				      sizeof(*req) +
 				      (channels * sizeof(uint16_t)));
 
@@ -667,7 +683,7 @@ static void l2cap_send_reject(struct bt_conn *conn, uint8_t ident,
 	struct bt_l2cap_cmd_reject *rej;
 	struct net_buf *buf;
 
-	buf = l2cap_create_le_sig_pdu(NULL, BT_L2CAP_CMD_REJECT, ident,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_CMD_REJECT, ident,
 				      sizeof(*rej) + data_len);
 	if (!buf) {
 		return;
@@ -728,7 +744,7 @@ static void le_conn_param_update_req(struct bt_l2cap *l2cap, uint8_t ident,
 	LOG_DBG("min 0x%04x max 0x%04x latency: 0x%04x timeout: 0x%04x", param.interval_min,
 		param.interval_max, param.latency, param.timeout);
 
-	buf = l2cap_create_le_sig_pdu(buf, BT_L2CAP_CONN_PARAM_RSP, ident,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_CONN_PARAM_RSP, ident,
 				      sizeof(*rsp));
 	if (!buf) {
 		return;
@@ -933,7 +949,7 @@ static void l2cap_chan_tx_process(struct k_work *work)
 				 */
 				k_work_schedule(&ch->tx_work, K_MSEC(CONFIG_BT_L2CAP_RESCHED_MS));
 			} else {
-				net_buf_unref(buf);
+				l2cap_tx_buf_destroy(ch->chan.conn, buf, sent);
 			}
 			break;
 		}
@@ -957,9 +973,11 @@ static void l2cap_chan_tx_give_credits(struct bt_l2cap_le_chan *chan,
 
 	atomic_add(&chan->tx.credits, credits);
 
-	if (!atomic_test_and_set_bit(chan->chan.status, BT_L2CAP_STATUS_OUT) &&
-	    chan->chan.ops->status) {
-		chan->chan.ops->status(&chan->chan, chan->chan.status);
+	if (!atomic_test_and_set_bit(chan->chan.status, BT_L2CAP_STATUS_OUT)) {
+		LOG_DBG("chan %p unpaused", chan);
+		if (chan->chan.ops->status) {
+			chan->chan.ops->status(&chan->chan, chan->chan.status);
+		}
 	}
 }
 
@@ -984,13 +1002,13 @@ static void l2cap_chan_destroy(struct bt_l2cap_chan *chan)
 	}
 
 	if (le_chan->tx_buf) {
-		net_buf_unref(le_chan->tx_buf);
+		l2cap_tx_buf_destroy(chan->conn, le_chan->tx_buf, -ESHUTDOWN);
 		le_chan->tx_buf = NULL;
 	}
 
 	/* Remove buffers on the TX queue */
 	while ((buf = net_buf_get(&le_chan->tx_queue, K_NO_WAIT))) {
-		net_buf_unref(buf);
+		l2cap_tx_buf_destroy(chan->conn, buf, -ESHUTDOWN);
 	}
 
 	/* Remove buffers on the RX queue */
@@ -1149,7 +1167,7 @@ static void le_conn_req(struct bt_l2cap *l2cap, uint8_t ident,
 		return;
 	}
 
-	buf = l2cap_create_le_sig_pdu(buf, BT_L2CAP_LE_CONN_RSP, ident,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_LE_CONN_RSP, ident,
 				      sizeof(*rsp));
 	if (!buf) {
 		return;
@@ -1190,8 +1208,7 @@ static void le_conn_req(struct bt_l2cap *l2cap, uint8_t ident,
 rsp:
 	rsp->result = sys_cpu_to_le16(result);
 
-	if (bt_l2cap_send(conn, BT_L2CAP_CID_LE_SIG, buf)) {
-		net_buf_unref(buf);
+	if (l2cap_send(conn, BT_L2CAP_CID_LE_SIG, buf)) {
 		return;
 	}
 
@@ -1292,7 +1309,7 @@ static void le_ecred_conn_req(struct bt_l2cap *l2cap, uint8_t ident,
 	}
 
 response:
-	buf = l2cap_create_le_sig_pdu(buf, BT_L2CAP_ECRED_CONN_RSP, ident,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_ECRED_CONN_RSP, ident,
 				      sizeof(*rsp) +
 				      (sizeof(scid) * req_cid_count));
 	if (!buf) {
@@ -1310,8 +1327,7 @@ response:
 
 	net_buf_add_mem(buf, dcid, sizeof(scid) * req_cid_count);
 
-	if (bt_l2cap_send(conn, BT_L2CAP_CID_LE_SIG, buf)) {
-		net_buf_unref(buf);
+	if (l2cap_send(conn, BT_L2CAP_CID_LE_SIG, buf)) {
 		goto callback;
 	}
 
@@ -1414,7 +1430,7 @@ static void le_ecred_reconf_req(struct bt_l2cap *l2cap, uint8_t ident,
 	LOG_DBG("mtu %u mps %u", mtu, mps);
 
 response:
-	buf = l2cap_create_le_sig_pdu(buf, BT_L2CAP_ECRED_RECONF_RSP, ident,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_ECRED_RECONF_RSP, ident,
 				      sizeof(*rsp));
 
 	rsp = net_buf_add(buf, sizeof(*rsp));
@@ -1513,7 +1529,7 @@ static void le_disconn_req(struct bt_l2cap *l2cap, uint8_t ident,
 		return;
 	}
 
-	buf = l2cap_create_le_sig_pdu(buf, BT_L2CAP_DISCONN_RSP, ident,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_DISCONN_RSP, ident,
 				      sizeof(*rsp));
 	if (!buf) {
 		return;
@@ -1910,6 +1926,9 @@ static void l2cap_chan_sdu_sent(struct bt_conn *conn, void *user_data, int err)
 	chan = bt_l2cap_le_lookup_tx_cid(conn, cid);
 	if (!chan) {
 		/* Received SDU sent callback for disconnected channel */
+		if (cb) {
+			cb(conn, cb_user_data, -ESHUTDOWN);
+		}
 		return;
 	}
 
@@ -2028,11 +2047,11 @@ static int l2cap_chan_le_send(struct bt_l2cap_le_chan *ch,
 		return err;
 	}
 
-	/* Check if there is no credits left clear output status and notify its
-	 * change.
-	 */
+	/* Notify channel user that it can't send anymore on this channel. */
 	if (!atomic_get(&ch->tx.credits)) {
+		LOG_DBG("chan %p paused", ch);
 		atomic_clear_bit(ch->chan.status, BT_L2CAP_STATUS_OUT);
+
 		if (ch->chan.ops->status) {
 			ch->chan.ops->status(&ch->chan, ch->chan.status);
 		}
@@ -2257,13 +2276,13 @@ static void l2cap_chan_shutdown(struct bt_l2cap_chan *chan)
 
 	/* Cleanup outstanding request */
 	if (le_chan->tx_buf) {
-		net_buf_unref(le_chan->tx_buf);
+		l2cap_tx_buf_destroy(chan->conn, le_chan->tx_buf, -ESHUTDOWN);
 		le_chan->tx_buf = NULL;
 	}
 
 	/* Remove buffers on the TX queue */
 	while ((buf = net_buf_get(&le_chan->tx_queue, K_NO_WAIT))) {
-		net_buf_unref(buf);
+		l2cap_tx_buf_destroy(chan->conn, buf, -ESHUTDOWN);
 	}
 
 	/* Remove buffers on the RX queue */
@@ -2301,7 +2320,7 @@ static void l2cap_chan_send_credits(struct bt_l2cap_le_chan *chan,
 
 	__ASSERT_NO_MSG(bt_l2cap_chan_get_state(&chan->chan) == BT_L2CAP_CONNECTED);
 
-	buf = l2cap_create_le_sig_pdu(NULL, BT_L2CAP_LE_CREDITS, get_ident(),
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_LE_CREDITS, get_ident(),
 				      sizeof(*ev));
 	if (!buf) {
 		LOG_ERR("Unable to send credits update");
@@ -2327,11 +2346,10 @@ static void l2cap_chan_send_credits(struct bt_l2cap_le_chan *chan,
 #if defined(CONFIG_BT_L2CAP_SEG_RECV)
 static int l2cap_chan_send_credits_pdu(struct bt_conn *conn, uint16_t cid, uint16_t credits)
 {
-	int err;
 	struct net_buf *buf;
 	struct bt_l2cap_le_credits *ev;
 
-	buf = l2cap_create_le_sig_pdu(NULL, BT_L2CAP_LE_CREDITS, get_ident(), sizeof(*ev));
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_LE_CREDITS, get_ident(), sizeof(*ev));
 	if (!buf) {
 		return -ENOBUFS;
 	}
@@ -2342,13 +2360,7 @@ static int l2cap_chan_send_credits_pdu(struct bt_conn *conn, uint16_t cid, uint1
 		.credits = sys_cpu_to_le16(credits),
 	};
 
-	err = bt_l2cap_send(conn, BT_L2CAP_CID_LE_SIG, buf);
-	if (err) {
-		net_buf_unref(buf);
-		return err;
-	}
-
-	return 0;
+	return l2cap_send(conn, BT_L2CAP_CID_LE_SIG, buf);
 }
 
 /**
@@ -2765,9 +2777,8 @@ int bt_l2cap_update_conn_param(struct bt_conn *conn,
 {
 	struct bt_l2cap_conn_param_req *req;
 	struct net_buf *buf;
-	int err;
 
-	buf = l2cap_create_le_sig_pdu(NULL, BT_L2CAP_CONN_PARAM_REQ,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_CONN_PARAM_REQ,
 				      get_ident(), sizeof(*req));
 	if (!buf) {
 		return -ENOMEM;
@@ -2779,13 +2790,7 @@ int bt_l2cap_update_conn_param(struct bt_conn *conn,
 	req->latency = sys_cpu_to_le16(param->latency);
 	req->timeout = sys_cpu_to_le16(param->timeout);
 
-	err = bt_l2cap_send(conn, BT_L2CAP_CID_LE_SIG, buf);
-	if (err) {
-		net_buf_unref(buf);
-		return err;
-	}
-
-	return 0;
+	return l2cap_send(conn, BT_L2CAP_CID_LE_SIG, buf);
 }
 
 static void l2cap_connected(struct bt_l2cap_chan *chan)
@@ -3027,7 +3032,7 @@ int bt_l2cap_ecred_chan_reconfigure(struct bt_l2cap_chan **chans, uint16_t mtu)
 
 	ident = get_ident();
 
-	buf = l2cap_create_le_sig_pdu(NULL, BT_L2CAP_ECRED_RECONF_REQ,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_ECRED_RECONF_REQ,
 				      ident,
 				      sizeof(*req) + (i * sizeof(uint16_t)));
 	if (!buf) {
@@ -3114,7 +3119,7 @@ int bt_l2cap_chan_disconnect(struct bt_l2cap_chan *chan)
 
 	le_chan->ident = get_ident();
 
-	buf = l2cap_create_le_sig_pdu(NULL, BT_L2CAP_DISCONN_REQ,
+	buf = l2cap_create_le_sig_pdu(BT_L2CAP_DISCONN_REQ,
 				      le_chan->ident, sizeof(*req));
 	if (!buf) {
 		return -ENOMEM;
@@ -3130,8 +3135,7 @@ int bt_l2cap_chan_disconnect(struct bt_l2cap_chan *chan)
 	return 0;
 }
 
-int bt_l2cap_chan_send_cb(struct bt_l2cap_chan *chan, struct net_buf *buf, bt_conn_tx_cb_t cb,
-			  void *user_data)
+int bt_l2cap_chan_send(struct bt_l2cap_chan *chan, struct net_buf *buf)
 {
 	struct bt_l2cap_le_chan *le_chan = BT_L2CAP_LE_CHAN(chan);
 	struct l2cap_tx_meta_data *data;
@@ -3154,7 +3158,7 @@ int bt_l2cap_chan_send_cb(struct bt_l2cap_chan *chan, struct net_buf *buf, bt_co
 
 	if (IS_ENABLED(CONFIG_BT_BREDR) &&
 	    chan->conn->type == BT_CONN_TYPE_BR) {
-		return bt_l2cap_br_chan_send_cb(chan, buf, cb, user_data);
+		return bt_l2cap_br_chan_send_cb(chan, buf, NULL, NULL);
 	}
 
 	data = alloc_tx_meta_data();
@@ -3165,8 +3169,8 @@ int bt_l2cap_chan_send_cb(struct bt_l2cap_chan *chan, struct net_buf *buf, bt_co
 
 	data->sent = 0;
 	data->cid = le_chan->tx.cid;
-	data->cb = cb;
-	data->user_data = user_data;
+	data->cb = NULL;
+	data->user_data = NULL;
 	l2cap_tx_meta_data(buf) = data;
 
 	/* Queue if there are pending segments left from previous packet or
@@ -3197,8 +3201,4 @@ int bt_l2cap_chan_send_cb(struct bt_l2cap_chan *chan, struct net_buf *buf, bt_co
 	return err;
 }
 
-int bt_l2cap_chan_send(struct bt_l2cap_chan *chan, struct net_buf *buf)
-{
-	return bt_l2cap_chan_send_cb(chan, buf, NULL, NULL);
-}
 #endif /* CONFIG_BT_L2CAP_DYNAMIC_CHANNEL */

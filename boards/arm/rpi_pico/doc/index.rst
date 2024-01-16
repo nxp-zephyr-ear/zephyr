@@ -89,6 +89,9 @@ hardware features:
    * - Flash
      - :kconfig:option:`CONFIG_FLASH`
      - :dtcompatible:`raspberrypi,pico-flash`
+   * - Clock controller
+     - :kconfig:option:`CONFIG_CLOCK_CONTROL`
+     - :dtcompatible:`raspberrypi,pico-clock-controller`
    * - UART (PIO)
      - :kconfig:option:`CONFIG_SERIAL`
      - :dtcompatible:`raspberrypi,pico-uart-pio`
@@ -140,7 +143,7 @@ Zephyr does not (currently) assemble PIO programs. Rather, they should be
 manually assembled and embedded in source code. An example of how this is done
 can be found at `drivers/serial/uart_rpi_pico_pio.c`.
 
-Sample:  SPI vio PIO
+Sample:  SPI via PIO
 ====================
 
 The :zephyr_file:`samples/sensor/bme280/README.rst` sample includes a

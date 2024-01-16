@@ -8,17 +8,11 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#include <zephyr/sys/util.h>
 #include <zephyr/ztest.h>
 
-#define STACK_SIZE 1024
-
-sem_t sema;
-void *dummy_sem;
-
-struct sched_param schedparam;
-int schedpolicy = SCHED_FIFO;
-
-static K_THREAD_STACK_DEFINE(stack, STACK_SIZE);
+static sem_t sema;
+static void *dummy_sem;
 
 static void *child_func(void *p1)
 {
@@ -26,33 +20,11 @@ static void *child_func(void *p1)
 	return NULL;
 }
 
-void initialize_thread_attr(pthread_attr_t *attr)
-{
-	int ret;
-
-	schedparam.sched_priority = 1;
-
-	ret = pthread_attr_init(attr);
-	if (ret != 0) {
-		zassert_equal(pthread_attr_destroy(attr), 0,
-			      "Unable to destroy pthread object attrib");
-		zassert_equal(pthread_attr_init(attr), 0,
-			      "Unable to create pthread object attrib");
-	}
-
-	pthread_attr_setstack(attr, &stack, STACK_SIZE);
-	pthread_attr_setschedpolicy(attr, schedpolicy);
-	pthread_attr_setschedparam(attr, &schedparam);
-}
-
 ZTEST(posix_apis, test_semaphore)
 {
 	pthread_t thread1, thread2;
-	pthread_attr_t attr1, attr2;
 	int val, ret;
 	struct timespec abstime;
-
-	initialize_thread_attr(&attr1);
 
 	/* TESTPOINT: Check if sema value is less than
 	 * CONFIG_SEM_VALUE_MAX
@@ -78,7 +50,7 @@ ZTEST(posix_apis, test_semaphore)
 	zassert_equal(sem_trywait(&sema), -1);
 	zassert_equal(errno, EAGAIN);
 
-	ret = pthread_create(&thread1, &attr1, child_func, NULL);
+	ret = pthread_create(&thread1, NULL, child_func, NULL);
 	zassert_equal(ret, 0, "Thread creation failed");
 
 	zassert_equal(clock_gettime(CLOCK_REALTIME, &abstime), 0,
@@ -104,9 +76,6 @@ ZTEST(posix_apis, test_semaphore)
 
 	zassert_equal(sem_destroy(&sema), 0, "semaphore is not destroyed");
 
-	zassert_equal(pthread_attr_destroy(&attr1), 0,
-		      "Unable to destroy pthread object attrib");
-
 	/* TESTPOINT: Initialize sema with 1 */
 	zassert_equal(sem_init(&sema, 0, 1), 0, "sem_init failed");
 	zassert_equal(sem_getvalue(&sema, &val), 0);
@@ -119,9 +88,7 @@ ZTEST(posix_apis, test_semaphore)
 	/* TESTPOINT: take semaphore which is initialized with 1 */
 	zassert_equal(sem_trywait(&sema), 0);
 
-	initialize_thread_attr(&attr2);
-
-	zassert_equal(pthread_create(&thread2, &attr2, child_func, NULL), 0,
+	zassert_equal(pthread_create(&thread2, NULL, child_func, NULL), 0,
 		      "Thread creation failed");
 
 	/* TESTPOINT: Wait and acquire semaphore till thread2 gives */

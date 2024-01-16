@@ -1176,7 +1176,7 @@ This has been fixed in main for v3.0.0
 CVE-2022-1041
 --------------
 
-Out-of-bound write vulnerability in the Bluetooth mesh core stack can be triggered during provisioning
+Out-of-bound write vulnerability in the Bluetooth Mesh core stack can be triggered during provisioning
 
 This has been fixed in main for v3.1.0
 
@@ -1195,7 +1195,7 @@ This has been fixed in main for v3.1.0
 CVE-2022-1042
 --------------
 
-Out-of-bound write vulnerability in the Bluetooth mesh core stack can be triggered during provisioning
+Out-of-bound write vulnerability in the Bluetooth Mesh core stack can be triggered during provisioning
 
 This has been fixed in main for v3.1.0
 
@@ -1501,17 +1501,52 @@ This has been fixed in main for v3.4.0
 CVE-2023-4424
 -------------
 
-Under embargo until 2023/11/01
+bt: hci: DoS and possible RCE
+
+- `Zephyr project bug tracker GHSA-j4qm-xgpf-qjw3
+  <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-j4qm-xgpf-qjw3>`_
+
+This has been fixed in main for v3.5.0
+
+- `PR 61651 fix for main
+  <https://github.com/zephyrproject-rtos/zephyr/pull/61651>`_
+
+- `PR 61696 fix for 3.4
+  <https://github.com/zephyrproject-rtos/zephyr/pull/61696>`_
+
+- `PR 61695 fix for 3.3
+  <https://github.com/zephyrproject-rtos/zephyr/pull/61695>`_
+
+- `PR 61694 fix for 2.7
+  <https://github.com/zephyrproject-rtos/zephyr/pull/61694>`_
+
 
 CVE-2023-5055
 -------------
 
-Under embargo until 2023/11/01
+L2CAP: Possible Stack based buffer overflow in le_ecred_reconf_req()
+
+- `Zephyr project bug tracker GHSA-wr8r-7f8x-24jj
+  <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-wr8r-7f8x-24jj>`_
+
+This has been fixed in main for v3.5.0
+
+- `PR 62381 fix for main
+  <https://github.com/zephyrproject-rtos/zephyr/pull/62381>`_
+
 
 CVE-2023-5139
 -------------
 
-Under embargo until 2023/10/25
+Potential buffer overflow vulnerability in the Zephyr STM32 Crypto driver.
+
+- `Zephyr project bug tracker GHSA-rhrc-pcxp-4453
+  <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-rhrc-pcxp-4453>`_
+
+This has been fixed in main for v3.5.0
+
+- `PR 61839 fix for main
+  <https://github.com/zephyrproject-rtos/zephyr/pull/61839>`_
 
 CVE-2023-5184
 -------------
@@ -1547,3 +1582,17 @@ This has been fixed in main for v3.5.0
 
 - `PR 63717 fix for 3.3
   <https://github.com/zephyrproject-rtos/zephyr/pull/63717>`_
+
+CVE-2023-5753
+-------------
+
+Potential buffer overflow vulnerabilities in the Zephyr Bluetooth
+subsystem source code when asserts are disabled.
+
+- `Zephyr project bug tracker GHSA-hmpr-px56-rvww
+  <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-hmpr-px56-rvww>`_
+
+This has been fixed in main for v3.5.0
+
+- `PR 63605 fix for main
+  <https://github.com/zephyrproject-rtos/zephyr/pull/63605>`_

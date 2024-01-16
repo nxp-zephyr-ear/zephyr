@@ -3,7 +3,12 @@
 
 zephyr_library()
 
-set(NRFX_DIR ${ZEPHYR_CURRENT_MODULE_DIR}/nrfx CACHE PATH "nrfx Directory")
+# The nrfx source directory can be override through the definition of the NRFX_DIR symbol
+# during the invocation of the build system
+if(NOT DEFINED NRFX_DIR)
+  set(NRFX_DIR ${ZEPHYR_CURRENT_MODULE_DIR}/nrfx CACHE PATH "nrfx Directory")
+endif()
+
 set(INC_DIR ${NRFX_DIR}/drivers/include)
 set(SRC_DIR ${NRFX_DIR}/drivers/src)
 set(MDK_DIR ${NRFX_DIR}/mdk)
@@ -104,7 +109,6 @@ zephyr_library_sources_ifdef(CONFIG_NRFX_TWIM    ${SRC_DIR}/nrfx_twim.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_TWIS    ${SRC_DIR}/nrfx_twis.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_UART    ${SRC_DIR}/nrfx_uart.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_UARTE   ${SRC_DIR}/nrfx_uarte.c)
-zephyr_library_sources_ifdef(CONFIG_NRFX_USBD    ${SRC_DIR}/nrfx_usbd.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_USBREG  ${SRC_DIR}/nrfx_usbreg.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_WDT     ${SRC_DIR}/nrfx_wdt.c)
 

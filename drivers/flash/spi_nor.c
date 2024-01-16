@@ -226,7 +226,7 @@ static inline uint32_t dev_flash_size(const struct device *dev)
 static inline uint16_t dev_page_size(const struct device *dev)
 {
 #ifdef CONFIG_SPI_NOR_SFDP_MINIMAL
-	return 256;
+	return DT_INST_PROP_OR(0, page_size, 256);
 #else /* CONFIG_SPI_NOR_SFDP_MINIMAL */
 	const struct spi_nor_data *data = dev->data;
 
@@ -702,6 +702,34 @@ static int spi_nor_read(const struct device *dev, off_t addr, void *dest,
 	return ret;
 }
 
+#if defined(CONFIG_FLASH_EX_OP_ENABLED)
+static int flash_spi_nor_ex_op(const struct device *dev, uint16_t code,
+			const uintptr_t in, void *out)
+{
+	int ret;
+
+	ARG_UNUSED(in);
+	ARG_UNUSED(out);
+
+	acquire_device(dev);
+
+	switch (code) {
+	case FLASH_EX_OP_RESET:
+		ret = spi_nor_cmd_write(dev, SPI_NOR_CMD_RESET_EN);
+		if (ret == 0) {
+			ret = spi_nor_cmd_write(dev, SPI_NOR_CMD_RESET_MEM);
+		}
+		break;
+	default:
+		ret = -ENOTSUP;
+		break;
+	}
+
+	release_device(dev);
+	return ret;
+}
+#endif
+
 static int spi_nor_write(const struct device *dev, off_t addr,
 			 const void *src,
 			 size_t size)
@@ -1029,10 +1057,10 @@ static int spi_nor_process_sfdp(const struct device *dev)
 		/* We only process BFP so use one parameter block */
 		uint8_t raw[JESD216_SFDP_SIZE(decl_nph)];
 		struct jesd216_sfdp_header sfdp;
-	} u;
-	const struct jesd216_sfdp_header *hp = &u.sfdp;
+	} u_header;
+	const struct jesd216_sfdp_header *hp = &u_header.sfdp;
 
-	rc = spi_nor_sfdp_read(dev, 0, u.raw, sizeof(u.raw));
+	rc = spi_nor_sfdp_read(dev, 0, u_header.raw, sizeof(u_header.raw));
 	if (rc != 0) {
 		LOG_ERR("SFDP read failed: %d", rc);
 		return rc;
@@ -1062,10 +1090,11 @@ static int spi_nor_process_sfdp(const struct device *dev)
 			union {
 				uint32_t dw[MIN(php->len_dw, 20)];
 				struct jesd216_bfp bfp;
-			} u;
-			const struct jesd216_bfp *bfp = &u.bfp;
+			} u_param;
+			const struct jesd216_bfp *bfp = &u_param.bfp;
 
-			rc = spi_nor_sfdp_read(dev, jesd216_param_addr(php), u.dw, sizeof(u.dw));
+			rc = spi_nor_sfdp_read(dev, jesd216_param_addr(php),
+				u_param.dw, sizeof(u_param.dw));
 			if (rc == 0) {
 				rc = spi_nor_process_bfp(dev, php, bfp);
 			}
@@ -1330,6 +1359,16 @@ static int spi_nor_pm_control(const struct device *dev, enum pm_device_action ac
 	case PM_DEVICE_ACTION_TURN_ON:
 		/* Coming out of power off */
 		rc = spi_nor_configure(dev);
+#ifndef CONFIG_SPI_NOR_IDLE_IN_DPD
+		if (rc == 0) {
+			/* Move to DPD, the correct device state
+			 * for PM_DEVICE_STATE_SUSPENDED
+			 */
+			acquire_device(dev);
+			rc = enter_dpd(dev);
+			release_device(dev);
+		}
+#endif /* CONFIG_SPI_NOR_IDLE_IN_DPD */
 		break;
 	case PM_DEVICE_ACTION_TURN_OFF:
 		break;
@@ -1425,6 +1464,9 @@ static const struct flash_driver_api spi_nor_api = {
 #if defined(CONFIG_FLASH_JESD216_API)
 	.sfdp_read = spi_nor_sfdp_read,
 	.read_jedec_id = spi_nor_read_jedec_id,
+#endif
+#if defined(CONFIG_FLASH_EX_OP_ENABLED)
+	.ex_op = flash_spi_nor_ex_op,
 #endif
 };
 

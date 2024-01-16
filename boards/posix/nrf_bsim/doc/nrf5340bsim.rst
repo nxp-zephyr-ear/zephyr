@@ -28,28 +28,25 @@ core on the simulated nRF5340 SOC.
 
 These boards include models of some of the nRF5340 SOC peripherals:
 
-* Radio
-* Timers
 * AAR (Accelerated Address Resolver)
 * AES CCM & AES ECB encryption HW
 * CLOCK (Clock control)
 * DPPI (Distributed Programmable Peripheral Interconnect)
 * EGU (Event Generator Unit)
 * FICR (Factory Information Configuration Registers)
+* IPC (Interprocessor communication)
+* MUTEX (Mutual exclusive peripheral)
 * NVMC (Non-Volatile Memory Controller / Flash)
+* RADIO
 * RNG (Random Number Generator)
 * RTC (Real Time Counter)
 * TEMP (Temperature sensor)
+* TIMER
 * UICR (User Information Configuration Registers)
 
 and will use the same drivers as the nrf5340dk targets for these.
 For more information on what is modelled to which level of detail,
 check the `HW models implementation status`_.
-
-.. note::
-
-   The IPC and MUTEX peripherals are not yet present in these models. Therefore communication
-   between the cores using Zephyr's IPC driver is not yet possible.
 
 Note that unlike a real nrf5340 device, the nrf5340bsim boards have unlimited RAM and flash for
 code.
@@ -96,15 +93,16 @@ built with either Zephyr's build system or another native simulator compatible b
 you can provide that image to the Zephyr build of the second image using
 :kconfig:option:`CONFIG_NATIVE_SIMULATOR_EXTRA_IMAGE_PATHS`.
 
+You can also use :ref:`System build (sysbuild) <sysbuild>` to build your dual MCU executable.
+The best way to understand how, may be to look into how this is done in one of the examples
+in the tree. For example, for :ref:`the nrf53_sync_rtc sample <nrf53_sync_rtc_sample_build_bsim>`,
+:zephyr_file:`samples/boards/nrf/nrf53_sync_rtc/sysbuild.cmake`.
+
 
 .. note::
 
    These libraries/images are **not** embedded images. You cannot use them for embedded devices,
    and cannot use an embedded image to assemble a native executable.
-
-.. note::
-
-   OpenAMP is not yet supported in these boards.
 
 TrustZone, TF-M and other security considerations
 *************************************************

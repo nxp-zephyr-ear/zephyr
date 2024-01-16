@@ -23,9 +23,7 @@ ISR_FLAG_DIRECT = 1 << 0
 #              into 1 line which then goes into the 1st level)
 # 0x00FF0000 - represents the 3rd level (i.e. the interrupts funnel
 #              into 1 line which then goes into the 2nd level)
-FIRST_LVL_INTERRUPTS = 0x000000FF
-SECND_LVL_INTERRUPTS = 0x0000FF00
-THIRD_LVL_INTERRUPTS = 0x00FF0000
+INTERRUPT_LVL_BITMASK = [0x000000FF, 0x0000FF00, 0x00FF0000]
 
 INTERRUPT_BITS = [8, 8, 8]
 
@@ -42,7 +40,7 @@ def endian_prefix():
     else:
         return "<"
 
-def read_intlist(intlist_path, syms):
+def read_intlist(elfobj, syms, snames):
     """read a binary file containing the contents of the kernel's .intList
     section. This is an instance of a header created by
     include/zephyr/linker/intlist.ld:
@@ -66,7 +64,7 @@ def read_intlist(intlist_path, syms):
         const void *param;
     };
     """
-
+    intList_sect = None
     intlist = {}
 
     prefix = endian_prefix()
@@ -77,8 +75,16 @@ def read_intlist(intlist_path, syms):
     else:
         intlist_entry_fmt = prefix + "iiII"
 
-    with open(intlist_path, "rb") as fp:
-        intdata = fp.read()
+    for sname in snames:
+        intList_sect = elfobj.get_section_by_name(sname)
+        if intList_sect is not None:
+            debug("Found intlist section: \"{}\"".format(sname))
+            break
+
+    if intList_sect is None:
+        error("Cannot find the intlist section!")
+
+    intdata = intList_sect.data()
 
     header_sz = struct.calcsize(intlist_header_fmt)
     header = struct.unpack_from(intlist_header_fmt, intdata, 0)
@@ -122,8 +128,9 @@ def parse_args():
             help="Generate SW ISR table")
     parser.add_argument("-V", "--vector-table", action="store_true",
             help="Generate vector table")
-    parser.add_argument("-i", "--intlist", required=True,
-            help="Zephyr intlist binary for intList extraction")
+    parser.add_argument("-i", "--intlist-section", action="append", required=True,
+            help="The name of the section to search for the interrupt data. "
+                 "This is accumulative argument. The first section found would be used.")
 
     args = parser.parse_args()
 
@@ -269,16 +276,18 @@ def bit_mask(bits):
     return mask
 
 def update_masks():
-    global FIRST_LVL_INTERRUPTS
-    global SECND_LVL_INTERRUPTS
-    global THIRD_LVL_INTERRUPTS
-
     if sum(INTERRUPT_BITS) > 32:
         raise ValueError("Too many interrupt bits")
 
-    FIRST_LVL_INTERRUPTS = bit_mask(INTERRUPT_BITS[0])
-    SECND_LVL_INTERRUPTS = bit_mask(INTERRUPT_BITS[1]) << INTERRUPT_BITS[0]
-    THIRD_LVL_INTERRUPTS = bit_mask(INTERRUPT_BITS[2]) << INTERRUPT_BITS[0] + INTERRUPT_BITS[2]
+    INTERRUPT_LVL_BITMASK[0] = bit_mask(INTERRUPT_BITS[0])
+    INTERRUPT_LVL_BITMASK[1] = bit_mask(INTERRUPT_BITS[1]) << INTERRUPT_BITS[0]
+    INTERRUPT_LVL_BITMASK[2] = bit_mask(INTERRUPT_BITS[2]) << INTERRUPT_BITS[0] + INTERRUPT_BITS[1]
+
+    debug("Level    Bits        Bitmask")
+    debug("----------------------------")
+    for i in range(3):
+        bitmask_str = "0x" + format(INTERRUPT_LVL_BITMASK[i], '08X')
+        debug(f"{i + 1:>5} {INTERRUPT_BITS[i]:>7} {bitmask_str:>14}")
 
 def main():
     parse_args()
@@ -286,6 +295,7 @@ def main():
     with open(args.kernel, "rb") as fp:
         kernel = ELFFile(fp)
         syms = get_symbols(kernel)
+        intlist = read_intlist(kernel, syms, args.intlist_section)
 
     if "CONFIG_MULTI_LEVEL_INTERRUPTS" in syms:
         max_irq_per = syms["CONFIG_MAX_IRQ_PER_AGGREGATOR"]
@@ -313,7 +323,6 @@ def main():
 
                 debug('3rd level offsets: {}'.format(list_3rd_lvl_offsets))
 
-    intlist = read_intlist(args.intlist, syms)
     nvec = intlist["num_vectors"]
     offset = intlist["offset"]
 
@@ -368,9 +377,9 @@ def main():
             else:
                 # Figure out third level interrupt position
                 debug('IRQ = ' + hex(irq))
-                irq3 = (irq & THIRD_LVL_INTERRUPTS) >> INTERRUPT_BITS[0] + INTERRUPT_BITS[1]
-                irq2 = (irq & SECND_LVL_INTERRUPTS) >> INTERRUPT_BITS[0]
-                irq1 = irq & FIRST_LVL_INTERRUPTS
+                irq3 = (irq & INTERRUPT_LVL_BITMASK[2]) >> INTERRUPT_BITS[0] + INTERRUPT_BITS[1]
+                irq2 = (irq & INTERRUPT_LVL_BITMASK[1]) >> INTERRUPT_BITS[0]
+                irq1 = irq & INTERRUPT_LVL_BITMASK[0]
 
                 if irq3:
                     irq_parent = irq2
