@@ -125,11 +125,4 @@ if BUILD_WITH_TFM
 
 endif # BUILD_WITH_TFM
 
-if COUNTER_MCUX_LPC_RTC_1HZ
-
-config XTAL32K
-	default y
-
-endif # COUNTER_MCUX_LPC_RTC_1HZ
-
 endif # BOARD_RD_RW612_BGA

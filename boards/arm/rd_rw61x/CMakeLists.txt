@@ -22,8 +22,8 @@ if(CONFIG_NXP_RW6XX_BOOT_HEADER)
 endif()
 
 if (CONFIG_DT_HAS_NXP_KINETIS_ETHERNET_ENABLED AND
-		CONFIG_XTAL32K)
-	message(FATAL_ERROR "Ethernet and external 32K clock source are "
-		"mutually exclusive on RD_RW612_BGA due to shared PCB nets "
-		"between the ethernet PHY and the external oscillator")
+		CONFIG_DT_HAS_NXP_LPC_RTC_ENABLED)
+	message(FATAL_ERROR "Ethernet and RTC are mutually exclusive on "
+		"RD_RW612_BGA due to shared PCB nets between the ethernet "
+		"PHY and the external oscillator")
 endif()
