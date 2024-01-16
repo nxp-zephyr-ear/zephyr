@@ -147,16 +147,12 @@ static void tcp_server_session(void)
 	static struct zsock_pollfd fds[SOCK_ID_MAX];
 	static struct sockaddr sock_addr[SOCK_ID_MAX];
 	int ret;
-	int family;
 
 	for (int i = 0; i < ARRAY_SIZE(fds); i++) {
 		fds[i].fd = -1;
 	}
 
-	family = tcp_server_addr.sa_family;
-
-	if (IS_ENABLED(CONFIG_NET_IPV4) &&
-		(family == AF_INET || family == AF_UNSPEC)) {
+	if (IS_ENABLED(CONFIG_NET_IPV4)) {
 		struct sockaddr_in *in4_addr = zperf_get_sin();
 		const struct in_addr *addr = NULL;
 
@@ -211,8 +207,7 @@ use_any_ipv4:
 		}
 	}
 
-	if (IS_ENABLED(CONFIG_NET_IPV6) &&
-		(family == AF_INET6 || family == AF_UNSPEC)) {
+	if (IS_ENABLED(CONFIG_NET_IPV6)) {
 		struct sockaddr_in6 *in6_addr = zperf_get_sin6();
 		const struct in6_addr *addr = NULL;
 
