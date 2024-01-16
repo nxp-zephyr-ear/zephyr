@@ -1,6 +1,0 @@
-/* SPDX-License-Identifier: Apache-2.0 */
-
-/* Enable byte swap for display when using LVGL */
-&lcdic {
-	nxp,swap-bytes;
-};
