@@ -69,10 +69,6 @@ TF-M / mbedTLS / Crypto
   - NV counters in OCOTP
   - Added inline prince encryption and decryption (IPED) - encryption of external Flash - support to ITS.
 
-Limitations:
-  - Power management is not suitable for silicon version A1 and as a consequence
-    there could be instabilities on worst-case corner parts.
-
 Repositories:
 =============
 
