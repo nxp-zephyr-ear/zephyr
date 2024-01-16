@@ -111,15 +111,6 @@ static ALWAYS_INLINE void clock_init(void)
 	/* Set PLL FRG clock to 20MHz. */
 	CLOCK_SetClkDiv(kCLOCK_DivPllFrgClk, 13U);
 
-#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(wwdt), nxp_lpc_wwdt, okay))
-	CLOCK_AttachClk(kLPOSC_to_WDT0_CLK);
-#else
-	/* Allowed to select none if not being used for watchdog to
-	 * reduce power
-	 */
-	CLOCK_AttachClk(kNONE_to_WDT0_CLK);
-#endif
-
 #endif /* CONFIG_SOC_RW610 */
 }
 
