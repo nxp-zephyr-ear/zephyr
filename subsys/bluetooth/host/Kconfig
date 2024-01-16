@@ -81,7 +81,6 @@ config BT_HCI_RESERVE
 	default 1 if BT_STM32_IPM
 	default 1 if BT_USERCHAN
 	default 1 if BT_ESP32
-	default 1 if BT_NXP
 	default 0 if BT_B91
 	# Even if no driver is selected the following default is still
 	# needed e.g. for unit tests.
@@ -137,7 +136,6 @@ config BT_RX_STACK_SIZE
 	default 2600 if BT_MESH
 	default 2048 if BT_AUDIO
 	default 2200 if BT_SETTINGS
-	default 1536 if BT_NXP && DEBUG
 	default 1200
 	help
 	  Size of the receiving thread stack. This is the context from
