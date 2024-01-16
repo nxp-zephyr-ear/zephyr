@@ -17,17 +17,6 @@ endchoice
 
 if SOC_SERIES_RW6XX
 
-choice SOC_SERIES_RW6XX_REVISION
-	prompt "RW6XX soc revision"
-	default SOC_SERIES_RW6XX_REVISION_A2
-
-config SOC_SERIES_RW6XX_REVISION_A1
-	bool "RWXX soc revision A1"
-
-config SOC_SERIES_RW6XX_REVISION_A2
-	bool "RWXX soc revision A2"
-endchoice
-
 config SOC_PART_NUMBER_RW612ETA1I
 	bool
 
