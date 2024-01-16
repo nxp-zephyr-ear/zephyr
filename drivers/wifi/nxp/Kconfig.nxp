@@ -333,20 +333,10 @@ config SCAN_CHANNEL_GAP
 config RX_CHAN_INFO
    bool "RX channel info"
    default y
-   help
-     This option enables rx statistics.
 
 config TXPD_RXPD_V3
-   bool "TXPD RXPD V3"
+   bool
    default y
-   help
-     This option enables RX PD/TX PD version 3.
-
-config RF_TEST_MODE
-   bool "WLAN Test Mode"
-   default y
-   help
-     This option enables WLAN test mode commands.
 
 endif
 
