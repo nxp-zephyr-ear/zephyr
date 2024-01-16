@@ -7,7 +7,6 @@ tests:
     platform_allow:
       - qemu_cortex_m3
       - qemu_x86
-      - rd_rw612_bga
     integration_platforms:
       - qemu_cortex_m3
     tags: bluetooth
