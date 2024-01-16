@@ -8,7 +8,6 @@ common:
     - nrf9160dk_nrf9160_ns
     - nrf9161dk_nrf9161_ns
     - v2m_musca_s1_ns
-    - rd_rw612_bga_ns
   modules:
     - psa-arch-tests
     - tf-m-tests
