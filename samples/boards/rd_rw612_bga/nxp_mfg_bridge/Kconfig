@@ -3,7 +3,7 @@
 
 config SUPPORT_15D4
 	int "Support IEEE 802154"
-	default 0
+	default 1
 
 config SUPPORT_BLE
 	int "Support bluetooth low energy"
