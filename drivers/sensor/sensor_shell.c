@@ -96,7 +96,6 @@ const char *sensor_channel_name[SENSOR_CHAN_ALL] = {
 	[SENSOR_CHAN_GAUGE_DESIGN_VOLTAGE] = "gauge_design_voltage",
 	[SENSOR_CHAN_GAUGE_DESIRED_VOLTAGE] = "gauge_desired_voltage",
 	[SENSOR_CHAN_GAUGE_DESIRED_CHARGING_CURRENT] = "gauge_desired_charging_current",
-	[SENSOR_CHAN_COMPARATOR] = "comparator",
 };
 
 static const char *sensor_attribute_name[SENSOR_ATTR_COMMON_COUNT] = {
