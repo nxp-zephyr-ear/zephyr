@@ -130,25 +130,6 @@ const struct in6_addr *zperf_get_default_if_in6_addr(void)
 #endif
 }
 
-const struct in_addr *zperf_get_if_in4_addr(char *if_name, int len)
-{
-#if CONFIG_NET_IPV4
-	struct net_if *match_if = NULL;
-
-	STRUCT_SECTION_FOREACH(net_if, iface) {
-		if (!strncmp(iface->if_dev->dev->name, if_name, len)) {
-			match_if = iface;
-			break;
-		}
-	}
-
-	return net_if_ipv4_select_src_addr(match_if,
-					   net_ipv4_unspecified_address());
-#else
-	return NULL;
-#endif
-}
-
 int zperf_prepare_upload_sock(const struct sockaddr *peer_addr, int tos,
 			      int priority, int proto)
 {

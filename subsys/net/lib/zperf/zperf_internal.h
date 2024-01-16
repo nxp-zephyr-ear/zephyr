@@ -97,7 +97,6 @@ extern void connect_ap(char *ssid);
 
 const struct in_addr *zperf_get_default_if_in4_addr(void);
 const struct in6_addr *zperf_get_default_if_in6_addr(void);
-const struct in_addr *zperf_get_if_in4_addr(char *if_name, int len);
 
 int zperf_prepare_upload_sock(const struct sockaddr *peer_addr, int tos,
 			      int priority, int proto);

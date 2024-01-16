@@ -51,7 +51,6 @@ static bool udp_server_running;
 static bool udp_server_stop;
 static uint16_t udp_server_port;
 static struct sockaddr udp_server_addr;
-static char udp_server_iface_name[Z_DEVICE_MAX_NAME_LEN];
 static K_SEM_DEFINE(udp_server_run, 0, 1);
 
 static inline void build_reply(struct zperf_udp_datagram *hdr,
@@ -268,16 +267,6 @@ static void udp_server_session(void)
 				NET_WARN("Unable to set IPv4");
 				goto use_existing_ipv4;
 			}
-		} else if (udp_server_iface_name[0]) {
-			in4_addr = zperf_get_if_in4_addr(&udp_server_iface_name[0],
-				strlen(udp_server_iface_name));
-			if (!in4_addr) {
-				NET_ERR("Unable to get IPv4 by iface name %s",
-					udp_server_iface_name);
-				goto error;
-			}
-			memcpy(&in4_addr_my->sin_addr, in4_addr,
-				sizeof(struct in_addr));
 		} else {
 		use_existing_ipv4:
 			/* Use existing IP */
@@ -466,14 +455,6 @@ int zperf_udp_download(const struct zperf_download_params *param,
 	udp_server_running = true;
 	udp_server_stop = false;
 	memcpy(&udp_server_addr, &param->addr, sizeof(struct sockaddr));
-
-	if (param->if_name[0]) {
-		memset(udp_server_iface_name, 0x0, sizeof(udp_server_iface_name));
-		strncpy(udp_server_iface_name, param->if_name,
-			sizeof(udp_server_iface_name));
-	} else {
-		udp_server_iface_name[0] = 0;
-	}
 
 	k_sem_give(&udp_server_run);
 
