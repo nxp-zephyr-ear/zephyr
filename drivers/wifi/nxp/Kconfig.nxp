@@ -24,27 +24,6 @@ config ZEPHYR
     help
       For Zephyr OS this needs to be always enabled.
 
-config WIFI_NXP_CLI
-	bool "NXP Wi-Fi driver cli commands support"
-	default n
-
-config WIFI_NXP_STA_AUTO
-	bool "NXP Wi-Fi STA auto init and connect"
-	default n
-
-config WIFI_NXP_STA_AUTO_SSID
-	string "NXP Wi-Fi STA auto connect SSID"
-	default "myssid"
-	help
-	  Max length 32.
-
-config WIFI_NXP_STA_AUTO_PASSWORD
-	string "NXP Wi-Fi STA auto connect password"
-	default ""
-	help
-	  Only support PSK security or open security by default.
-	  Length range 8 - 64, or 0 for open security.
-
 config WIFI_MAX_PRIO
     int
     default 1
@@ -105,6 +84,11 @@ config SD8801
 		for NXP 8801-based wireless chip with
 		RT series boards.
 endchoice
+
+# Increase default heap size, driver needs memory allocation
+config WIFI_NET_HEAP_SIZE
+	int
+	default 16384
 
 config MAX_AP_ENTRIES
 	int "Maximum scan entries"
