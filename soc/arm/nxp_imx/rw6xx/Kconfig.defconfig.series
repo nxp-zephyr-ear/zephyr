@@ -45,6 +45,9 @@ config HCI_NXP_SET_CAL_DATA_ANNEX100
 config NXP_FW_LOADER_MONOLITHIC
 	default y
 
+config HEAP_MEM_POOL_SIZE
+	default 256
+
 endif # BT
 
 config NXP_FW_LOADER
