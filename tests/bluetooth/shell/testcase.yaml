@@ -16,6 +16,7 @@ tests:
       - native_sim
       - native_sim_64
       - nrf52840dk_nrf52840
+      - rd_rw612_bga
     integration_platforms:
       - qemu_x86
     platform_exclude: nrf52dk_nrf52810
