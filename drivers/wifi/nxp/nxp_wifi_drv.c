@@ -619,6 +619,26 @@ static int nxp_wifi_scan(const struct device *dev, struct wifi_scan_params *para
 	return 0;
 }
 
+static int nxp_wifi_version(const struct device *dev, struct wifi_version *params)
+{
+	nxp_wifi_ret_t status = NXP_WIFI_RET_SUCCESS;
+
+	if (s_nxp_wifi_State != NXP_WIFI_STARTED) {
+		status = NXP_WIFI_RET_NOT_READY;
+	}
+
+	if (status != NXP_WIFI_RET_SUCCESS) {
+		LOG_ERR("Failed to get Wi-Fi driver/firmware version");
+		return -EAGAIN;
+	}
+
+	params->drv_version = WLAN_DRV_VERSION;
+
+	params->fw_version = wlan_get_firmware_version_ext();
+
+	return 0;
+}
+
 static int nxp_wifi_connect(const struct device *dev, struct wifi_connect_req_params *params)
 {
 	nxp_wifi_ret_t status = NXP_WIFI_RET_SUCCESS;
@@ -1347,6 +1367,7 @@ static int nxp_wifi_set_config(const struct device *dev,
 
 
 static const struct wifi_mgmt_ops nxp_wifi_sta_mgmt = {
+	.get_version = nxp_wifi_version,
 	.scan = nxp_wifi_scan,
 	.connect = nxp_wifi_connect,
 	.disconnect = nxp_wifi_disconnect,
