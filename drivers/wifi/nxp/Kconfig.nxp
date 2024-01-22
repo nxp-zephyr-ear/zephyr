@@ -966,6 +966,63 @@ config NXP_WIFI_IND_RESET
 
 endif
 
+config NXP_WIFI_SMOKE_TESTS
+	bool "Smoke Tests"
+	default n
+	select ETH_MCUX
+	select NET_SHELL
+	select KERNEL_SHELL
+	select SHELL_BACKEND_TELNET
+	select SHELL_TELNET_SUPPORT_COMMAND
+	help
+	  This option is for development smoke tests in the Wi-Fi driver.
+
+if NXP_WIFI_SMOKE_TESTS
+
+config NXP_WIFI_SIGMA_AGENT
+	bool "Wi-Fi Alliance Sigma Agent Support"
+	default n
+	select POSIX_API
+	select PTHREAD_IPC
+	select PTHREAD_CREATE_BARRIER
+	select TIMER
+	help
+	  This option is to enable Wi-Fi Alliance Sigma Agent support in the Wi-Fi driver.
+
+choice
+	prompt "NXP SM IP Address configuration"
+	default NXP_WIFI_SM_IP_DHCP
+	help
+	  Choose whether to use an IP assigned by DHCP Server or
+	  configure a static IP Address.
+
+config NXP_WIFI_SM_IP_DHCP
+	bool "DHCP"
+	help
+	  Use DHCP to get an IP Address.
+
+config NXP_WIFI_SM_IP_STATIC
+	bool "Static"
+	help
+	  Setup Static IP Address.
+
+endchoice
+
+if NXP_WIFI_SM_IP_STATIC
+
+config NXP_WIFI_SM_IP_ADDRESS
+	string "NXP Station mode IP Address"
+
+config NXP_WIFI_SM_IP_GATEWAY
+	string "Gateway Address"
+
+config NXP_WIFI_SM_IP_MASK
+	string "Network Mask"
+
+endif
+
+endif
+
 menu "Development and Debugging"
 
 config NXP_WIFI_ENABLE_ERROR_LOGS
