@@ -1,7 +1,9 @@
 /**
- * Copyright (c) 2020 Linaro
- *
+ * Copyright 2023-2024 NXP
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * @file nxp_wifi_shell.c
+ * Wi-Fi driver shell adapter layer
  */
 
 #include <zephyr/kernel.h>

@@ -1,10 +1,21 @@
+/**
+ * Copyright 2023-2024 NXP
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * @file nxp_wifi_drv.h
+ * Shim layer between wifi driver connection manager and zephyr
+ * Wi-Fi L2 layer
+ */
+
 #ifndef ZEPHYR_DRIVERS_WIFI_NNP_WIFI_DRV_H_
 #define ZEPHYR_DRIVERS_WIFI_NXP_WIFI_DRV_H_
 
 #include <zephyr/kernel.h>
 #include <stdio.h>
+#ifdef CONFIG_SDIO_STACK
 #include <zephyr/sd/sd.h>
 #include <zephyr/sd/sdio.h>
+#endif
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/net/wifi_mgmt.h>
 
@@ -14,6 +25,10 @@
 #include "dhcp-server.h"
 #if defined(CONFIG_NXP_WIFI_SHELL)
 #include "wifi_shell.h"
+#endif
+#ifdef CONFIG_WPA_SUPP
+#include "wifi_nxp.h"
+#include "wpa_cli.h"
 #endif
 
 #define MAX_DATA_SIZE 1600
@@ -82,6 +97,7 @@ static inline void nxp_wifi_unlock(struct nxp_wifi_dev *nxp_wifi)
 
 int nxp_wifi_cmd(struct nxp_wifi_dev *nxp_wifi, char *cmd);
 int nxp_wifi_cmd_rsp(struct nxp_wifi_dev *nxp_wifi, char *cmd, char **rsp);
+int nxp_wifi_wlan_event_callback(enum wlan_event_reason reason, void *data);
 
 #if defined(CONFIG_NXP_WIFI_SHELL)
 void nxp_wifi_shell_register(struct nxp_wifi_dev *dev);
