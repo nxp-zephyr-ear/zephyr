@@ -321,8 +321,8 @@
 		interrupts = <90 2>, <82 2>;
 	};
 
-	imu: imu_wifi {
-		compatible = "nxp,imu-wifi";
+	imu: nxp_wifi {
+		compatible = "nxp,wifi";
 		/* first index is the imu interupt, the second is the wakeup done interrupt */
 		interrupts = <72 2>, <64 2>;
 	};
