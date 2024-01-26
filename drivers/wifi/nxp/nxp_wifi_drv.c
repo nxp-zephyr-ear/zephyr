@@ -580,8 +580,6 @@ static int nxp_wifi_scan(const struct device *dev, struct wifi_scan_params *para
 		return -EIO;
 	}
 #if (CONFIG_WIFI_MGMT_SCAN_SSID_FILT_MAX > 0)
-
-#ifdef CONFIG_COMBO_SCAN
 	if (params->ssids[0]) {
 		strcpy(wlan_scan_params_v2.ssid[0], params->ssids[0]);
 	}
@@ -589,12 +587,6 @@ static int nxp_wifi_scan(const struct device *dev, struct wifi_scan_params *para
 #if (CONFIG_WIFI_MGMT_SCAN_SSID_FILT_MAX > 1)
 	if (params->ssids[1]) {
 		strcpy(wlan_scan_params_v2.ssid[1], params->ssids[1]);
-	}
-#endif
-
-#else
-	if (params->ssids[0]) {
-		strcpy(wlan_scan_params_v2.ssid, params->ssids[0]);
 	}
 #endif
 #endif
