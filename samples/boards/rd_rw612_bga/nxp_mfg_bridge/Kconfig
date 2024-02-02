@@ -1,13 +1,13 @@
 # Copyright 2022-2024 NXP
 # SPDX-License-Identifier: Apache-2.0
 
-config SUPPORT_15D4
+config SUPPORT_BLE_15D4
 	int "Support IEEE 802154"
-	default 0
+	default 1
 
 config SUPPORT_BLE
 	int "Support bluetooth low energy"
-	default 1
+	default 0
 
 config SUPPORT_WIFI
 	int "Support WiFi"
