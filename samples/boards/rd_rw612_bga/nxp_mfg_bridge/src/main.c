@@ -67,8 +67,8 @@ LOG_MODULE_REGISTER(mfg_bridge, LOG_LEVEL_ERR);
 #ifndef CONFIG_SUPPORT_BLE
 #define CONFIG_SUPPORT_BLE 1
 #endif
-#ifndef CONFIG_SUPPORT_15D4
-#define CONFIG_SUPPORT_15D4 1
+#ifndef CONFIG_SUPPORT_BLE_15D4
+#define CONFIG_SUPPORT_BLE_15D4 1
 #endif
 
 #define WLAN_CAU_ENABLE_ADDR         (0x45004008U)
@@ -486,8 +486,8 @@ static hal_rpmsg_status_t imu_wifi_config(void)
 	return state;
 }
 
-#if (defined(CONFIG_SUPPORT_BLE) && (CONFIG_SUPPORT_BLE == 1)) ||                                  \
-	(defined(CONFIG_SUPPORT_15D4) && (CONFIG_SUPPORT_15D4 == 1))
+#if (defined(CONFIG_SUPPORT_BLE) && (CONFIG_SUPPORT_BLE == 1)) || \
+	(defined(CONFIG_SUPPORT_BLE_15D4) && (CONFIG_SUPPORT_BLE_15D4 == 1))
 static hal_rpmsg_status_t rpmsg_config(uint32_t linkId)
 {
 	hal_rpmsg_status_t state = kStatus_HAL_RpmsgSuccess;
@@ -512,7 +512,7 @@ static hal_rpmsg_status_t rpmsg_config(uint32_t linkId)
 static hal_rpmsg_status_t rpmsg_init(void)
 {
 #if (defined(CONFIG_SUPPORT_BLE) && (CONFIG_SUPPORT_BLE == 1)) ||                                  \
-	(defined(CONFIG_SUPPORT_15D4) && (CONFIG_SUPPORT_15D4 == 1))
+	(defined(CONFIG_SUPPORT_BLE_15D4) && (CONFIG_SUPPORT_BLE_15D4 == 1))
 	uint32_t linkId;
 #endif
 	hal_rpmsg_status_t state = kStatus_HAL_RpmsgSuccess;
@@ -522,7 +522,7 @@ static hal_rpmsg_status_t rpmsg_init(void)
 	linkId = 0;
 	state = rpmsg_config(linkId);
 #endif
-#if defined(CONFIG_SUPPORT_15D4) && (CONFIG_SUPPORT_15D4 == 1)
+#if defined(CONFIG_SUPPORT_BLE_15D4) && (CONFIG_SUPPORT_BLE_15D4 == 1)
 	linkId = 1;
 	state = rpmsg_config(linkId);
 #endif
@@ -655,19 +655,19 @@ static void task_main(void)
 	uart_init_crc32(uart);
 
 	/* Download firmware */
-#if (CONFIG_SUPPORT_WIFI == 0) && (CONFIG_SUPPORT_15D4 == 0) && (CONFIG_SUPPORT_BLE == 0)
-#error "One of CONFIG_SUPPORT_WIFI CONFIG_SUPPORT_15D4 and CONFIG_SUPPORT_BLE \
+#if (CONFIG_SUPPORT_WIFI == 0) && (CONFIG_SUPPORT_BLE_15D4 == 0) && (CONFIG_SUPPORT_BLE == 0)
+#error "One of CONFIG_SUPPORT_WIFI CONFIG_SUPPORT_BLE_15D4 and CONFIG_SUPPORT_BLE \
 				should be defined, or it will not download any formware!!"
 #endif
 #if defined(CONFIG_SUPPORT_WIFI) && (CONFIG_SUPPORT_WIFI == 1)
 	sb3_fw_download(LOAD_WIFI_FIRMWARE, 1, 0);
 #endif
 	/* 15d4 single and 15d4+ble combo */
-#if defined(CONFIG_SUPPORT_15D4) && (CONFIG_SUPPORT_15D4 == 1)
+#if defined(CONFIG_SUPPORT_BLE_15D4) && (CONFIG_SUPPORT_BLE_15D4 == 1)
 	sb3_fw_download(LOAD_15D4_FIRMWARE, 1, 0);
 #endif
 	/* only ble, no 15d4 */
-#if defined(CONFIG_SUPPORT_15D4) && (CONFIG_SUPPORT_15D4 == 0) && defined(CONFIG_SUPPORT_BLE) &&   \
+#if defined(CONFIG_SUPPORT_BLE_15D4) && (CONFIG_SUPPORT_BLE_15D4 == 0) && defined(CONFIG_SUPPORT_BLE) &&   \
 	(CONFIG_SUPPORT_BLE == 1)
 	sb3_fw_download(LOAD_BLE_FIRMWARE, 1, 0);
 #endif
