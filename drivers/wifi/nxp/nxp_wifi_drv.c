@@ -622,7 +622,7 @@ static int nxp_wifi_scan(const struct device *dev, struct wifi_scan_params *para
 	}
 #else
 	if (params->bands & (1 << WIFI_FREQ_BAND_5_GHZ)) {
-		LOG_ERR("Wi-Fi band 6 5Hz not supported");
+		LOG_ERR("Wi-Fi band 5Hz not supported");
 		g_mlan.scan_cb = NULL;
 		return -EIO;
 	}
@@ -1199,7 +1199,17 @@ static int nxp_wifi_power_save(const struct device *dev, struct wifi_ps_params *
 			break;
 		case WIFI_PS_PARAM_MODE:
 			if (params->mode == WIFI_PS_MODE_WMM) {
-				LOG_ERR("WMM power save mode not supported");
+				ret = wlan_set_wmm_uapsd(1);
+
+				if (ret != WM_SUCCESS) {
+					status = NXP_WIFI_RET_FAIL;
+				}
+			} else if (params->mode == WIFI_PS_MODE_LEGACY) {
+				ret = wlan_set_wmm_uapsd(0);
+
+				if (ret != WM_SUCCESS) {
+					status = NXP_WIFI_RET_FAIL;
+				}
 			}
 			break;
 		case WIFI_PS_PARAM_TIMEOUT:
