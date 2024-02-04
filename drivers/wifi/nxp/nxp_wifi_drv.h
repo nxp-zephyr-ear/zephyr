@@ -72,7 +72,6 @@ struct nxp_wifi_dev {
 	struct k_mutex mutex;
 	atomic_val_t mutex_owner;
 	unsigned int mutex_depth;
-	char buf[MAX_DATA_SIZE];
 };
 
 static inline void nxp_wifi_lock(struct nxp_wifi_dev *nxp_wifi)
@@ -95,8 +94,6 @@ static inline void nxp_wifi_unlock(struct nxp_wifi_dev *nxp_wifi)
 	}
 }
 
-int nxp_wifi_cmd(struct nxp_wifi_dev *nxp_wifi, char *cmd);
-int nxp_wifi_cmd_rsp(struct nxp_wifi_dev *nxp_wifi, char *cmd, char **rsp);
 int nxp_wifi_wlan_event_callback(enum wlan_event_reason reason, void *data);
 
 #if defined(CONFIG_NXP_WIFI_SHELL)
