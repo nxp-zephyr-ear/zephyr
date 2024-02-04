@@ -1363,27 +1363,6 @@ out:
 	return -EIO;
 }
 
-#if defined(CONFIG_NXP_WIFI_SHELL)
-
-int nxp_wifi_cmd_rsp(struct nxp_wifi_dev *nxp_wifi, char *cmd, char **rsp)
-{
-	int len;
-
-	len = nxp_wifi_request(nxp_wifi, cmd, strlen(cmd), nxp_wifi->buf, sizeof(nxp_wifi->buf));
-	if (len < 0) {
-		return -EIO;
-	}
-
-	return 0;
-}
-
-int nxp_wifi_cmd(struct nxp_wifi_dev *nxp_wifi, char *cmd)
-{
-	return nxp_wifi_cmd_rsp(nxp_wifi, cmd, NULL);
-}
-
-#endif
-
 #ifdef CONFIG_RW610
 extern void WL_MCI_WAKEUP0_DriverIRQHandler(void);
 extern void WL_MCI_WAKEUP_DONE0_DriverIRQHandler(void);
