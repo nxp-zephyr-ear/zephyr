@@ -81,7 +81,7 @@ osa_status_t OSA_SemaphoreWait(osa_semaphore_handle_t semaphoreHandle, uint32_t 
 {
 	int ret;
 
-	if (semaphoreHandle == NULL) {
+	if (semaphoreHandle == NULL || (*semaphoreHandle) == NULL) {
 		return KOSA_StatusError;
 	}
 
@@ -91,7 +91,7 @@ osa_status_t OSA_SemaphoreWait(osa_semaphore_handle_t semaphoreHandle, uint32_t 
 
 osa_status_t OSA_SemaphorePost(osa_semaphore_handle_t semaphoreHandle)
 {
-	if (semaphoreHandle == NULL) {
+	if (semaphoreHandle == NULL || (*semaphoreHandle) == NULL) {
 		return KOSA_StatusError;
 	}
 
@@ -136,7 +136,7 @@ osa_status_t OSA_MutexLock(osa_mutex_handle_t mutexHandle, uint32_t millisec)
 {
 	int ret;
 
-	if (mutexHandle == NULL) {
+	if (mutexHandle == NULL || (*mutexHandle) == NULL) {
 		return KOSA_StatusError;
 	}
 
@@ -148,7 +148,7 @@ osa_status_t OSA_MutexUnlock(osa_mutex_handle_t mutexHandle)
 {
 	int ret;
 
-	if (mutexHandle == NULL) {
+	if (mutexHandle == NULL || (*mutexHandle) == NULL) {
 		return KOSA_StatusError;
 	}
 
@@ -181,7 +181,7 @@ osa_status_t OSA_EventWait(osa_event_handle_t eventHandle,
 	k_timeout_t timeout;
 	uint32_t wakeflags;
 
-	if (eventHandle == NULL) {
+	if (eventHandle == NULL || eventHandle->event == NULL) {
 		return KOSA_StatusError;
 	}
 
@@ -214,7 +214,7 @@ osa_status_t OSA_EventWait(osa_event_handle_t eventHandle,
 
 osa_status_t OSA_EventSet(osa_event_handle_t eventHandle, osa_event_flags_t flagsToSet)
 {
-	if (eventHandle == NULL) {
+	if (eventHandle == NULL || eventHandle->event == NULL) {
 		return KOSA_StatusError;
 	}
 	k_event_post(eventHandle->event, flagsToSet);
@@ -224,7 +224,7 @@ osa_status_t OSA_EventSet(osa_event_handle_t eventHandle, osa_event_flags_t flag
 
 osa_status_t OSA_EventClear(osa_event_handle_t eventHandle, osa_event_flags_t flagsToClear)
 {
-	if (eventHandle == NULL) {
+	if (eventHandle == NULL || eventHandle->event == NULL) {
 		return KOSA_StatusError;
 	}
 
