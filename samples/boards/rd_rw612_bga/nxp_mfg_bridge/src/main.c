@@ -14,7 +14,12 @@ LOG_MODULE_REGISTER(mfg_bridge, LOG_LEVEL_ERR);
 #include "fsl_common.h"
 #include "fsl_adapter_rfimu.h"
 #include "fsl_loader.h"
+#include "fsl_ocotp.h"
 #include "uart_rtos.h"
+
+#ifndef PRINTF
+#define PRINTF printk
+#endif
 
 /*******************************************************************************
  * Definitions

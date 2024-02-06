@@ -30,3 +30,15 @@ config USE_HARDENED_PLATFORM_INIT
 	  For TF-M, use platform initialization code that is hardened against fault injections.
 	  For critical registers, the written value is read back and compared against the wanted
 	  value to ensure correctness.
+
+config TFM_PARTITION_LOADER_SERVICE
+	bool "Loader service Partition"
+	depends on BUILD_WITH_TFM && MCUX_PSA_CRYPTO_DRIVER_ELS_PKC && NXP_FW_LOADER
+	default y
+	help
+	  Setting this option will cause '-DTFM_PARTITION_LOADER_SERVICE'
+	  to be passed to the TF-M build system. Look at 'config_default.cmake'
+	  in the trusted-firmware-m repository for details regarding this
+	  parameter. Any dependencies between the various TFM_PARTITION_*
+	  options are handled by the build system in the trusted-firmware-m
+	  repository.
