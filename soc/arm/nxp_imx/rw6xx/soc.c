@@ -440,11 +440,6 @@ __ramfunc void clock_init()
 	RESET_PeripheralReset(kFREEMRT_RST_SHIFT_RSTn);
 #endif
 
-	/* Leave this disabled for A0 parts */
-	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
-		POWER_EnableGDetVSensors();
-	}
-
 #ifdef CONFIG_RW_CLKOUT
 	/* Attach clock */
 	rw_clockout_attach();

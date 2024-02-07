@@ -149,10 +149,6 @@ __weak void pm_state_set(enum pm_state state, uint8_t substate_id)
 		LOG_DBG("Unsupported power state %u", state);
 		break;
 	}
-
-	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
-		POWER_EnableGDetVSensors();
-	}
 }
 
 /* Handle SOC specific activity after Low Power Mode Exit */
