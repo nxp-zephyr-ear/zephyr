@@ -128,6 +128,7 @@ zephyr_interface_library_named(mbedTLS)
         ${ZEPHYR_CURRENT_MODULE_DIR}/library/psa_crypto.c
         ${ZEPHYR_CURRENT_MODULE_DIR}/library/psa_crypto_client.c
         ${ZEPHYR_CURRENT_MODULE_DIR}/library/psa_crypto_slot_management.c
+        ${ZEPHYR_CURRENT_MODULE_DIR}/library/psa_crypto_ffdh.c
       )
     endif()
 
