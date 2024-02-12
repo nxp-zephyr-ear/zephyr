@@ -146,7 +146,7 @@ int main(void)
 	}
 
 	printf("PKC ECC Curve25519:");
-	if (mcuxClEcc_Mont_Curve25519_example() == true) {
+	if (mcuxClEcc_MontDH_Curve25519_example() == true) {
 		pass++;
 		printf("pass \n");
 	} else {
@@ -194,8 +194,8 @@ int main(void)
 		printf("fail \n");
 	}
 
-	printf("Memory data invariant compare:");
-	if (data_invariant_memory_compare() == EXIT_CODE_OK) {
+	printf("Memory compare:");
+	if (mcuxCsslMemory_Compare_example() == EXIT_CODE_OK) {
 		pass++;
 		printf("pass \n");
 	} else {
@@ -203,8 +203,8 @@ int main(void)
 		printf("fail \n");
 	}
 
-	printf("Memory data invariant copy:");
-	if (data_invariant_memory_compare() == EXIT_CODE_OK) {
+	printf("Memory copy:");
+	if (mcuxCsslMemory_Copy_example() == EXIT_CODE_OK) {
 		pass++;
 		printf("pass \n");
 	} else {
@@ -262,7 +262,7 @@ int main(void)
 	}
 
 	printf("CMAC AES128:");
-	if (mcuxClMacModes_cmac_oneshot_example() == true) {
+	if (mcuxClMacModes_Els_Cmac_Oneshot_example() == true) {
 		pass++;
 		printf("pass \n");
 	} else {
