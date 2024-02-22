@@ -1,0 +1,8 @@
+# Copyright 2024 NXP
+# SPDX-License-Identifier: Apache-2.0
+
+source "Kconfig.zephyr"
+
+config EL2GO_BLOB_TEST
+	bool "Build EL2GO blob test framework"
+	depends on BUILD_WITH_TFM && MCUX_NXP_IOT_AGENT
