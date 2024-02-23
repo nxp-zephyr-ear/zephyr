@@ -400,4 +400,22 @@ config MCUX_PSA_CRYPTO_DRIVER_ELS_PKC
 	    able to access the hardware acceleration offered by els_pkc from mbedtls
 	    via the mbedtls psa_crypto_driver_wrapper.
 
+config MCUX_NXP_IOT_AGENT
+	bool "Build nxp_iot_agent"
+	help
+	    Include the nxp_iot_agent middleware from the NXP MCU SDK in the build.
+
+config USE_TFM_EL2GO_DATA_IMPORT_REGION
+	bool "Allocate block of flash memory"
+	depends on MCUX_NXP_IOT_AGENT
+	default n
+	help
+	    Allocate specific flash memory range to store EL2GO Secure Objects.
+
+config USE_TFM_WIFI_FLASH_REGION
+	bool "Allocate block of flash memory"
+	depends on MCUX_NXP_IOT_AGENT
+	default n
+	help
+	    Allocate specific flash memory range to store Wifi Firmware.
 endif # HAS_MCUX

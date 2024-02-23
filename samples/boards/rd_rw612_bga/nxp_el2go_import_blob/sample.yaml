@@ -1,0 +1,12 @@
+sample:
+  name: "EL2GO Import Blob"
+
+tests:
+  sample.boards.rd_rw612_bga.el2go_import_blob:
+    tags:
+      - trusted-firmware-m
+      - el2go
+    platform_allow:
+      - rd_rw612_bga_ns
+    integration_platforms:
+      - rd_rw612_bga_ns
