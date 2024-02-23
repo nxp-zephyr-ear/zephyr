@@ -529,27 +529,32 @@ static int mipi_dbi_lcdic_write_cmd(const struct device *dev,
 					       dev_data->cmd_bytes);
 		}
 #ifdef CONFIG_MIPI_DBI_NXP_LCDIC_DMA
-		/* Enable command complete interrupt */
-		interrupts |= LCDIC_IMR_CMD_DONE_INTR_MSK_MASK;
-		/* Write interrupt mask */
-		base->IMR &= ~interrupts;
-		/* Configure DMA to send data */
-		ret = mipi_dbi_lcdic_start_dma(dev);
-		if (ret) {
-			LOG_ERR("Could not start DMA (%d)", ret);
-			goto out;
-		}
-#else
-		/* Enable TX FIFO threshold interrupt. This interrupt
-		 * should fire once enabled, which will kick off
-		 * the transfer
-		 */
-		interrupts |= LCDIC_IMR_TFIFO_THRES_INTR_MSK_MASK;
-		/* Enable command complete interrupt */
-		interrupts |= LCDIC_IMR_CMD_DONE_INTR_MSK_MASK;
-		/* Write interrupt mask */
-		base->IMR &= ~interrupts;
+		if (((((uint32_t )dev_data->xfer_buf) & 0x3) == 0) ||
+		    (dev_data->cmd_bytes < 4)) {
+			/* Data is aligned, we can use DMA */
+			/* Enable command complete interrupt */
+			interrupts |= LCDIC_IMR_CMD_DONE_INTR_MSK_MASK;
+			/* Write interrupt mask */
+			base->IMR &= ~interrupts;
+			/* Configure DMA to send data */
+			ret = mipi_dbi_lcdic_start_dma(dev);
+			if (ret) {
+				LOG_ERR("Could not start DMA (%d)", ret);
+				goto out;
+			}
+		} else /* Data is not aligned */
 #endif
+		{
+			/* Enable TX FIFO threshold interrupt. This interrupt
+			 * should fire once enabled, which will kick off
+			 * the transfer
+			 */
+			interrupts |= LCDIC_IMR_TFIFO_THRES_INTR_MSK_MASK;
+			/* Enable command complete interrupt */
+			interrupts |= LCDIC_IMR_CMD_DONE_INTR_MSK_MASK;
+			/* Write interrupt mask */
+			base->IMR &= ~interrupts;
+		}
 		ret = k_sem_take(&dev_data->xfer_sem, K_FOREVER);
 	}
 out:
@@ -677,7 +682,7 @@ static void mipi_dbi_lcdic_isr(const struct device *dev)
 	base->ICR |= isr_status;
 
 	if (isr_status & LCDIC_ISR_CMD_DONE_INTR_MASK) {
-		if (IS_ENABLED(CONFIG_MIPI_DBI_NXP_LCDIC_DMA)) {
+		if (config->base->CTRL & LCDIC_CTRL_DMA_EN_MASK) {
 			/* DMA completed. Update buffer tracking data */
 			data->xfer_bytes -= data->cmd_bytes;
 			data->xfer_buf += data->cmd_bytes;
@@ -704,21 +709,26 @@ static void mipi_dbi_lcdic_isr(const struct device *dev)
 								data->cmd_bytes);
 			}
 #ifdef CONFIG_MIPI_DBI_NXP_LCDIC_DMA
-			mipi_dbi_lcdic_start_dma(dev);
-#else
-			/* We must refill the FIFO here in order to continue
-			 * the next transfer, since the TX FIFO threshold
-			 * interrupt may have already fired.
-			 */
-			bytes_written = mipi_dbi_lcdic_fill_tx(base, data->xfer_buf,
-							       data->cmd_bytes,
-							       data->unaligned_word);
-			if (bytes_written > 0) {
-				data->xfer_buf += bytes_written;
-				data->cmd_bytes -= bytes_written;
-				data->xfer_bytes -= bytes_written;
-			}
+			if (((((uint32_t )data->xfer_buf) & 0x3) == 0) ||
+			    (data->cmd_bytes < 4)) {
+				/* Data is aligned. We can use DMA */
+				mipi_dbi_lcdic_start_dma(dev);
+			} else
 #endif
+			{
+				/* We must refill the FIFO here in order to continue
+				 * the next transfer, since the TX FIFO threshold
+				 * interrupt may have already fired.
+				 */
+				bytes_written = mipi_dbi_lcdic_fill_tx(base, data->xfer_buf,
+								       data->cmd_bytes,
+								       data->unaligned_word);
+				if (bytes_written > 0) {
+					data->xfer_buf += bytes_written;
+					data->cmd_bytes -= bytes_written;
+					data->xfer_bytes -= bytes_written;
+				}
+			}
 		}
 	} else if (isr_status & LCDIC_ISR_TFIFO_THRES_INTR_MASK) {
 		/* If command is not done, continue filling TX FIFO from
