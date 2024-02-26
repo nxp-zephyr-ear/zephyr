@@ -20,7 +20,6 @@
 #include <zephyr/linker/sections.h>
 
 #include <cortex_m/exception.h>
-#include <fsl_power.h>
 #include <fsl_clock.h>
 #include <fsl_common.h>
 #include <fsl_device_registers.h>
@@ -75,12 +74,11 @@ const clock_avpll_config_t g_avpllConfig_BOARD_BootClockRUN = {
 	.ch1Freq = kCLOCK_AvPllChFreq12p288m, .ch2Freq = kCLOCK_AvPllChFreq64m, .enableCali = true};
 
 /**
- * @brief Initialize the system clocks and peripheral clocks
+ * @brief Initialize the system clock
  */
 static ALWAYS_INLINE void clock_init(void)
 {
 #ifdef CONFIG_SOC_RW610
-
 	if ((PMU->CAU_SLP_CTRL & PMU_CAU_SLP_CTRL_SOC_SLP_RDY_MASK) == 0U) {
 		/* LPOSC not enabled, enable it */
 		CLOCK_EnableClock(kCLOCK_RefClkCauSlp);
@@ -125,13 +123,6 @@ static ALWAYS_INLINE void clock_init(void)
 	 */
 	CLOCK_AttachClk(kNONE_to_WDT0_CLK);
 #endif
-#if defined(CONFIG_ADC_MCUX_GAU)
-	/* Attack clock for GAU and reset */
-	CLOCK_AttachClk(kMAIN_CLK_to_GAU_CLK);
-	CLOCK_SetClkDiv(kCLOCK_DivGauClk, 1U);
-	CLOCK_EnableClock(kCLOCK_Gau);
-	RESET_PeripheralReset(kGAU_RST_SHIFT_RSTn);
-#endif /* GAU */
 
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(usb_otg), okay) && CONFIG_USB_DC_NXP_EHCI
 	/* Enable system xtal from Analog */
@@ -204,10 +195,6 @@ static int nxp_rw600_init(void)
 
 	/* Initialize clock */
 	clock_init();
-
-#if defined(CONFIG_ADC_MCUX_GAU)
-	POWER_PowerOnGau();
-#endif
 
 	return 0;
 }
