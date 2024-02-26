@@ -73,15 +73,6 @@
 		#clock-cells = <1>;
 	};
 
-	dma0: dma-controller@104000 {
-		compatible = "nxp,lpc-dma";
-		reg = <0x104000 0x1000>;
-		interrupts = <1 0>;
-		status = "disabled";
-		#dma-cells = <1>;
-		dma-channels = <33>;
-	};
-
 	hsgpio0: hsgpio@0 {
 		compatible = "nxp,lpc-gpio";
 		reg = <0x100000 0x4000>;
@@ -123,8 +114,6 @@
 		interrupts = <14 0>;
 		clocks = <&clkctl1 MCUX_FLEXCOMM0_CLK>;
 		status = "disabled";
-		dmas = <&dma0 0>, <&dma0 1>;
-		dma-names = "rx", "tx";
 	};
 
 	flexcomm1: flexcomm@107000 {
@@ -133,8 +122,6 @@
 		interrupts = <15 0>;
 		clocks = <&clkctl1 MCUX_FLEXCOMM1_CLK>;
 		status = "disabled";
-		dmas = <&dma0 2>, <&dma0 3>;
-		dma-names = "rx", "tx";
 	};
 
 	flexcomm2: flexcomm@108000 {
@@ -143,8 +130,6 @@
 		interrupts = <16 0>;
 		clocks = <&clkctl1 MCUX_FLEXCOMM2_CLK>;
 		status = "disabled";
-		dmas = <&dma0 4>, <&dma0 5>;
-		dma-names = "rx", "tx";
 	};
 
 	flexcomm3: flexcomm@109000 {
@@ -153,8 +138,6 @@
 		interrupts = <17 0>;
 		clocks = <&clkctl1 MCUX_FLEXCOMM3_CLK>;
 		status = "disabled";
-		dmas = <&dma0 6>, <&dma0 7>;
-		dma-names = "rx", "tx";
 	};
 
 	flexcomm14: flexcom@126000 {
@@ -163,8 +146,6 @@
 		interrupts = <20 0>;
 		clocks = <&clkctl1 MCUX_FLEXCOMM14_CLK>;
 		status = "disabled";
-		dmas = <&dma0 26>, <&dma0 27>;
-		dma-names = "rx", "tx";
 	};
 
 	aon_soc_ctrl: aon_soc_ctrl@5000800 {
