@@ -85,11 +85,4 @@ config BOOT_MAX_IMG_SECTORS
 	  Max sectors for bootable image. Used by MCUBoot to determine
 	  the max slot size of an image.
 
-if DT_HAS_NXP_KINETIS_ETHERNET_ENABLED && NETWORKING
-
-config NET_L2_ETHERNET
-	default y
-
-endif # DT_HAS_NXP_KINETIS_ETHERNET_ENABLED && NETWORKING
-
 endif # BOARD_RD_RW612_BGA

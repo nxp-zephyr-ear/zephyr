@@ -20,10 +20,3 @@ if(CONFIG_NXP_RW6XX_BOOT_HEADER)
   zephyr_library_sources(${RW612_BOARD_DIR}/flash_config/flash_config.c)
   zephyr_library_include_directories(${RW612_BOARD_DIR}/flash_config)
 endif()
-
-if (CONFIG_DT_HAS_NXP_KINETIS_ETHERNET_ENABLED AND
-		CONFIG_DT_HAS_NXP_LPC_RTC_ENABLED)
-	message(FATAL_ERROR "Ethernet and RTC are mutually exclusive on "
-		"RD_RW612_BGA due to shared PCB nets between the ethernet "
-		"PHY and the external oscillator")
-endif()
