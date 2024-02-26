@@ -375,7 +375,6 @@ endchoice
 
 config NXP_WIFI_SHELL
 	bool "nxpWiFi shell"
-	default n
 	depends on SHELL
 	help
 	  Enable nxpWiFi shell
