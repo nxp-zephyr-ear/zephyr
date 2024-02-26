@@ -20,7 +20,6 @@ tests:
       - mimxrt1160_evk_cm7
       - lpcxpresso55s69_cpu0
       - mr_canhubk3
-      - rd_rw612_bga
     integration_platforms:
       - nrf52840dk_nrf52840
   sample.filesystem.littlefs.nrf52840dk_spi:
