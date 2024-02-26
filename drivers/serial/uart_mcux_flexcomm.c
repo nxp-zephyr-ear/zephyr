@@ -15,7 +15,6 @@
 #include <zephyr/drivers/uart.h>
 #include <zephyr/drivers/clock_control.h>
 #include <zephyr/irq.h>
-#include <zephyr/pm/device.h>
 #include <fsl_usart.h>
 #include <soc.h>
 #include <fsl_device_registers.h>
@@ -1068,35 +1067,6 @@ static int mcux_flexcomm_init(const struct device *dev)
 	return 0;
 }
 
-#ifdef CONFIG_PM_DEVICE
-static int mcux_flexcomm_pm_action(const struct device *dev, enum pm_device_action action)
-{
-	const struct mcux_flexcomm_config *config = dev->config;
-
-	switch (action) {
-	case PM_DEVICE_ACTION_RESUME:
-		if (!(config->base->CFG & USART_CFG_ENABLE_MASK)) {
-			/* Do not execute the Resume code if the UART is disabled. */
-			break;
-		}
-
-		break;
-	case PM_DEVICE_ACTION_SUSPEND:
-		break;
-	case PM_DEVICE_ACTION_TURN_OFF:
-		config->base->CTL |= USART_CTL_TXDIS_MASK;
-		config->base->CFG &= ~USART_CFG_ENABLE_MASK;
-		return 0;
-	case PM_DEVICE_ACTION_TURN_ON:
-		mcux_flexcomm_init(dev);
-		return 0;
-	default:
-		return -ENOTSUP;
-	}
-	return 0;
-}
-#endif /*CONFIG_PM_DEVICE*/
-
 static const struct uart_driver_api mcux_flexcomm_driver_api = {
 	.poll_in = mcux_flexcomm_poll_in,
 	.poll_out = mcux_flexcomm_poll_out,
@@ -1234,11 +1204,9 @@ static const struct mcux_flexcomm_config mcux_flexcomm_##n##_config = {		\
 										\
 	static const struct mcux_flexcomm_config mcux_flexcomm_##n##_config;	\
 										\
-	PM_DEVICE_DT_INST_DEFINE(n, mcux_flexcomm_pm_action);			\
-										\
 	DEVICE_DT_INST_DEFINE(n,						\
 			    &mcux_flexcomm_init,				\
-			    PM_DEVICE_DT_INST_GET(n),				\
+			    NULL,						\
 			    &mcux_flexcomm_##n##_data,				\
 			    &mcux_flexcomm_##n##_config,			\
 			    PRE_KERNEL_1,					\
