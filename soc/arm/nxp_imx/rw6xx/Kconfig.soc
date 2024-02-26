@@ -104,9 +104,4 @@ config BUILD_OUTPUT_ADJUST_LMA
 
 endif # NXP_RW6XX_BOOT_HEADER
 
-config XTAL32K
-	bool "Use the External 32K clock"
-	help
-	  This clock is used by certain peripherals such as RTC.
-
 endif # SOC_SERIES_RW6XX
