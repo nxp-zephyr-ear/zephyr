@@ -10,7 +10,7 @@
 #include <fsl_power.h>
 #include "fsl_io_mux.h"
 
-static int rdrw61x_init(void)
+static int rdrw610_evk_init(void)
 {
 #ifdef CONFIG_I2S_TEST_SEPARATE_DEVICES
 /* Eventually this code should not be here
@@ -53,4 +53,4 @@ static int rdrw61x_init(void)
 	return 0;
 }
 
-SYS_INIT(rdrw61x_init, PRE_KERNEL_1, CONFIG_BOARD_INIT_PRIORITY);
+SYS_INIT(rdrw610_evk_init, PRE_KERNEL_1, CONFIG_BOARD_INIT_PRIORITY);
