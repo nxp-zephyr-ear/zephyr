@@ -29,7 +29,7 @@
 				<IO_MUX_FC0_SPI_SS0_IO2>,
 				<IO_MUX_FC0_SPI_SS0_IO3>,
 				<IO_MUX_FC0_SPI_SS0_IO4>;
-			slew-rate = "ultra";
+			slew-rate = "normal";
 		};
 	};
 

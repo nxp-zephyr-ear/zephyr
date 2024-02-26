@@ -8,26 +8,4 @@ if BOARD_RDRW610_EVK
 config BOARD
 	default "rdrw610_evk"
 
-if LVGL
-
-# Swap color order for the default display panel
-config LV_COLOR_16_SWAP
-	default y
-
-# Enable DMA mode if using SPI
-config SPI_MCUX_FLEXCOMM_DMA
-	default y if SPI
-
-# Increase descriptor count. LVGL will allocate a 30KB buffer,
-# and the SPI driver sets up RX and TX side. Since LPC DMA has
-# 1KB limit per descriptor, we need 60
-config DMA_MCUX_LPC_NUMBER_OF_DESCRIPTORS
-	default 60
-
-# Allocate buffer that is 10% of screen size
-config LV_Z_VDB_SIZE
-	default 10
-
-endif # LVGL
-
 endif # BOARD_RDRW610_EVK
