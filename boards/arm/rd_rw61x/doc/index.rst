@@ -67,8 +67,6 @@ Supported Features
 +-----------+------------+-----------------------------------+
 | LCDIC     | on-chip    | mipi-dbi                          |
 +-----------+------------+-----------------------------------+
-| DMIC      | on-chip    | dmic                              |
-+-----------+------------+-----------------------------------+
 
 The default configuration can be found in the defconfig file:
 

@@ -19,7 +19,6 @@ supported:
   - ble
   - counter
   - dma
-  - dmic
   - entropy
   - gpio
   - i2c
