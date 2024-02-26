@@ -43,11 +43,6 @@ Limitations:
 	- Enforcement of ATT flow control (BT_ATT_ENFORCE_FLOW) is disabled
 	  for all BLE applications.
 
-Note:
-	- To recover a board running some code causing issues with the debugger, follow those steps :
-	  1) Change the boot configuration (CON[3:0]), 2) Reset the board, 3) flash the new application,
-	  4) Put back the default boot configuration (QSPI Flash), 5) Reset the board again.
-	  This maybe the case when having an application using low power running on the board.
 
 Base Enablement
 ===============
