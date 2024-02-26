@@ -84,7 +84,6 @@ extern int32_t ble_wakeup_done_handler(void);
 #if CONFIG_HCI_NXP_ENABLE_AUTO_SLEEP || CONFIG_HCI_NXP_SET_CAL_DATA
 static int nxp_bt_send_vs_command(uint16_t opcode, const uint8_t *params, uint8_t params_len)
 {
-#if CONFIG_BT_HCI_HOST
 	struct net_buf *buf;
 
 	/* Allocate buffer for the hci command */
@@ -99,9 +98,6 @@ static int nxp_bt_send_vs_command(uint16_t opcode, const uint8_t *params, uint8_
 
 	/* Send the command */
 	return bt_hci_cmd_send_sync(opcode, buf, NULL);
-#else
-	return 0;
-#endif
 }
 #endif /* CONFIG_HCI_NXP_ENABLE_AUTO_SLEEP || CONFIG_HCI_NXP_SET_CAL_DATA */
 
@@ -428,7 +424,6 @@ static int bt_nxp_close(void)
 {
 	int ret = 0;
 	/* Reset the Controller */
-#if CONFIG_BT_HCI_HOST
 	ret = bt_hci_cmd_send_sync(BT_HCI_OP_RESET, NULL, NULL);
 	if (ret) {
 		LOG_ERR("Failed to reset BLE controller");
@@ -439,7 +434,6 @@ static int bt_nxp_close(void)
 	if (ret < 0) {
 		LOG_ERR("Failed to shutdown BLE controller");
 	}
-#endif
 	return ret;
 }
 
