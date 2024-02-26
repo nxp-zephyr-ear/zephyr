@@ -1,6 +1,5 @@
 # Copyright (c) 2019 - 2023 Linaro
 # Copyright (c) 2020 - 2023 Nordic Semiconductor ASA
-# Copyright 2023 NXP
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -30,30 +29,6 @@ set(TFM_CRYPTO_MODULES
   CRYPTO_KEY_DERIVATION_MODULE
   )
 
-# List of all TF-M options which can be configured via KConfig of zephyr
-set(TFM_CMAKE_OPTIONS_FLAG
-  # platform options:
-  PLATFORM_DEFAULT_BL1
-  PLATFORM_DEFAULT_ATTEST_HAL
-  PLATFORM_DEFAULT_NV_COUNTERS
-  PLATFORM_DEFAULT_CRYPTO_KEYS
-  PLATFORM_DEFAULT_ROTPK
-  PLATFORM_DEFAULT_IAK
-  PLATFORM_DEFAULT_UART_STDOUT
-  PLATFORM_DEFAULT_NV_SEED
-  PLATFORM_DEFAULT_OTP
-  PLATFORM_DEFAULT_OTP_WRITEABLE
-  PLATFORM_DEFAULT_PROVISIONING
-  PLATFORM_DEFAULT_SYSTEM_RESET_HALT
-  PLATFORM_HAS_FIRMWARE_UPDATE_SUPPORT
-)
-
-set(TFM_CMAKE_OPTIONS_STRING
-  # misc options:
-  TFM_MBEDCRYPTO_CONFIG_PATH
-  TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH
-  TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH
-)
 
 if (CONFIG_BUILD_WITH_TFM)
   # PSA API awareness for the Non-Secure application
@@ -116,8 +91,6 @@ if (CONFIG_BUILD_WITH_TFM)
   else ()
     set(TFM_CMAKE_BUILD_TYPE "RelWithDebInfo")
   endif()
-
-  list(APPEND TFM_CMAKE_ARGS -DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS})
   if (DEFINED CONFIG_TFM_MCUBOOT_IMAGE_NUMBER)
     list(APPEND TFM_CMAKE_ARGS -DMCUBOOT_IMAGE_NUMBER=${CONFIG_TFM_MCUBOOT_IMAGE_NUMBER})
   endif()
@@ -201,22 +174,6 @@ if (CONFIG_BUILD_WITH_TFM)
       set(val "TRUE")
     endif()
     list(APPEND TFM_CMAKE_ARGS -D${module}_DISABLED=${val})
-  endforeach()
-
-  foreach(option ${TFM_CMAKE_OPTIONS_FLAG})
-    if (CONFIG_${option})
-      set(val "ON")
-    else()
-      set(val "OFF")
-    endif()
-    list(APPEND TFM_CMAKE_ARGS -D${option}=${val})
-  endforeach()
-
-  foreach(option ${TFM_CMAKE_OPTIONS_STRING})
-    if (NOT ("${CONFIG_${option}}" STREQUAL ""))
-      string(CONFIGURE "${CONFIG_${option}}" option_value)
-      list(APPEND TFM_CMAKE_ARGS -D${option}="${option_value}")
-    endif()
   endforeach()
 
   set(TFM_BINARY_DIR ${CMAKE_BINARY_DIR}/tfm)
@@ -338,32 +295,6 @@ if (CONFIG_BUILD_WITH_TFM)
     # Supply path to NXP HAL sources used for TF-M build
     set(TFM_PLATFORM_NXP_HAL_FILE_PATH ${ZEPHYR_TRUSTED_FIRMWARE_M_MODULE_DIR}/platform/ext/target/nxp/)
     list(APPEND TFM_CMAKE_ARGS -DTFM_PLATFORM_NXP_HAL_FILE_PATH=${TFM_PLATFORM_NXP_HAL_FILE_PATH})
-  endif()
-
-  if(CONFIG_BOARD_RD_RW612_BGA)
-    # Supply path to NXP HAL sources used for TF-M build
-    set(TFM_PLATFORM_NXP_HAL_FILE_PATH ${ZEPHYR_HAL_NXP_MODULE_DIR}/mcux/mcux-sdk)
-    list(APPEND TFM_CMAKE_ARGS -DTFM_PLATFORM_NXP_HAL_FILE_PATH=${TFM_PLATFORM_NXP_HAL_FILE_PATH})
-    # Disable watchdog support on this platform for tfm_psa_tests
-    if(TFM_PSA_TEST_SUITE)
-      list(APPEND TFM_CMAKE_ARGS -DWATCHDOG_AVAILABLE=OFF)
-    endif()
-
-    # Platform specific TF-M cmake flags
-    set(TFM_CMAKE_OPTIONS_PLATFORM_FLAG
-      USE_ELS_PKC_HUK
-      USE_ELS_PKC_IAK
-      USE_HARDENED_PLATFORM_INIT
-      MCUX_PSA_CRYPTO_DRIVER_ELS_PKC
-    )
-    foreach(option ${TFM_CMAKE_OPTIONS_PLATFORM_FLAG})
-      if (CONFIG_${option})
-        set(val "ON")
-      else()
-        set(val "OFF")
-      endif()
-      list(APPEND TFM_CMAKE_ARGS -D${option}=${val})
-    endforeach()
   endif()
 
   if(CONFIG_TFM_BL2 AND CONFIG_TFM_MCUBOOT_PATH_LOCAL)
