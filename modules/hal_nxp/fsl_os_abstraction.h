@@ -1,5 +1,5 @@
 /*
- * Copyright 2022,2024 NXP
+ * Copyright 2022 NXP
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -22,7 +22,6 @@
 #define OSA_SEM_HANDLE_SIZE   (4U)
 #define OSA_MUTEX_HANDLE_SIZE (4U)
 #define OSA_MSGQ_HANDLE_SIZE  (4U)
-#define OSA_EVENT_HANDLE_SIZE (8U)
 
 enum _osa_status {
 	KOSA_StatusSuccess = 0, /*!< Success */
@@ -33,17 +32,10 @@ enum _osa_status {
 };
 #define osa_status_t enum _osa_status
 
-struct event_handle {
-	struct k_event *event;
-	uint8_t autoClear;
-};
-
 /*! @brief Type for the semaphore handler */
 #define osa_semaphore_handle_t struct k_sem **
 /*! @brief Type for the mutex handler */
 #define osa_mutex_handle_t struct k_mutex **
-/*! @brief Type for the mutex handler */
-#define osa_event_handle_t struct event_handle *
 /*! @brief Type for an event flags group, bit 32 is reserved. */
 #define osa_event_flags_t uint32_t
 /*! @brief Type for the task param */
@@ -96,8 +88,6 @@ struct event_handle {
 #define OSA_MUTEX_HANDLE_DEFINE(name)                                                              \
 	uint32_t name[(OSA_MUTEX_HANDLE_SIZE + sizeof(uint32_t) - 1U) / sizeof(uint32_t)]
 
-#define OSA_EVENT_HANDLE_DEFINE(name)                                                              \
-	uint32_t name[((OSA_EVENT_HANDLE_SIZE + sizeof(uint32_t) - 1U) / sizeof(uint32_t))]
 /*!
  * @brief Defines the message queue handle
  *
@@ -297,100 +287,5 @@ osa_status_t OSA_MutexUnlock(osa_mutex_handle_t mutexHandle);
  *
  */
 osa_status_t OSA_MutexDestroy(osa_mutex_handle_t mutexHandle);
-
-/*!
- * @brief Initializes an event object with all flags cleared.
- *
- * This function creates an event object and set its clear mode. If autoClear
- * is 1, when a task gets the event flags, these flags will be
- * cleared automatically. Otherwise these flags must
- * be cleared manually.
- *
- * Example below shows how to use this API to create the event handle.
- * @code
- *   OSA_EVENT_HANDLE_DEFINE(eventHandle);
- *   OSA_EventCreate((osa_event_handle_t)eventHandle, 0);
- * @endcode
- *
- * @param eventHandle Pointer to a memory space of size OSA_EVENT_HANDLE_SIZE allocated by the
- * caller. The handle should be 4 byte aligned, because unaligned access doesn't be supported on
- * some devices. You can define the handle in the following two ways:
- * #OSA_EVENT_HANDLE_DEFINE(eventHandle);
- * or
- * uint32_t eventHandle[((OSA_EVENT_HANDLE_SIZE + sizeof(uint32_t) - 1U) / sizeof(uint32_t))];
- * @param autoClear 1 The event is auto-clear.
- *                  0 The event manual-clear
- * @retval KOSA_StatusSuccess  the new event if the event is created successfully.
- * @retval KOSA_StatusError   if the event can not be created.
- */
-osa_status_t OSA_EventCreate(osa_event_handle_t eventHandle, uint8_t autoClear);
-
-/*!
- * @brief Waits for specified event flags to be set.
- *
- * This function waits for a combination of flags to be set in an event object.
- * Applications can wait for any/all bits to be set. Also this function could
- * obtain the flags who wakeup the waiting task.
- *
- * @param eventHandle     The event handle.
- * @param flagsToWait Flags that to wait.
- * @param waitAll     Wait all flags or any flag to be set.
- * @param millisec    The maximum number of milliseconds to wait for the event.
- *                    If the wait condition is not met, pass osaWaitForever_c will
- *                    wait indefinitely, pass 0 will return KOSA_StatusTimeout
- *                    immediately.
- * @param pSetFlags    Flags that wakeup the waiting task are obtained by this parameter.
- *
- * @retval KOSA_StatusSuccess The wait condition met and function returns successfully.
- * @retval KOSA_StatusTimeout Has not met wait condition within timeout.
- * @retval KOSA_StatusError   An incorrect parameter was passed.
-
- *
- * @note    Please pay attention to the flags bit width, FreeRTOS uses the most
- *          significant 8 bis as control bits, so do not wait these bits while using
- *          FreeRTOS.
- *
- */
-osa_status_t OSA_EventWait(osa_event_handle_t eventHandle,
-						   osa_event_flags_t flagsToWait,
-						   uint8_t waitAll,
-						   uint32_t millisec,
-						   osa_event_flags_t *pSetFlags);
-
-/*!
- * @brief Sets one or more event flags.
- *
- * Sets specified flags of an event object.
- *
- * @param eventHandle     The event handle.
- * @param flagsToSet  Flags to be set.
- *
- * @retval KOSA_StatusSuccess The flags were successfully set.
- * @retval KOSA_StatusError   An incorrect parameter was passed.
- */
-osa_status_t OSA_EventSet(osa_event_handle_t eventHandle, osa_event_flags_t flagsToSet);
-
-/*!
- * @brief Clears one or more flags.
- *
- * Clears specified flags of an event object.
- *
- * @param eventHandle       The event handle.
- * @param flagsToClear  Flags to be clear.
- *
- * @retval KOSA_StatusSuccess The flags were successfully cleared.
- * @retval KOSA_StatusError   An incorrect parameter was passed.
- */
-osa_status_t OSA_EventClear(osa_event_handle_t eventHandle, osa_event_flags_t flagsToClear);
-
-/*!
- * @brief Destroys a previously created event object.
- *
- * @param eventHandle The event handle.
- *
- * @retval KOSA_StatusSuccess The event is successfully destroyed.
- * @retval KOSA_StatusError   Event destruction failed.
- */
-osa_status_t OSA_EventDestroy(osa_event_handle_t eventHandle);
 
 #endif /* __FSL_OS_ABSTRACTION__ */
