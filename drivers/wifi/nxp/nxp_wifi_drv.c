@@ -80,6 +80,7 @@ extern const rtos_wpa_supp_dev_ops wpa_supp_ops;
 #ifdef CONFIG_PM_DEVICE
 extern int is_hs_handshake_done;
 extern int wlan_host_sleep_state;
+struct k_timer wake_timer;
 #endif
 
 /*******************************************************************************
@@ -156,6 +157,9 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		LOG_INF("WLAN CLIs are initialized");
 		printSeparator();
 #ifdef RW610
+#ifdef CONFIG_PM_DEVICE
+		k_timer_init(&wake_timer, wake_timer_cb, NULL);
+#endif
 		ret = wlan_enhanced_cli_init();
 		if (ret != WM_SUCCESS) {
 			LOG_ERR("Failed to initialize WLAN CLIs");
@@ -224,10 +228,8 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 			if ((addr.ipv6[i].addr_state == NET_ADDR_TENTATIVE) ||
 			    (addr.ipv6[i].addr_state == NET_ADDR_PREFERRED)) {
 				LOG_INF("IPv6 Address: %-13s:\t%s (%s)",
-					ipv6_addr_type_to_desc(
-						(struct net_ipv6_config *)&addr.ipv6[i]),
-					ipv6_addr_addr_to_desc(
-						(struct net_ipv6_config *)&addr.ipv6[i]),
+					ipv6_addr_type_to_desc((struct net_ipv6_config *)&addr.ipv6[i]),
+					ipv6_addr_addr_to_desc((struct net_ipv6_config *)&addr.ipv6[i]),
 					ipv6_addr_state_to_desc(addr.ipv6[i].addr_state));
 			}
 		}
@@ -980,8 +982,7 @@ static void wifi_net_iface_init(struct net_if *iface)
 #ifdef RW610
 		IRQ_CONNECT(IMU_IRQ_N, IMU_IRQ_P, WL_MCI_WAKEUP0_DriverIRQHandler, 0, 0);
 		irq_enable(IMU_IRQ_N);
-		IRQ_CONNECT(IMU_WAKEUP_IRQ_N, IMU_WAKEUP_IRQ_P,
-				WL_MCI_WAKEUP_DONE0_DriverIRQHandler, 0, 0);
+		IRQ_CONNECT(IMU_WAKEUP_IRQ_N, IMU_WAKEUP_IRQ_P, WL_MCI_WAKEUP_DONE0_DriverIRQHandler, 0, 0);
 		irq_enable(IMU_WAKEUP_IRQ_N);
 #if (DT_INST_PROP(0, wakeup_source))
 		EnableDeepSleepIRQ(IMU_IRQ_N);
@@ -1061,74 +1062,95 @@ static const struct net_wifi_mgmt_offload wifi_netif_apis = {
 };
 
 #ifdef CONFIG_PM_DEVICE
+static void wake_timer_cb(os_timer_arg_t arg)
+{
+	if(wakelock_isheld())
+		wakelock_put();
+}
+
 void device_pm_dump_wakeup_source()
 {
-	if (POWER_GetWakeupStatus(IMU_IRQ_N)) {
+	if(POWER_GetWakeupStatus(IMU_IRQ_N))
+	{
 		LOG_INF("Wakeup by WLAN");
 		POWER_ClearWakeupStatus(IMU_IRQ_N);
-	} else if (POWER_GetWakeupStatus(41)) {
+	}
+	else if(POWER_GetWakeupStatus(41))
+	{
 		LOG_INF("Wakeup by OSTIMER");
 		POWER_ClearWakeupStatus(41);
 	}
 }
 
-static int device_wlan_pm_action(const struct device *dev, enum pm_device_action pm_action)
+static int device_wlan_pm_action(const struct device *dev,
+				 enum pm_device_action pm_action)
 {
 	int ret = 0;
 
-	switch (pm_action) {
-	case PM_DEVICE_ACTION_SUSPEND:
-		if (!wlan_host_sleep_state || !wlan_is_started() || wakelock_isheld()
+	switch(pm_action)
+	{
+		case PM_DEVICE_ACTION_SUSPEND:
+			if(!wlan_host_sleep_state || !wlan_is_started() || wakelock_isheld()
 #ifdef CONFIG_WMM_UAPSD
-		    || wlan_is_wmm_uapsd_enabled()
+			   || wlan_is_wmm_uapsd_enabled()
 #endif
-		)
-			return -EBUSY;
-		/* Trigger host sleep handshake here. Before handshake is done, host is not allowed
-		 * to enter low power mode */
-		if (!is_hs_handshake_done) {
-			is_hs_handshake_done = WLAN_HOSTSLEEP_IN_PROCESS;
-			ret = powerManager_send_event(HOST_SLEEP_HANDSHAKE, NULL);
-			if (ret != 0) {
+			)
+				return -EBUSY;
+			/* Trigger host sleep handshake here. Before handshake is done, host is not allowed to enter low power mode */
+			if (!is_hs_handshake_done)
+			{
+				is_hs_handshake_done = WLAN_HOSTSLEEP_IN_PROCESS;
+				ret = powerManager_send_event(HOST_SLEEP_HANDSHAKE, NULL);
+				if (ret != 0)
+					return -EFAULT;
+				return -EBUSY;
+			}
+			if (is_hs_handshake_done == WLAN_HOSTSLEEP_IN_PROCESS)
+				return -EBUSY;
+			if (is_hs_handshake_done == WLAN_HOSTSLEEP_FAIL)
+			{
+				is_hs_handshake_done = 0;
 				return -EFAULT;
 			}
-			return -EBUSY;
-		}
-		if (is_hs_handshake_done == WLAN_HOSTSLEEP_IN_PROCESS) {
-			return -EBUSY;
-		}
-		if (is_hs_handshake_done == WLAN_HOSTSLEEP_FAIL) {
-			is_hs_handshake_done = 0;
-			return -EFAULT;
-		}
-		break;
-	case PM_DEVICE_ACTION_RESUME:
-		/* Cancel host sleep in firmware and dump wakekup source.
-		 * If sleep state is periodic, start timer to keep host in full power state for 5s.
-		 * User can use this time to issue other commands. */
-		if (is_hs_handshake_done == WLAN_HOSTSLEEP_SUCCESS) {
-			ret = powerManager_send_event(HOST_SLEEP_EXIT, NULL);
-			if (ret != 0) {
-				return -EFAULT;
+			break;
+		case PM_DEVICE_ACTION_RESUME:
+			/* Cancel host sleep in firmware and dump wakekup source.
+			 * If sleep state is periodic, start timer to keep host in full power state for 5s.
+			 * User can use this time to issue other commands.
+			 */
+			if (is_hs_handshake_done == WLAN_HOSTSLEEP_SUCCESS)
+			{
+				ret = powerManager_send_event(HOST_SLEEP_EXIT, NULL);
+				if (ret != 0)
+					return -EFAULT;
+				device_pm_dump_wakeup_source();
+				/* reset hs hanshake flag after waking up */
+				is_hs_handshake_done = 0;
+				if(wlan_host_sleep_state == HOST_SLEEP_ONESHOT)
+					wlan_host_sleep_state = HOST_SLEEP_DISABLE;
+				else if(wlan_host_sleep_state == HOST_SLEEP_PERIODIC)
+				{
+					wakelock_get();
+					k_timer_start(&wake_timer, K_TICKS(50000), K_NO_WAIT);
+				}
 			}
-			device_pm_dump_wakeup_source();
-			/* reset hs hanshake flag after waking up */
-			is_hs_handshake_done = 0;
-			if (wlan_host_sleep_state == HOST_SLEEP_ONESHOT) {
-				wlan_host_sleep_state = HOST_SLEEP_DISABLE;
-			}
-		}
-		break;
-	default:
-		break;
+			break;
+		default:
+			break;
 	}
 	return ret;
+}
+
+int wlan_pm_init(const struct device *dev)
+{
+	return 0;
 }
 
 PM_DEVICE_DT_INST_DEFINE(0, device_wlan_pm_action);
 #endif
 
-NET_DEVICE_INIT_INSTANCE(wifi_nxp_sta, "ml", 0, wifi_net_init, PM_DEVICE_DT_INST_GET(0), &g_mlan,
+NET_DEVICE_INIT_INSTANCE(wifi_nxp_sta, "ml", 0, wifi_net_init, PM_DEVICE_DT_INST_GET(0),
+			 &g_mlan,
 #ifdef CONFIG_WPA_SUPP
 			 &wpa_supp_ops,
 #else
