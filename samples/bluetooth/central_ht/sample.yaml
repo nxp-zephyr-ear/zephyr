@@ -1,14 +1,6 @@
 sample:
   name: Bluetooth Central HT
 tests:
-  sample.bluetooth.central_ht_coex:
-    harness: bluetooth
-    platform_allow:
-      - rd_rw612_bga
-    extra_args: CONF_FILE="prj.conf;overlay-wifi-nxp.conf"
-    tags: bluetooth
-    integration_platforms:
-      - rd_rw612_bga
   sample.bluetooth.central_ht:
     harness: bluetooth
     platform_allow:

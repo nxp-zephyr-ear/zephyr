@@ -2,14 +2,6 @@ sample:
   name: Bluetooth Peripheral HT
   description: Demonstrates the HT (Health Thermometer) GATT Service
 tests:
-  sample.bluetooth.peripheral_ht_coex:
-    harness: bluetooth
-    platform_allow:
-      - rd_rw612_bga
-    extra_args: CONF_FILE="prj.conf;overlay-wifi-nxp.conf"
-    tags: bluetooth
-    integration_platforms:
-      - rd_rw612_bga
   sample.bluetooth.peripheral_ht:
     harness: bluetooth
     platform_allow:

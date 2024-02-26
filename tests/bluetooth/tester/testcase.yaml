@@ -1,11 +1,4 @@
 tests:
-  bluetooth.general.tester_coex:
-    build_only: true
-    platform_allow:
-      - rd_rw612_bga
-    extra_args: CONF_FILE="prj.conf;overlay-wifi-nxp.conf"
-    tags: bluetooth
-    harness: bluetooth
   bluetooth.general.tester:
     build_only: true
     platform_allow:
