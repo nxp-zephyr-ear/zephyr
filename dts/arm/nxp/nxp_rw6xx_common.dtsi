@@ -268,14 +268,6 @@
 		interrupts = <90 2>;
 	};
 
-	dac0: dac@38200 {
-		compatible = "nxp,gau-dac";
-		reg = <0x38200 0x30>;
-		interrupts = <108 0>;
-		status = "disabled";
-		#io-channel-cells = <0>;
-	};
-
 	acomp: acomp@38400 {
 		compatible = "nxp,gau-acomp";
 		reg = <0x38400 0x50>;
@@ -293,7 +285,6 @@
 			status = "disabled";
 		};
 	};
-
 };
 
 &flexspi {

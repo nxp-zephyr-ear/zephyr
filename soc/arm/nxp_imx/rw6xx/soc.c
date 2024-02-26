@@ -151,7 +151,7 @@ static ALWAYS_INLINE void clock_init(void)
 	 */
 	CLOCK_AttachClk(kNONE_to_WDT0_CLK);
 #endif
-#if defined(CONFIG_ADC_MCUX_GAU) || defined(CONFIG_NXP_GAU_ACOMP) || defined(CONFIG_DAC_MCUX_GAU)
+#if defined(CONFIG_ADC_MCUX_GAU) || defined(CONFIG_NXP_GAU_ACOMP)
 	/* Attack clock for GAU and reset */
 	CLOCK_AttachClk(kMAIN_CLK_to_GAU_CLK);
 	CLOCK_SetClkDiv(kCLOCK_DivGauClk, 1U);
@@ -274,7 +274,7 @@ static int nxp_rw600_init(void)
 	/* Initialize clock */
 	clock_init();
 
-#if defined(CONFIG_ADC_MCUX_GAU) || defined(CONFIG_NXP_GAU_ACOMP) || defined(CONFIG_DAC_MCUX_GAU)
+#if defined(CONFIG_ADC_MCUX_GAU) || defined(CONFIG_NXP_GAU_ACOMP)
 	POWER_PowerOnGau();
 #endif
 
