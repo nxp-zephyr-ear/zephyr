@@ -394,7 +394,7 @@ static void eth_mcux_phy_start(struct eth_context *context)
 		k_work_submit(&context->phy_work);
 		break;
 #endif
-#if defined(CONFIG_SOC_SERIES_IMX_RT) || defined(CONFIG_SOC_SERIES_RW6XX)
+#if defined(CONFIG_SOC_SERIES_IMX_RT)
 		context->phy_state = eth_mcux_phy_state_initial;
 #else
 		context->phy_state = eth_mcux_phy_state_reset;
@@ -451,7 +451,7 @@ static void eth_mcux_phy_event(struct eth_context *context)
 	uint32_t status;
 #endif
 	bool link_up;
-#if defined(CONFIG_SOC_SERIES_IMX_RT) || defined(CONFIG_SOC_SERIES_RW6XX)
+#if defined(CONFIG_SOC_SERIES_IMX_RT)
 	status_t res;
 	uint16_t ctrl2;
 #endif
@@ -464,7 +464,7 @@ static void eth_mcux_phy_event(struct eth_context *context)
 #endif
 	switch (context->phy_state) {
 	case eth_mcux_phy_state_initial:
-#if defined(CONFIG_SOC_SERIES_IMX_RT) || defined(CONFIG_SOC_SERIES_RW6XX)
+#if defined(CONFIG_SOC_SERIES_IMX_RT)
 		ENET_DisableInterrupts(context->base, ENET_EIR_MII_MASK);
 		res = PHY_Read(context->phy_handle, PHY_CONTROL2_REG, &ctrl2);
 		ENET_EnableInterrupts(context->base, ENET_EIR_MII_MASK);
@@ -631,7 +631,7 @@ static void eth_mcux_delayed_phy_work(struct k_work *item)
 
 static void eth_mcux_phy_setup(struct eth_context *context)
 {
-#if defined(CONFIG_SOC_SERIES_IMX_RT) || defined(CONFIG_SOC_SERIES_RW6XX)
+#if defined(CONFIG_SOC_SERIES_IMX_RT)
 	status_t res;
 	uint16_t oms_override;
 
@@ -1031,8 +1031,6 @@ static void eth_mcux_init(const struct device *dev)
 #endif
 #elif defined(CONFIG_SOC_SERIES_IMX_RT11XX)
 	sys_clock = CLOCK_GetRootClockFreq(kCLOCK_Root_Bus);
-#elif defined(CONFIG_SOC_SERIES_RW6XX)
-	sys_clock = CLOCK_GetCoreSysClkFreq();
 #else
 	sys_clock = CLOCK_GetFreq(kCLOCK_CoreSysClk);
 #endif
@@ -1397,7 +1395,6 @@ static void eth_mcux_err_isr(const struct device *dev)
 #define ETH_MCUX_UNIQUE_ID	(OCOTP->FUSEN[40].FUSE)
 #elif defined(CONFIG_SOC_SERIES_KINETIS_K6X)
 #define ETH_MCUX_UNIQUE_ID	(SIM->UIDH ^ SIM->UIDMH ^ SIM->UIDML ^ SIM->UIDL)
-#elif defined(CONFIG_SOC_SERIES_RW6XX)
 #else
 #error "Unsupported SOC"
 #endif
@@ -1476,14 +1473,10 @@ static void eth_mcux_err_isr(const struct device *dev)
 		mac_addr[5] += n;					\
 	}
 
-#ifdef CONFIG_SOC_SERIES_RW6XX
-#define ETH_MCUX_GENERATE_MAC(n) ETH_MCUX_GENERATE_MAC_RANDOM(n)
-#else
 #define ETH_MCUX_GENERATE_MAC(n)					\
 	COND_CODE_1(DT_INST_PROP(n, zephyr_random_mac_address),		\
 		    (ETH_MCUX_GENERATE_MAC_RANDOM(n)),			\
 		    (ETH_MCUX_GENERATE_MAC_UNIQUE(n)))
-#endif
 
 #define ETH_MCUX_MAC_ADDR_LOCAL(n)					\
 	.mac_addr = DT_INST_PROP(n, local_mac_address),			\
