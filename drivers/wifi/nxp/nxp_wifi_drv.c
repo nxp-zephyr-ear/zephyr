@@ -74,7 +74,6 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data);
 static int WPL_process_results(unsigned int count);
 static void LinkStatusChangeCallback(bool linkState);
 static int WPL_Disconnect(const struct device *dev);
-static void WPL_AutoConnect(void);
 extern int low_level_output(const struct device *dev, struct net_pkt *pkt);
 
 static void printSeparator(void)
@@ -109,7 +108,6 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 		LOG_INF("app_cb: WLAN initialized");
 		printSeparator();
 
-#ifdef CONFIG_WIFI_NXP_CLI
 		ret = wlan_basic_cli_init();
 		if (ret != WM_SUCCESS) {
 			LOG_ERR("Failed to initialize BASIC WLAN CLIs");
@@ -155,11 +153,6 @@ int wlan_event_callback(enum wlan_event_reason reason, void *data)
 
 		help_command(0, NULL);
 		printSeparator();
-#endif
-
-		if (IS_ENABLED(CONFIG_WIFI_NXP_STA_AUTO)) {
-			WPL_AutoConnect();
-		}
 		break;
 	case WLAN_REASON_INITIALIZATION_FAILED:
 		LOG_ERR("app_cb: WLAN: initialization failed");
@@ -909,45 +902,6 @@ static int WPL_Status(const struct device *dev, struct wifi_iface_status *status
 	}
 
 	return 0;
-}
-
-static void WPL_AutoConnect(void)
-{
-	int ssid_len = strlen(CONFIG_WIFI_NXP_STA_AUTO_SSID);
-	int psk_len = strlen(CONFIG_WIFI_NXP_STA_AUTO_PASSWORD);
-	struct wifi_connect_req_params params = {0};
-	uint8_t ssid[IEEEtypes_SSID_SIZE] = {0};
-	uint8_t psk[WLAN_PSK_MAX_LENGTH] = {0};
-
-	if (ssid_len >= IEEEtypes_SSID_SIZE) {
-		LOG_ERR("AutoConnect SSID too long");
-		return;
-	}
-	if (ssid_len == 0) {
-		LOG_ERR("AutoConnect SSID NULL");
-		return;
-	}
-
-	strncpy(ssid, CONFIG_WIFI_NXP_STA_AUTO_SSID, ssid_len);
-
-	if (psk_len == 0) {
-		params.security = WIFI_SECURITY_TYPE_NONE;
-	} else if (psk_len >= WLAN_PSK_MIN_LENGTH && psk_len < WLAN_PSK_MAX_LENGTH) {
-		strncpy(psk, CONFIG_WIFI_NXP_STA_AUTO_PASSWORD, psk_len);
-		params.security = WIFI_SECURITY_TYPE_PSK;
-	} else {
-		LOG_ERR("AutoConnect invalid password length %d", psk_len);
-		return;
-	}
-
-	params.channel = WIFI_CHANNEL_ANY;
-	params.ssid = &ssid[0];
-	params.ssid_length = ssid_len;
-	params.psk = &psk[0];
-	params.psk_length = psk_len;
-
-	LOG_INF("AutoConnect SSID[%s]", ssid);
-	WPL_Connect(g_mlan.netif->if_dev->dev, &params);
 }
 
 #ifdef RW610
