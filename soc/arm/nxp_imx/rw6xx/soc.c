@@ -111,6 +111,14 @@ static ALWAYS_INLINE void clock_init(void)
 	/* Set PLL FRG clock to 20MHz. */
 	CLOCK_SetClkDiv(kCLOCK_DivPllFrgClk, 13U);
 
+	const clock_frg_clk_config_t debug_clock_conf = {3, kCLOCK_FrgPllDiv, 255, 0};
+
+#if (DT_NODE_HAS_COMPAT_STATUS(DT_NODELABEL(flexcomm3), nxp_lpc_usart, okay)) && CONFIG_SERIAL
+	CLOCK_SetFRGClock(&debug_clock_conf);
+	CLOCK_AttachClk(kFRG_to_FLEXCOMM3);
+#endif
+
+
 #endif /* CONFIG_SOC_RW610 */
 }
 
