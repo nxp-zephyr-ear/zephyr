@@ -244,24 +244,6 @@
 		compatible = "nxp,hci-ble";
 		interrupts = <90 2>;
 	};
-
-	acomp: acomp@38400 {
-		compatible = "nxp,gau-acomp";
-		reg = <0x38400 0x50>;
-		interrupts = <110 0>;
-		#address-cells = <1>;
-		#size-cells = <0>;
-		acomp_sensor0: acomp_sensor@0 {
-			compatible = "nxp,gau-acomp-sensor";
-			reg = <0>;
-			status = "disabled";
-		};
-		acomp_sensor1: acomp_sensor@1 {
-			compatible = "nxp,gau-acomp-sensor";
-			reg = <1>;
-			status = "disabled";
-		};
-	};
 };
 
 &systick {
