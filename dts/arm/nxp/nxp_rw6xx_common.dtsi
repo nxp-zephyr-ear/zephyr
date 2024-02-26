@@ -85,19 +85,19 @@
 	hsgpio0: hsgpio@0 {
 		compatible = "nxp,lpc-gpio";
 		reg = <0x100000 0x4000>;
+		interrupts = <4 2>,<5 2>,<6 2>,<7 2>;
 		gpio-controller;
 		#gpio-cells = <2>;
 		port = <0>;
-		int-source = "pint";
 	};
 
 	hsgpio1: hsgpio@1 {
 		compatible = "nxp,lpc-gpio";
 		reg = <0x100000 0x4000>;
+		interrupts = <35 2>,<36 2>,<37 2>,<38 2>;
 		gpio-controller;
 		#gpio-cells = <2>;
 		port = <1>;
-		int-source = "pint";
 	};
 
 	flexspi: spi@134000 {
@@ -217,18 +217,6 @@
 		status = "disabled";
 		prescaler = <8>;
 		#pwm-cells = <3>;
-	};
-
-	pint: pint@25000 {
-		compatible = "nxp,pint";
-		reg = <0x25000 0x1000>;
-		interrupt-controller;
-		#interrupt-cells = <1>;
-		#address-cells = <0>;
-		interrupts = <4 2>, <5 2>, <6 2>, <7 2>,
-			<35 2>, <36 2>, <37 2>, <38 2>;
-		num-lines = <8>;
-		num-inputs = <64>;
 	};
 };
 
