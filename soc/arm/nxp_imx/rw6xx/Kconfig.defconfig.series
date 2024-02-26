@@ -108,26 +108,6 @@ endchoice
 
 endif
 
-if PM
-
-# Enable PM_DEVICE by default if STANDBY mode is enabled
-# as we use the TURN_OFF and TURN_ON actions to recover
-# from Standby mode (PM Mode 3)
-config PM_DEVICE
-	default y
-	depends on "$(dt_nodelabel_enabled,standby)"
-
-# Enable the counter if STANDBY mode is enabled
-# RTC counter is the wakeup source from STANDBY mode
-config COUNTER
-	default y
-	depends on "$(dt_nodelabel_enabled,standby)"
-
-config MCUX_OS_TIMER_PM_POWERED_OFF
-	default y
-
-endif # PM
-
 source "soc/arm/nxp_imx/rw6xx/Kconfig.defconfig.rw6*"
 
 endif # SOC_SERIES_RW6XX
