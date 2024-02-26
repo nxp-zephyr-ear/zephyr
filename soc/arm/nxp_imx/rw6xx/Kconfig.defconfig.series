@@ -42,9 +42,6 @@ config HCI_NXP_SET_CAL_DATA
 config HCI_NXP_SET_CAL_DATA_ANNEX100
 	default n
 
-config NXP_FW_LOADER_MONOLITHIC
-	default y
-
 endif # BT
 
 config NXP_FW_LOADER
