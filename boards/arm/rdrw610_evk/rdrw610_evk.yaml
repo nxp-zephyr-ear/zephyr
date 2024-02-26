@@ -15,13 +15,4 @@ toolchain:
 ram: 1216
 flash: 62500
 supported:
-  - adc
-  - counter
-  - dma
   - gpio
-  - i2c
-  - i2s
-  - pwm
-  - spi
-  - usb_device
-  - watchdog
