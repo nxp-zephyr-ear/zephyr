@@ -61,8 +61,6 @@ extern int is_hs_handshake_done;
 extern int wlan_host_sleep_state;
 #endif
 
-static int nxp_wifi_recv(struct net_if *iface, struct net_pkt *pkt);
-
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
@@ -301,8 +299,6 @@ static int nxp_wifi_wlan_init(void)
 	if (status != NXP_WIFI_RET_SUCCESS) {
 		return -1;
 	}
-
-	nxp_wifi_internal_register_rx_cb(nxp_wifi_recv);
 
 	return 0;
 }
@@ -1343,12 +1339,10 @@ static void nxp_wifi_uap_init(struct net_if *iface)
 
 #endif
 
-static __ramfunc int nxp_wifi_send(const struct device *dev, struct net_pkt *pkt)
+static int nxp_wifi_send(const struct device *dev, struct net_pkt *pkt)
 {
-#if defined(CONFIG_NET_STATISTICS_WIFI)
 	interface_t *if_handle = (interface_t *)dev->data;
 	const int pkt_len = net_pkt_get_len(pkt);
-#endif
 
 	/* Enqueue packet for transmission */
 	if (nxp_wifi_internal_tx(dev, pkt) != WM_SUCCESS) {
@@ -1365,31 +1359,6 @@ static __ramfunc int nxp_wifi_send(const struct device *dev, struct net_pkt *pkt
 out:
 #if defined(CONFIG_NET_STATISTICS_WIFI)
 	if_handle->stats.errors.tx++;
-#endif
-	return -EIO;
-}
-
-static __ramfunc int nxp_wifi_recv(struct net_if *iface, struct net_pkt *pkt)
-{
-#if defined(CONFIG_NET_STATISTICS_WIFI)
-	interface_t *if_handle = (interface_t *)(net_if_get_device(iface)->data);
-	const int pkt_len = net_pkt_get_len(pkt);
-#endif
-
-	if (net_recv_data(iface, pkt) < 0) {
-		goto out;
-	}
-
-#if defined(CONFIG_NET_STATISTICS_WIFI)
-	if_handle->stats.bytes.received += pkt_len;
-	if_handle->stats.pkts.rx++;
-#endif
-
-	return 0;
-
-out:
-#if defined(CONFIG_NET_STATISTICS_WIFI)
-	if_handle->stats.errors.rx++;
 #endif
 	return -EIO;
 }
