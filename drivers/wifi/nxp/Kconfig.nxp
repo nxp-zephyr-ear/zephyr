@@ -274,13 +274,7 @@ config RX_ABORT_CFG
    bool "RX abort support"
    default y
    help
-     This option enables rx abort config with static RSSI threshold in the Wi-Fi driver.
-
-config RX_ABORT_CFG_EXT
-   bool "RX abort extention support"
-   default y
-   help
-     This option enables rx abort extention config with dynamic RSSI threshold in the Wi-Fi driver.
+     This option enables rx abort config in the Wi-Fi driver.
 
 config CCK_DESENSE_CFG
    bool "CCK desense mode support"
