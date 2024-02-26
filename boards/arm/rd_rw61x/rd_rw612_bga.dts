@@ -7,9 +7,398 @@
 /dts-v1/;
 
 #include <nxp/nxp_rw6xx.dtsi>
-#include "rd_rw612_bga.dtsi"
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include "rd_rw612_bga-pinctrl.dtsi"
+#include <zephyr/dt-bindings/spi/spi.h>
 
 / {
 	model = "NXP RD_RW612_BGA board";
 	compatible = "nxp,rw612";
+
+	aliases {
+		usart-0 = &flexcomm3;
+		led0 = &green_led;
+		sw0 = &sw_4;
+		watchdog0 = &wwdt;
+		pwm-0 = &sc_timer;
+	};
+
+	chosen {
+		zephyr,sram = &sram_data;
+		zephyr,flash = &mx25u51245g;
+		zephyr,code-partition = &slot0_partition;
+		zephyr,flash-controller = &mx25u51245g;
+		zephyr,console = &flexcomm3;
+		zephyr,shell-uart = &flexcomm3;
+		zephyr,display = &st7796s_lcdic;
+		zephyr,keyboard-scan = &kscan_input;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		green_led: led_1 {
+			gpios = <&hsgpio1 20 0>;
+			label = "User LED_GREEN";
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		sw_4: sw_4 {
+			label = "User SW4";
+			gpios = <&hsgpio0 25 0>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+	};
+
+	power-states {
+		/* This is the setting for Idle Mode */
+		idle: idle {
+			compatible = "zephyr,power-state";
+			power-state-name = "runtime-idle";
+			min-residency-us = <0>;
+			exit-latency-us = <0>;
+		};
+		/* This is the setting for Standby Mode */
+		suspend: suspend {
+			compatible = "nxp,pdcfg-power", "zephyr,power-state";
+			power-state-name = "suspend-to-idle";
+			/* TODO: Revisit latency numbers */
+			min-residency-us = <500>;
+			exit-latency-us = <120>;
+			deep-sleep-config = <0x180000>,
+						<0x0>,
+						<0x4>,
+						<0x100>,
+						<0x0>;
+		};
+	};
+
+	mipi_dbi {
+		compatible = "zephyr,mipi-dbi-spi";
+		cd-gpios = <&hsgpio0 1 GPIO_ACTIVE_HIGH>; /* MikroE_PWM */
+		reset-gpios = <&hsgpio1 18 GPIO_ACTIVE_HIGH>; /* D8 */
+		spi-dev = <&flexcomm0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+		/*
+		 * Settings to connect this display:
+		 * Populate JP19 to connect SPI
+		 * Set JP49 to connect pins 1 and 2 (Connects SSEL0 to CS pin)
+		 * Display can be connected to MikoBus header (J13/J11)
+		 * Pin #1 | Signal | Header
+		 * -------------------------------
+		 * 1      | VDD    | J13.7 (+3.3V)
+		 * 2      | RST    | J11.2 (INT)
+		 * 3      | SDO    | J13.5 (MISO)
+		 * 4      | CS     | J13.3 (CS)
+		 * 5      | SCLK   | J13.4 (SCK)
+		 * 6      | GND    | J13.8 (GND)
+		 * 7      | MOSI   | J13.6 (MOSI)
+		 * 8      | CD     | J11.1 (PWM)
+		 *
+		 * Pins 10 and 11 correspond to the backlight anode and cathode,
+		 * and must be driven by an external circuit
+		 */
+		st7796s: st7796s@0 {
+			compatible = "sitronix,st7796s";
+			status = "disabled";
+			reg = <0>;
+			spi-max-frequency = <43000000>;
+			cmd-data-gpios = <&hsgpio0 1 GPIO_ACTIVE_HIGH>; /* MikroE_PWM */
+			reset-gpios = <&hsgpio1 18 GPIO_ACTIVE_HIGH>; /* D8 */
+			height = <320>;
+			width = <480>;
+			invert-mode = "1-dot";
+			frmctl1 = [80 10];
+			bpc = [1F 50 00 20];
+			dfc = [8A 07 3B];
+			pwr1 = [80 64];
+			pwr2 = <0x13>;
+			pwr3 = <0xA7>;
+			vcmpctl = <0x09>;
+			doca = [40 8A 00 00 29 19 A5 38];
+			pgc = [F0 06 0B 07 06 05 2E 33 47 3A 17 16 2E 31];
+			ngc = [F0 09 0D 09 08 23 2E 33 46 38 13 13 2C 32];
+			madctl = <0x28>;
+		};
+	};
+
+};
+
+&cpu0 {
+	cpu-power-states = <&idle &suspend>;
+};
+
+&systick {
+	status = "disabled";
+};
+
+&dma0 {
+	status = "okay";
+};
+
+&flexcomm0 {
+	compatible = "nxp,lpc-spi";
+	pinctrl-0 = <&pinmux_flexcomm0_spi>;
+	pinctrl-names = "default";
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+};
+
+&flexcomm1 {
+	compatible = "nxp,lpc-i2s";
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-0 = <&pinmux_flexcomm1_i2s>;
+	pinctrl-names = "default";
+};
+
+&flexcomm2 {
+	compatible = "nxp,lpc-i2c";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-0 = <&pinmux_flexcomm2_i2c>;
+	pinctrl-names = "default";
+	ft7401: ft7401@38 {
+		/*
+		 * Settings to connect this touch controller:
+		 * Populate JP3 and JP50 to connect I2C
+		 * Controller can be connected to Arduino Header (J8/J5)
+		 * Pin #1 | Signal | Header
+		 * -------------------------------
+		 * 1      | VDD    | J8.2 (+3.3V)
+		 * 2      | IOVDD  | J8.4 (+3.3V)
+		 * 3      | SCL    | J5.10 (SCL)
+		 * 4      | SDA    | J5.9 (SDA)
+		 * 5      | INT    | Not Connected
+		 * 6      | RST    | J6.4 (D3)
+		 * 7      | GND    | J8.6 (GND)
+		 * 8      | GND    | J8.7 (GND)
+		 *
+		 * Note- the actual controller present on this IC is a FT7401,
+		 * but the FT5336 driver in Zephyr supports this IC.
+		 */
+		compatible = "focaltech,ft5336";
+		reg = <0x38>;
+		reset-gpios = <&hsgpio0 15 GPIO_ACTIVE_HIGH>;
+		/* Adapts input driver to kscan API */
+		kscan_input: kscan-input {
+			compatible = "zephyr,kscan-input";
+		};
+	};
+};
+
+&flexcomm3 {
+	compatible = "nxp,lpc-usart";
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&pinmux_flexcomm3_usart>;
+	pinctrl-names = "default";
+};
+
+&hsgpio0 {
+	status = "okay";
+};
+
+&wwdt {
+	status = "okay";
+};
+
+/* OS Timer is the wakeup source for PM mode 2 */
+&os_timer {
+	status = "okay";
+	wakeup-source;
+};
+
+&hci {
+	status = "okay";
+	wakeup-source;
+};
+
+zephyr_udc0: &usb_otg {
+	status = "okay";
+};
+
+&adc0 {
+	status = "okay";
+};
+
+&dac0 {
+	status = "okay";
+};
+
+&sc_timer {
+	status = "okay";
+	pinctrl-0 = <&pinmux_pwm0>;
+	pinctrl-names = "default";
+};
+
+&acomp_sensor0 {
+	status = "okay";
+	/* HD2 on the board, pin is labelled 42 in silk screen */
+	nxp,pos-input = "CH0";
+	nxp,neg-input = "VIO";
+	nxp,vio-scaling-factor = <2>;
+	nxp,bias-prog = "fast";
+};
+
+&flexspi {
+	status = "okay";
+	ahb-bufferable;
+	ahb-prefetch;
+	ahb-cacheable;
+	ahb-read-addr-opt;
+	rx-clock-source = <1>;
+	rx-clock-source-b = <3>;
+	pinctrl-0 = <&pinmux_flexspi>;
+	pinctrl-names = "default";
+	status = "okay";
+	mx25u51245g: mx25u51245g@0 {
+		compatible = "nxp,imx-flexspi-nor";
+		spi-max-frequency = <133000000>;
+		reg = <0>;
+		/* MX25UM51245G is 64MB, 512MBit flash part */
+		size = <DT_SIZE_M(64 * 8)>;
+		status = "okay";
+		jedec-id = [c2 25 3a];
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		status = "okay";
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			boot_partition: partition@0 {
+				label = "mcuboot";
+				reg = <0x00000000 DT_SIZE_K(128)>;
+			};
+			/* Note slot 0 has one additional sector,
+			 * this is intended for use with the swap move algorithm
+			 */
+			slot0_partition: partition@20000 {
+				label = "image-0";
+				reg = <0x00020000 0x3e0000>;
+			};
+
+			/* This partition is reserved for connectivity firmwares storage
+			 * and shouldn't be moved.
+			 */
+			fw_storage: partition@400000 {
+				label = "fw_storage";
+				reg = <0x400000 0x280000>;
+				read-only;
+			};
+
+			slot1_partition: partition@680000 {
+				label = "image-1";
+				reg = <0x680000 0x3e0000>;
+			};
+
+			storage_partition: partition@a60000 {
+				label = "storage";
+				reg = <0xa60000 0x35a0000>;
+			};
+		};
+	};
+	is66wvq8m4: is66wvq8m4@2 {
+		compatible = "nxp,imx-flexspi-is66wvq8m4";
+		/* IS66WVQ8M4 is 4MB, 32MBit pSRAM */
+		size = <DT_SIZE_M(32)>;
+		reg = <2>;
+		spi-max-frequency = <256000000>;
+		/* PSRAM cannot be enabled while board is in default XIP
+		 * configuration, as it will conflict with flash chip.
+		 */
+		status = "disabled";
+		cs-interval-unit = <1>;
+		cs-interval = <5>;
+		cs-hold-time = <2>;
+		cs-setup-time = <3>;
+		data-valid-time = <1>;
+		column-space = <14>;
+		ahb-write-wait-unit = <2>;
+		ahb-write-wait-interval = <0>;
+	};
+};
+
+
+/* RTC is the wakeup source for PM modes 3,4 */
+&rtc {
+	status = "okay";
+	wakeup-source;
+};
+
+&enet {
+	/* Please see board doc page on how to enable ethernet */
+	status = "disabled";
+};
+
+&ctimer0 {
+	status = "okay";
+};
+
+&lcdic {
+	status = "okay";
+	pinctrl-0 = <&pinmux_lcdic>;
+	pinctrl-names = "default";
+
+	/*
+	 * Settings to connect this display:
+	 * Populate the following resistors:
+	 * - R125, R123, R12, R124, R15, R243, R239, R236, R233, R286, R246
+	 * Remove the following resistors:
+	 * - R9, R11, R20, R19, R242, R241, R237, R235, R245
+	 * Remove JP30 to disconnect Flexcomm SPI CS
+	 * Display can be connected to Arduino header (J5/J6)
+	 * Pin #  | Signal | Header
+	 * -------------------------------
+	 * 1      | VDD    | J5.8 (+3.3V)
+	 * 2      | RST    | J6.8 (LCD_SPI_RESETN)
+	 * 3      | SDO    | J5.5 (SPI_MISO)
+	 * 4      | CS     | J5.3 (LCD_SPI_SS)
+	 * 5      | SCLK   | J5.6 (LCD_SPI_SCK)
+	 * 6      | GND    | J5.7 (GND)
+	 * 7      | MOSI   | J5.4 (LCD_SPI_SDIO)
+	 * 8      | CD     | J5.1 (LCD_SPI_DC)
+	 * 9      | TE     | J5.2 (LCD_SPI_TE, not enabled)
+	 *
+	 * Pins 10 and 11 correspond to the backlight anode and cathode,
+	 * and must be driven by an external circuit
+	 */
+
+	st7796s_lcdic: st7796s@0 {
+		compatible = "sitronix,st7796s";
+		status = "okay";
+		reg = <0>;
+		spi-max-frequency = <23000000>;
+		duplex = <SPI_HALF_DUPLEX>;
+		cmd-data-gpios = <&hsgpio0 1 GPIO_ACTIVE_HIGH>; /* MikroE_PWM */
+		reset-gpios = <&hsgpio1 18 GPIO_ACTIVE_HIGH>; /* D8 */
+		height = <320>;
+		width = <480>;
+		invert-mode = "1-dot";
+		frmctl1 = [80 10];
+		bpc = [1F 50 00 20];
+		dfc = [8A 07 3B];
+		pwr1 = [80 64];
+		pwr2 = <0x13>;
+		pwr3 = <0xA7>;
+		vcmpctl = <0x09>;
+		doca = [40 8A 00 00 29 19 A5 38];
+		pgc = [F0 06 0B 07 06 05 2E 33 47 3A 17 16 2E 31];
+		ngc = [F0 09 0D 09 08 23 2E 33 46 38 13 13 2C 32];
+		madctl = <0x28>;
+	};
+};
+
+&mrt0_channel0 {
+	status = "okay";
 };
