@@ -889,13 +889,6 @@ static int shell_cmd_upload(const struct shell *sh, size_t argc,
 		param.rate_kbps = 10U;
 	}
 
-	if (argc > 6) {
-		(void)memset(param.ifreq_name, 0, sizeof(param.ifreq_name));
-		strcpy(param.ifreq_name, argv[start + 6]);
-	} else {
-		param.ifreq_name[0] = '\0';
-	}
-
 	return execute_upload(sh, &param, is_udp, async);
 }
 
@@ -1315,7 +1308,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(zperf_cmd_udp_download,
 SHELL_STATIC_SUBCMD_SET_CREATE(zperf_cmd_udp,
 	SHELL_CMD(upload, NULL,
 		  "[<options>] <dest ip> [<dest port> <duration> <packet size>[K] "
-							"<baud rate>[K|M] <interface name>]\n"
+							"<baud rate>[K|M]]\n"
 		  "<options>     command options (optional): [-S tos -a]\n"
 		  "<dest ip>     IP destination\n"
 		  "<dest port>   port destination\n"
@@ -1323,7 +1316,6 @@ SHELL_STATIC_SUBCMD_SET_CREATE(zperf_cmd_udp,
 		  "<packet size> Size of the packet in byte or kilobyte "
 							"(with suffix K)\n"
 		  "<baud rate>   Baudrate in kilobyte or megabyte\n"
-			"<interface>   Interface name\n"
 		  "Available options:\n"
 		  "-S tos: Specify IPv4/6 type of service\n"
 		  "-a: Asynchronous call (shell will not block for the upload)\n"
