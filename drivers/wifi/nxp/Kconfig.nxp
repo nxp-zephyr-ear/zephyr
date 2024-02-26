@@ -312,6 +312,12 @@ config COEX_DUTY_CYCLE
    help
      This option sets duty cycle in the Wi-Fi driver.
 
+config WIFI_EU_CRYPTO
+   bool "Algorithm RC4 encryption and decryption verification"
+   default y
+   help
+     This option enables RC4 encryption and decryption verification in the Wi-Fi driver.
+
 config MMSF
    bool "11AX density config"
    default y
@@ -410,7 +416,7 @@ config HOST_SLEEP
 
 config ROAMING
        bool "Wi-Fi Soft Roaming"
-       def_bool y
+       def_bool n
        help
 	 This option enables Soft Roaming support in the Wi-Fi driver. Say Y if you wish to enable this feature.
 
@@ -450,7 +456,7 @@ config TURBO_MODE
 
 config WIFI_EU_CRYPTO
        bool "Wi-Fi EU Crypto"
-       def_bool y
+       def_bool n
        help
 	 This option enables Wi-Fi EU Crypto support in the Wi-Fi driver. Say Y if you wish to enable this feature.
 
