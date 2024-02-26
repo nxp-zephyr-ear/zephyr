@@ -39,4 +39,14 @@ endif # LVGL
 config FLASH_LOAD_SIZE
 	default 0x400000 if !BOOTLOADER_MCUBOOT
 
+# This is a workaround for not being able to define the BOOT_MAX_IMG_SECTORS
+# within the MCUBoot board .conf file, since no fork of MCUBoot is maintained
+# for the RW. We must define the BOOT_MAX_IMG_SECTORS Kconfig here to
+# prevent undefined KConfig warnings when not building MCUBoot
+config BOOT_MAX_IMG_SECTORS
+	int "Max image sectors (MCUBoot)"
+	help
+	  Max sectors for bootable image. Used by MCUBoot to determine
+	  the max slot size of an image.
+
 endif # BOARD_RD_RW612_BGA
