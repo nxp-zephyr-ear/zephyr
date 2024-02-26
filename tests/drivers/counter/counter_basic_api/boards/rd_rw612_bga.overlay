@@ -15,19 +15,3 @@
 &ctimer3 {
 	status = "okay";
 };
-
-&mrt0_channel1 {
-	status = "okay";
-};
-
-&mrt0_channel3 {
-	status = "okay";
-};
-
-&mrt1_channel2 {
-	status = "okay";
-};
-
-&mrt1_channel3 {
-	status = "okay";
-};
