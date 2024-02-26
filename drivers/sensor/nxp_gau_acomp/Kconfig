@@ -1,8 +1,0 @@
-# NXP GAU ACOMP Kconfig options
-
-config NXP_GAU_ACOMP
-	bool "NXP General Analog Unit Comparator (ACOMP)"
-	default y
-	depends on DT_HAS_NXP_GAU_ACOMP_SENSOR_ENABLED
-	help
-	  Enable driver for the NXP GAU ACOMP.
