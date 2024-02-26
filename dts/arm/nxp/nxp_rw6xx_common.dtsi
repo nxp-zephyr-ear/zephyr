@@ -10,7 +10,6 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/i2c/i2c.h>
 #include <dt-bindings/adc/nxp,gau-adc.h>
-#include <zephyr/dt-bindings/memory-attr/memory-attr-arm.h>
 
 / {
 	aliases {
@@ -70,7 +69,6 @@
 		compatible = "zephyr,memory-region","mmio-sram";
 		reg = <0x0 DT_SIZE_K(510)>;
 		zephyr,memory-region = "SMU1";
-		zephyr,memory-attr = <( DT_MEM_ARM(ATTR_MPU_RAM) )>;
 	};
 };
 
@@ -82,7 +80,6 @@
 		compatible = "zephyr,memory-region","mmio-sram";
 		reg = <0x0 DT_SIZE_K(140)>;
 		zephyr,memory-region = "SMU2";
-		zephyr,memory-attr = <( DT_MEM_ARM(ATTR_MPU_RAM) )>;
 	};
 };
 

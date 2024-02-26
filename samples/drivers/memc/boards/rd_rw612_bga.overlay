@@ -4,18 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-&smu1 {
-	smu1_data: memory@0 {
-		/delete-property/ zephyr,memory-attr;
-	};
-};
-
-&smu2 {
-	smu2_data: memory@0 {
-		/delete-property/ zephyr,memory-attr;
-	};
-};
-
 / {
 	chosen {
 		zephyr,flash = &sram_code;
