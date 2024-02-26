@@ -360,12 +360,6 @@ static int bt_nxp_open(void)
 	int ret = 0;
 
 	do {
-		ret = PLATFORM_InitBle();
-		if (ret < 0) {
-			LOG_ERR("Failed to initialize BLE controller");
-			break;
-		}
-
 		ret = PLATFORM_SetHciRxCallback(hci_rx_cb);
 		if (ret < 0) {
 			LOG_ERR("BLE HCI RX callback registration failed");
@@ -422,19 +416,9 @@ static int bt_nxp_open(void)
 
 static int bt_nxp_close(void)
 {
-	int ret = 0;
-	/* Reset the Controller */
-	ret = bt_hci_cmd_send_sync(BT_HCI_OP_RESET, NULL, NULL);
-	if (ret) {
-		LOG_ERR("Failed to reset BLE controller");
-	}
-	k_sleep(K_SECONDS(1));
+	/* Do nothing */
 
-	ret = PLATFORM_TerminateBle();
-	if (ret < 0) {
-		LOG_ERR("Failed to shutdown BLE controller");
-	}
-	return ret;
+	return 0;
 }
 
 static const struct bt_hci_driver drv = {
