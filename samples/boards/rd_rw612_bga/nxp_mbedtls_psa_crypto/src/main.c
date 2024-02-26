@@ -255,22 +255,22 @@ static void cipher_examples(void)
 {
 	psa_status_t status;
 
-	printf("cipher encrypt/decrypt AES CBC no padding: ");
+	printf("cipher encrypt/decrypt AES CBC no padding:\n");
 	status = cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block();
 	if (status == PSA_SUCCESS) {
-		printf("success!\n");
+		printf("\tsuccess!\n");
 	}
 
-	printf("cipher encrypt/decrypt AES CBC PKCS7 multipart: ");
+	printf("cipher encrypt/decrypt AES CBC PKCS7 multipart:\n");
 	status = cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi();
 	if (status == PSA_SUCCESS) {
-		printf("success!\n");
+		printf("\tsuccess!\n");
 	}
 
-	printf("cipher encrypt/decrypt AES CTR multipart: ");
+	printf("cipher encrypt/decrypt AES CTR multipart:\n");
 	status = cipher_example_encrypt_decrypt_aes_ctr_multi();
 	if (status == PSA_SUCCESS) {
-		printf("success!\n");
+		printf("\tsuccess!\n");
 	}
 }
 /*******************************************************************************
@@ -287,7 +287,7 @@ static void cipher_examples(void)
 int main(void)
 {
 	printf("\nMbedtls - PSA - Crypto - examples\n");
-	printf("=================================\n");
+	printf("\n============================\n");
 
 	ASSERT(psa_crypto_init() == PSA_SUCCESS);
 	cipher_examples();
