@@ -10,8 +10,6 @@
 
 /* Size of a command in the LUT table */
 #define MEMC_FLEXSPI_CMD_SIZE 4U
-/* Number of commands in an instruction sequence */
-#define MEMC_FLEXSPI_CMD_PER_SEQ 4U
 
 /**
  * @brief Wait for the FlexSPI bus to be idle
