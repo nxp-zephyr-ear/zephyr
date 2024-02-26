@@ -265,8 +265,7 @@
 
 	hci: hci_ble {
 		compatible = "nxp,hci-ble";
-		/* first index is the hci interrupt, the second is the wake up done interrupt */
-		interrupts = <90 2>, <82 2>;
+		interrupts = <90 2>;
 	};
 
 	dac0: dac@38200 {
