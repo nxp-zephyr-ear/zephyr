@@ -518,22 +518,10 @@ config 5GHz_SUPPORT
 endif
 
 config HOST_SLEEP
-       bool "Host Sleep"
-       default y if PM_DEVICE
+       bool "HOST Sleep"
+       def_bool n
        help
-         This option enables Host sleep feature in the Wi-Fi driver.
-
-config NXP_WIFI_POWER_MANAGER
-       bool "WIFI Power Manager Support"
-       default y if PM_DEVICE
-       help
-         This option enables Power Manager support in the Wi-Fi driver.
-
-config MEF_CFG
-       bool "MEF config"
-       default y if PM_DEVICE
-       help
-         This option enables Memory Efficient Filtering support in the Wi-Fi driver.
+	 This option enables HOST Sleep support for MCU.Say Y if you wish to enable this feature.
 
 config ROAMING
        bool "Wi-Fi Soft Roaming"
@@ -546,6 +534,12 @@ config CLOUD_KEEP_ALIVE
        def_bool n
        help
 	 This option enables Cloud Keep Alive support in the Wi-Fi driver. Say Y if you wish to enable this feature.
+
+config MEF_CFG
+       bool "Memory Efficient Filtering"
+       def_bool n
+       help
+	 This option enables Memory Efficient Filtering support in the Wi-Fi driver. Say Y if you wish to enable this feature.
 
 config FILTER_LOCALLY_ADMINISTERED_AND_SELF_MAC_ADDR
        bool
