@@ -215,10 +215,4 @@ static int nxp_rw600_init(void)
 	return 0;
 }
 
-void z_arm_platform_init(void)
-{
-	/* This is provided by the SDK */
-	SystemInit();
-}
-
 SYS_INIT(nxp_rw600_init, PRE_KERNEL_1, 0);
