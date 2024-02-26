@@ -152,17 +152,9 @@
 };
 
 &usdhc1 {
-	status = "okay";
-	power-delay-ms = <1000>;
-	pwr-gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
-	cd-gpios = <&gpio2 31 GPIO_ACTIVE_LOW>;
 	pinctrl-0 = <&pinmux_usdhc1>;
 	pinctrl-1 = <&pinmux_usdhc1_dat3_nopull>;
 	pinctrl-names = "default", "nopull";
-	sdmmc {
-		compatible = "zephyr,sdmmc-disk";
-		status = "okay";
-	};
 };
 
 &flexspi {
