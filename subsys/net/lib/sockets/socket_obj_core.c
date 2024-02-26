@@ -158,11 +158,9 @@ out:
 	return ret;
 }
 
-int sock_obj_core_alloc_find(int sock, int new_sock, int type)
+int sock_obj_core_alloc_find(int sock, int new_sock, int family, int type)
 {
 	struct net_socket_register *reg = NULL;
-	socklen_t optlen = sizeof(int);
-	int family;
 	int ret;
 
 	if (new_sock < 0) {
@@ -171,12 +169,6 @@ int sock_obj_core_alloc_find(int sock, int new_sock, int type)
 
 	ret = sock_obj_core_get_reg_and_proto(sock, &reg);
 	if (ret < 0) {
-		goto out;
-	}
-
-	ret = zsock_getsockopt(sock, SOL_SOCKET, SO_DOMAIN, &family, &optlen);
-	if (ret < 0) {
-		NET_ERR("Cannot get socket domain (%d)", -errno);
 		goto out;
 	}
 
