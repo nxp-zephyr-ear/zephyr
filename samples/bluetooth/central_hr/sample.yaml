@@ -2,8 +2,6 @@ sample:
   name: Bluetooth Central HR
 tests:
   sample.bluetooth.central_hr:
-    platform_allow:
-      - qemu_x86
-      - rd_rw612_bga
+    arch_allow: x86
     harness: bluetooth
     tags: bluetooth
