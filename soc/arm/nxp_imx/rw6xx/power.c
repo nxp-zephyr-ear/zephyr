@@ -29,11 +29,6 @@ LOG_MODULE_DECLARE(soc, CONFIG_SOC_LOG_LEVEL);
 
 extern void clock_init(void);
 
-#ifdef CONFIG_ARM_MPU
-extern void z_arm_configure_static_mpu_regions(void);
-extern int z_arm_mpu_init(void);
-#endif /* CONFIG_ARM_MPU */
-
 power_sleep_config_t slp_cfg;
 
 /* Invoke Low Power/System Off specific Tasks */
@@ -58,12 +53,6 @@ __weak void pm_state_set(enum pm_state state, uint8_t substate_id)
 		POWER_EnterPowerMode(POWER_MODE3, &slp_cfg);
 
 		clock_init();
-
-#if defined(CONFIG_ARM_MPU)
-		/* Reinitialize the MPU as CM33 is powered off and loses it state */
-		z_arm_mpu_init();
-		z_arm_configure_static_mpu_regions();
-#endif /* CONFIG_ARM_MPU */
 
 		sys_clock_idle_exit();
 
