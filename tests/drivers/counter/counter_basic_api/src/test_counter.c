@@ -69,11 +69,8 @@ static const struct device *const devices[] = {
 #ifdef CONFIG_COUNTER_NXP_MRT
 	DEVS_FOR_DT_COMPAT(nxp_mrt_channel)
 #endif
-#ifdef CONFIG_COUNTER_MCUX_LPC_RTC_1HZ
+#ifdef CONFIG_COUNTER_MCUX_LPC_RTC
 	DEVS_FOR_DT_COMPAT(nxp_lpc_rtc)
-#endif
-#ifdef CONFIG_COUNTER_MCUX_LPC_RTC_HIGHRES
-	DEVS_FOR_DT_COMPAT(nxp_lpc_rtc_highres)
 #endif
 #ifdef CONFIG_COUNTER_GECKO_RTCC
 	DEVS_FOR_DT_COMPAT(silabs_gecko_rtcc)
