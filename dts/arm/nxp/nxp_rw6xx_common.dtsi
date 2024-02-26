@@ -192,7 +192,7 @@
 
 	flexcomm14: flexcom@126000 {
 		compatible = "nxp,lpc-flexcomm";
-		reg = <0x126000 0x2000>;
+		reg = <126000 0x2000>;
 		interrupts = <20 0>;
 		clocks = <&clkctl1 MCUX_FLEXCOMM14_CLK>;
 		status = "disabled";
