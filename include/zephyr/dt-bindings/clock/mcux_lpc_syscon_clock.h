@@ -52,13 +52,14 @@
 
 #define MCUX_SCTIMER_CLK		34
 
-#define MCUX_FLEXSPI_CLK		35
-#define MCUX_FLEXSPI2_CLK		36
+/* RW IP */
+#define MCUX_GAU_CLK			35
 
 #define MCUX_MRT_CLK			40
 
-/* RW IP */
-#define MCUX_GAU_CLK			800
-#define MCUX_LCDIC_CLK			801
+#define MCUX_FLEXSPI_CLK		37
+#define MCUX_FLEXSPI2_CLK		38
+
+#define MCUX_LCDIC_CLK			36
 
 #endif /* ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_MCUX_LPC_SYSCON_H_ */
