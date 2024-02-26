@@ -2,7 +2,6 @@ Release: EAR4.0
 
 Changes from EAR3.0:
 - Added Support for CTIMER counter
-- Enabled support for driving ST7796S based display using LCDIC
 
 Product release candidate of Zephyr for the NXP RW61x Reference Design
 =================================================================
