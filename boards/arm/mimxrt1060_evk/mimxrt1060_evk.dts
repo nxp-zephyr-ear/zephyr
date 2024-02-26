@@ -266,11 +266,6 @@ zephyr_udc0: &usb1 {
 		compatible = "zephyr,sdmmc-disk";
 		status = "okay";
 	};
-
-	nxp_wifi {
-		compatible = "nxp,wifi";
-		status = "okay";
-	};
 };
 
 &edma0 {

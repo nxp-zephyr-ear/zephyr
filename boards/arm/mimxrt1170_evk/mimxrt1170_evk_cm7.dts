@@ -106,11 +106,6 @@ nxp_mipi_i2c: &lpi2c5 {
 		compatible = "zephyr,sdmmc-disk";
 		status = "okay";
 	};
-
-	nxp_wifi {
-		compatible = "nxp,wifi";
-		status = "okay";
-	};
 };
 
 &edma0 {
