@@ -639,47 +639,6 @@ static int nxp_wifi_version(const struct device *dev, struct wifi_version *param
 	return 0;
 }
 
-static int nxp_wifi_ap_bandwidth(const struct device *dev, struct wifi_ap_params *params)
-{
-	nxp_wifi_ret_t status = NXP_WIFI_RET_SUCCESS;
-	int ret = WM_SUCCESS;
-	interface_t *if_handle = (interface_t *)dev->data;
-
-	if (if_handle->state.interface != WLAN_BSS_TYPE_UAP) {
-		LOG_ERR("Wi-Fi not in uAP mode");
-		return -EIO;
-	}
-
-	if (s_nxp_wifi_State != NXP_WIFI_STARTED) {
-		status = NXP_WIFI_RET_NOT_READY;
-	}
-
-	if (status == NXP_WIFI_RET_SUCCESS) {
-
-		if (params->oper == WIFI_MGMT_SET) {
-
-			ret = wlan_uap_set_bandwidth(params->bandwidth);
-
-			if (ret != WM_SUCCESS) {
-				status = NXP_WIFI_RET_FAIL;
-			}
-		} else {
-			ret = wlan_uap_get_bandwidth(&params->bandwidth);
-
-			if (ret != WM_SUCCESS) {
-				status = NXP_WIFI_RET_FAIL;
-			}
-		}
-	}
-
-	if (status != NXP_WIFI_RET_SUCCESS) {
-		LOG_ERR("Failed to get/set Wi-Fi AP bandwidth");
-		return -EAGAIN;
-	}
-
-	return 0;
-}
-
 static int nxp_wifi_connect(const struct device *dev, struct wifi_connect_req_params *params)
 {
 	nxp_wifi_ret_t status = NXP_WIFI_RET_SUCCESS;
@@ -1413,7 +1372,6 @@ static const struct wifi_mgmt_ops nxp_wifi_sta_mgmt = {
 	.connect = nxp_wifi_connect,
 	.disconnect = nxp_wifi_disconnect,
 	.ap_enable = nxp_wifi_start_ap,
-	.ap_bandwidth = nxp_wifi_ap_bandwidth,
 	.ap_disable = nxp_wifi_stop_ap,
 	.iface_status = nxp_wifi_status,
 #if defined(CONFIG_NET_STATISTICS_WIFI)
