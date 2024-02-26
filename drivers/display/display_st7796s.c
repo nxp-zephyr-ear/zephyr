@@ -11,7 +11,6 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/display.h>
 #include <zephyr/sys/byteorder.h>
-#include <zephyr/drivers/mipi_dbi.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(display_st7796s, CONFIG_DISPLAY_LOG_LEVEL);
@@ -27,9 +26,9 @@ LOG_MODULE_REGISTER(display_st7796s, CONFIG_DISPLAY_LOG_LEVEL);
 
 #define ST7796S_PIXEL_SIZE 2 /* Only 16 bit color mode supported with this driver */
 
+
 struct st7796s_config {
-	const struct device *mipi_dbi;
-	const struct mipi_dbi_config dbi_config;
+	const struct spi_dt_spec bus;
 	const struct gpio_dt_spec cmd_data_gpio;
 	const struct gpio_dt_spec reset_gpio;
 	uint16_t width;
@@ -43,15 +42,15 @@ struct st7796s_data {
 	uint8_t frmctl1[2]; /* Frame rate control, normal mode */
 	uint8_t frmctl2[2]; /* Frame rate control, idle mode */
 	uint8_t frmctl3[2]; /* Frame rate control, partial mode */
-	uint8_t bpc[4] __aligned(4); /* Blanking porch control */
-	uint8_t dfc[4] __aligned(4); /* Display function control */
+	uint8_t bpc[4]; /* Blanking porch control */
+	uint8_t dfc[4]; /* Display function control */
 	uint8_t pwr1[2]; /* Power control 1 */
 	uint8_t pwr2; /* Power control 2 */
 	uint8_t pwr3; /* Power control 3 */
 	uint8_t vcmpctl; /* VCOM control */
-	uint8_t doca[8] __aligned(4); /* Display output ctrl */
-	uint8_t pgc[14] __aligned(4); /* Positive gamma control */
-	uint8_t ngc[14] __aligned(4); /* Negative gamma control */
+	uint8_t doca[8]; /* Display output ctrl */
+	uint8_t pgc[14]; /* Positive gamma control */
+	uint8_t ngc[14]; /* Negative gamma control */
 	uint8_t madctl; /* Memory data access control */
 };
 
@@ -59,8 +58,61 @@ static int st7796s_send_cmd(const struct device *dev,
 			uint8_t cmd, const uint8_t *data, size_t len)
 {
 	const struct st7796s_config *config = dev->config;
-	return mipi_dbi_command_write(config->mipi_dbi, &config->dbi_config,
-				      cmd, data, len);
+	int ret;
+	struct spi_buf tx_buf = {
+		.buf = &cmd,
+		.len = sizeof(uint8_t),
+	};
+	struct spi_buf_set tx_bufs = {
+		.buffers = &tx_buf,
+		.count = 1,
+	};
+
+	/* Set CD pin low for command byte */
+	ret = gpio_pin_set_dt(&config->cmd_data_gpio, 0);
+	if (ret < 0) {
+		return ret;
+	}
+	ret = spi_write_dt(&config->bus, &tx_bufs);
+	if (ret < 0) {
+		return ret;
+	}
+
+	if (len > 0) {
+		/* Set CD pin to data mode */
+		ret = gpio_pin_set_dt(&config->cmd_data_gpio, 1);
+		if (ret < 0) {
+			return ret;
+		}
+		tx_buf.buf = (uint8_t *)data;
+		tx_buf.len = len;
+		ret = spi_write_dt(&config->bus, &tx_bufs);
+		if (ret < 0) {
+			return ret;
+		}
+		/* Return CD pin to CMD mode */
+		ret = gpio_pin_set_dt(&config->cmd_data_gpio, 0);
+	}
+	return ret;
+}
+
+static int st7796s_reset(const struct device *dev)
+{
+	const struct st7796s_config *config = dev->config;
+	int ret;
+
+	ret = gpio_pin_set_dt(&config->reset_gpio, 0);
+	if (ret < 0) {
+		return ret;
+	}
+	/* Delay 100 ms per datasheet */
+	k_msleep(100);
+	ret = gpio_pin_set_dt(&config->reset_gpio, 1);
+	if (ret < 0) {
+		return ret;
+	}
+	k_msleep(100);
+	return 0;
 }
 
 static int st7796s_set_cursor(const struct device *dev,
@@ -98,7 +150,6 @@ static int st7796s_blanking_off(const struct device *dev)
 	return st7796s_send_cmd(dev, ST7796S_CMD_DISPON, NULL, 0);
 }
 
-
 static int st7796s_write(const struct device *dev,
 			 const uint16_t x,
 			 const uint16_t y,
@@ -106,6 +157,12 @@ static int st7796s_write(const struct device *dev,
 			 const void *buf)
 {
 	const struct st7796s_config *config = dev->config;
+	struct spi_buf tx_buf;
+	struct spi_buf_set tx_bufs = {
+		.buffers = &tx_buf,
+		.count = 1,
+	};
+	uint8_t *cursor = (uint8_t *)buf;
 	int ret;
 
 	ret = st7796s_set_cursor(dev, x, y, desc->width, desc->height);
@@ -113,10 +170,33 @@ static int st7796s_write(const struct device *dev,
 		return ret;
 	}
 
-	return mipi_dbi_command_write(config->mipi_dbi,
-				      &config->dbi_config, ST7796S_CMD_RAMWR,
-				      buf, desc->width * desc->height *
-				      ST7796S_PIXEL_SIZE);
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_RAMWR, NULL, 0);
+	if (ret < 0) {
+		return ret;
+	}
+	/* Set CD pin to data mode */
+	ret = gpio_pin_set_dt(&config->cmd_data_gpio, 1);
+	if (ret < 0) {
+		return ret;
+	}
+	tx_buf.buf = cursor;
+	if (desc->pitch == desc->width) {
+		/* Buffer is contiguous, write in one block */
+		tx_buf.len = desc->width * ST7796S_PIXEL_SIZE * desc->height;
+		return spi_write_dt(&config->bus, &tx_bufs);
+	}
+	/* Otherwise, we need to write buffer line by line */
+	tx_buf.len = desc->width * ST7796S_PIXEL_SIZE;
+	for (uint32_t line = 0; line < desc->height; line++) {
+		tx_buf.buf = cursor;
+		ret = spi_write_dt(&config->bus, &tx_bufs);
+		if (ret < 0) {
+			return ret;
+		}
+		cursor += desc->pitch * ST7796S_PIXEL_SIZE;
+	}
+	/* Return CD pin to command mode */
+	return gpio_pin_set_dt(&config->cmd_data_gpio, 0);
 }
 
 static int st7796s_read(const struct device *dev,
@@ -291,15 +371,26 @@ static int st7796s_init(const struct device *dev)
 	int ret;
 	uint8_t param;
 
+	/* Initialize CD pin in data mode */
+	ret = gpio_pin_configure_dt(&config->cmd_data_gpio, GPIO_OUTPUT);
+	if (ret < 0) {
+		LOG_ERR("Could not configure cmd/data pin (%d)", ret);
+		return ret;
+	}
+
+	ret = gpio_pin_configure_dt(&config->reset_gpio, GPIO_OUTPUT);
+	if (ret < 0) {
+		LOG_ERR("Could not configure reset pin (%d)", ret);
+		return ret;
+	}
+
 	/* Since VDDI comes up before reset pin is low, we must reset display
-	 * state. Pulse for 100 MS, per datasheet
+	 * state.
 	 */
-	ret = mipi_dbi_reset(config->mipi_dbi, 100);
+	ret = st7796s_reset(dev);
 	if (ret < 0) {
 		return ret;
 	}
-	/* Delay an additional 100ms after reset */
-	k_msleep(100);
 
 	/* Configure controller parameters */
 	ret = st7796s_lcd_config(dev);
@@ -355,13 +446,8 @@ static const struct display_driver_api st7796s_api = {
 
 #define ST7796S_INIT(n)								\
 	static const struct st7796s_config st7796s_config_##n = {		\
-		.mipi_dbi = DEVICE_DT_GET(DT_INST_PARENT(n)),			\
-		.dbi_config = {							\
-			.config = SPI_CONFIG_DT_INST(n, SPI_OP_MODE_MASTER |	\
-				SPI_WORD_SET(8), 0),				\
-			.mode = MIPI_DBI_MODE_SPI_4WIRE,			\
-			.pixfmt = MIPI_DCS_PIXEL_FORMAT_16BIT,			\
-		},								\
+		.bus = SPI_DT_SPEC_INST_GET(n,					\
+			SPI_OP_MODE_MASTER | SPI_WORD_SET(8), 0),		\
 		.cmd_data_gpio = GPIO_DT_SPEC_INST_GET(n, cmd_data_gpios),	\
 		.reset_gpio = GPIO_DT_SPEC_INST_GET(n, reset_gpios),		\
 		.width = DT_INST_PROP(n, width),				\

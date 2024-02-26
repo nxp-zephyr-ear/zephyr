@@ -72,57 +72,6 @@
 						<0x0>;
 		};
 	};
-
-	mipi_dbi {
-		compatible = "zephyr,mipi-dbi-spi";
-		cd-gpios = <&hsgpio0 1 GPIO_ACTIVE_HIGH>; /* MikroE_PWM */
-		reset-gpios = <&hsgpio1 18 GPIO_ACTIVE_HIGH>; /* D8 */
-		spi-dev = <&flexcomm0>;
-		#address-cells = <1>;
-		#size-cells = <0>;
-		/*
-		 * Settings to connect this display:
-		 * Populate JP19 to connect SPI
-		 * Set JP49 to connect pins 1 and 2 (Connects SSEL0 to CS pin)
-		 * Display can be connected to MikoBus header (J13/J11)
-		 * Pin #1 | Signal | Header
-		 * -------------------------------
-		 * 1      | VDD    | J13.7 (+3.3V)
-		 * 2      | RST    | J11.2 (INT)
-		 * 3      | SDO    | J13.5 (MISO)
-		 * 4      | CS     | J13.3 (CS)
-		 * 5      | SCLK   | J13.4 (SCK)
-		 * 6      | GND    | J13.8 (GND)
-		 * 7      | MOSI   | J13.6 (MOSI)
-		 * 8      | CD     | J11.1 (PWM)
-		 *
-		 * Pins 10 and 11 correspond to the backlight anode and cathode,
-		 * and must be driven by an external circuit
-		 */
-		st7796s: st7796s@0 {
-			compatible = "sitronix,st7796s";
-			status = "disabled";
-			reg = <0>;
-			spi-max-frequency = <43000000>;
-			cmd-data-gpios = <&hsgpio0 1 GPIO_ACTIVE_HIGH>; /* MikroE_PWM */
-			reset-gpios = <&hsgpio1 18 GPIO_ACTIVE_HIGH>; /* D8 */
-			height = <320>;
-			width = <480>;
-			invert-mode = "1-dot";
-			frmctl1 = [80 10];
-			bpc = [1F 50 00 20];
-			dfc = [8A 07 3B];
-			pwr1 = [80 64];
-			pwr2 = <0x13>;
-			pwr3 = <0xA7>;
-			vcmpctl = <0x09>;
-			doca = [40 8A 00 00 29 19 A5 38];
-			pgc = [F0 06 0B 07 06 05 2E 33 47 3A 17 16 2E 31];
-			ngc = [F0 09 0D 09 08 23 2E 33 46 38 13 13 2C 32];
-			madctl = <0x28>;
-		};
-	};
-
 };
 
 &cpu0 {
@@ -140,6 +89,46 @@
 	status = "okay";
 	#address-cells = <1>;
 	#size-cells = <0>;
+	/*
+	 * Settings to connect this display:
+	 * Populate JP19 to connect SPI
+	 * Set JP49 to connect pins 1 and 2 (Connects SSEL0 to CS pin)
+	 * Display can be connected to MikoBus header (J13/J11)
+	 * Pin #1 | Signal | Header
+	 * -------------------------------
+	 * 1      | VDD    | J13.7 (+3.3V)
+	 * 2      | RST    | J11.2 (INT)
+	 * 3      | SDO    | J13.5 (MISO)
+	 * 4      | CS     | J13.3 (CS)
+	 * 5      | SCLK   | J13.4 (SCK)
+	 * 6      | GND    | J13.8 (GND)
+	 * 7      | MOSI   | J13.6 (MOSI)
+	 * 8      | CD     | J11.1 (PWM)
+	 *
+	 * Pins 10 and 11 correspond to the backlight anode and cathode,
+	 * and must be driven by an external circuit
+	 */
+	st7796s: st7796s@0 {
+		compatible = "sitronix,st7796s";
+		reg = <0>;
+		spi-max-frequency = <43000000>;
+		cmd-data-gpios = <&hsgpio0 1 GPIO_ACTIVE_HIGH>; /* MikroE_PWM */
+		reset-gpios = <&hsgpio1 18 GPIO_ACTIVE_HIGH>; /* D8 */
+		height = <320>;
+		width = <480>;
+		invert-mode = "1-dot";
+		frmctl1 = [80 10];
+		bpc = [1F 50 00 20];
+		dfc = [8A 07 3B];
+		pwr1 = [80 64];
+		pwr2 = <0x13>;
+		pwr3 = <0xA7>;
+		vcmpctl = <0x09>;
+		doca = [40 8A 00 00 29 19 A5 38];
+		pgc = [F0 06 0B 07 06 05 2E 33 47 3A 17 16 2E 31];
+		ngc = [F0 09 0D 09 08 23 2E 33 46 38 13 13 2C 32];
+		madctl = <0x28>;
+	};
 };
 
 &flexcomm1 {
