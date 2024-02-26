@@ -261,12 +261,6 @@ config ECSA
    help
      This option is used to do channel switch according to spec.
 
-config UNII4_BAND_SUPPORT
-   bool "UNII4 support"
-   default y
-   help
-     This option is used to enable/disable UNII4 channels.
-
 config TSP
    bool "TSP"
    default y
