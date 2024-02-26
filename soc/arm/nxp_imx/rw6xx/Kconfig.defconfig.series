@@ -17,32 +17,6 @@ config ROM_START_OFFSET
 config NUM_IRQS
 	default 129
 
-if BT
-
-config FLASH
-	default y
-
-choice BT_HCI_BUS_TYPE
-	default BT_NXP
-endchoice
-
-config BT_DIS_MANUF
-	default "NXP"
-
-config BT_BUF_EVT_DISCARDABLE_SIZE
-	default 84
-
-config BT_HCI_ACL_FLOW_CONTROL
-	default n
-
-config NXP_FW_LOADER
-	default y
-
-config NXP_RF_IMU
-	default y
-
-endif # BT
-
 choice USB_MCUX_CONTROLLER_TYPE
 	default USB_DC_NXP_EHCI
 endchoice

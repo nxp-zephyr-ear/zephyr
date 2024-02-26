@@ -19,6 +19,6 @@ zephyr_library_include_directories(
 zephyr_linker_sources_ifdef(CONFIG_NXP_RW6XX_BOOT_HEADER
   ROM_START SORT_KEY 0 boot_header.ld)
 
-set(SOC_LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld CACHE INTERNAL "")
+set(SOC_LINKER_SCRIPT ${ZEPHYR_BASE}/include/zephyr/arch/arm/cortex_m/scripts/linker.ld CACHE INTERNAL "")
 
 zephyr_code_relocate(FILES flexspi_clock_setup.c LOCATION RAM)
