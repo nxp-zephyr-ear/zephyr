@@ -327,9 +327,3 @@ zephyr_udc0: &usb_otg {
 	reset-gpios = <&hsgpio0 21 GPIO_ACTIVE_HIGH>;
 	phy-addr = <2>;
 };
-
-/* RTC is the wakeup source for PM modes 3,4 */
-&rtc {
-	status = "okay";
-	wakeup-source;
-};
