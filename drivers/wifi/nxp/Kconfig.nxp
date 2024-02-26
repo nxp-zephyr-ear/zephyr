@@ -97,23 +97,34 @@ config NET_ZPERF_MAX_SESSIONS
 config NET_SOCKETS_POLL_MAX
 	default 8
 
-config ZEPHYR
-	bool
+config CODE_DATA_RELOCATION_SRAM
 	default y
 
-choice NXP_WIFI_PART
-	prompt "Select NXP Wi-Fi part"
-	depends on !NXP_WIFI_CUSTOM
+config NXP_WIFI_TASK_STACK_SIZE
+	int
+	default 4096
+
+config ZEPHYR
+	default y
+
+config NXP_WIFI_TASK_PRIO
+	int
+	default 1
 
 config RW610
 	bool "RW610-based Chipset"
 	depends on SOC_SERIES_RW6XX
 	select NXP_FW_LOADER
 	select NXP_RF_IMU
+	default n
 	help
 	  Select this option if you have a NXP RW610-based
 	  Wireless chip. This option will enable support
 	  for NXP RW610-based series boards.
+
+choice NXP_WIFI_PART
+	prompt "Select NXP Wi-Fi part"
+	depends on !NXP_WIFI_CUSTOM
 
 config 88W8987
 	bool "88W8987 [EXPERIMENTAL]"
@@ -575,11 +586,10 @@ config NXP_WIFI_11V
 	help
 	  This option enables the use of 802.11v support.
 
-if 88W8987 || IW416 || RW610
+if 88W8987 || IW416
 
 config NXP_WIFI_11R
 	bool "802.11R Support"
-	default n if (RW610 && !CONFIG_WPA_SUPP)
 	default y
 	help
 	  This option enables the use of 802.11r support.
@@ -758,18 +768,6 @@ config NXP_WIFI_UNII4_BAND_SUPPORT
 
 if RW610
 
-config FW_VDLLV2
-	bool "Firmware virtaul dynamic link library version 2"
-	default y
-	help
-	  This option is to load some firmware features in run-time.
-
-config NXP_WIFI_AUTO_NULL_TX
-	bool "Auto send null frame"
-	default y
-	help
-	  This option is to support sending null frame in period for CSI.
-
 config NXP_WIFI_NET_MONITOR
 	bool "Networking monitor"
 	default y
@@ -850,15 +848,15 @@ config NXP_WIFI_DTIM_PERIOD
 
 config NXP_WIFI_MEM_ACCESS
 	bool
-	default y if RW610
 	default n
+	default y if RW610
 	help
 	  This option enables memory access cmd in the Wi-Fi driver.
 
 config NXP_WIFI_REG_ACCESS
 	bool
-	default y if RW610
 	default n
+	default y if RW610
 	help
 	  This option enables register access cmd in the Wi-Fi driver.
 
@@ -876,8 +874,8 @@ config NXP_WIFI_TX_RX_HISTOGRAM
 
 config NXP_WIFI_RF_TEST_MODE
 	bool "WLAN RF Test Mode"
-	default y if RW610
 	default n
+	default y if RW610
 	help
 	  This option enables WLAN test mode commands.
 
@@ -921,15 +919,15 @@ endif
 
 config NXP_WIFI_HOST_SLEEP
 	bool "HOST Sleep"
-	default y if PM
 	default n
+	default y if RW610
 	help
 	  This option enables HOST Sleep support for MCU.
 
 config NXP_WIFI_MEF_CFG
 	bool "Memory Efficient Filtering"
-	default y if PM
 	default n
+	default y if RW610
 	help
 	  This option enables Memory Efficient Filtering support in the Wi-Fi driver.
 
