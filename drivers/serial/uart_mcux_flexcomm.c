@@ -1069,7 +1069,6 @@ static int mcux_flexcomm_init(const struct device *dev)
 }
 
 #ifdef CONFIG_PM_DEVICE
-static uint32_t usart_intenset = 0;
 static int mcux_flexcomm_pm_action(const struct device *dev, enum pm_device_action action)
 {
 	const struct mcux_flexcomm_config *config = dev->config;
@@ -1088,11 +1087,9 @@ static int mcux_flexcomm_pm_action(const struct device *dev, enum pm_device_acti
 		}
 		config->base->CTL |= USART_CTL_TXDIS_MASK;
 		config->base->CFG &= ~USART_CFG_ENABLE_MASK;
-		usart_intenset = USART_GetEnabledInterrupts(config->base);
 		return 0;
 	case PM_DEVICE_ACTION_TURN_ON:
 		mcux_flexcomm_init(dev);
-		USART_EnableInterrupts(config->base, usart_intenset);
 		return 0;
 	default:
 		return -ENOTSUP;
