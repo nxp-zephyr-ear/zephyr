@@ -40,7 +40,24 @@ static int nxp_wifi_shell_cmd(const struct shell *sh, size_t argc, char **argv)
 
 	nxp_wifi_lock(nxp_wifi);
 
-	nxp_wifi_request(argc, argv);
+	memset(nxp_wifi->buf, 0, sizeof(nxp_wifi->buf));
+	for (i = 1; i < argc; i++) {
+		size_t argv_len = strlen(argv[i]);
+
+		if ((len + argv_len) >= sizeof(nxp_wifi->buf) - 1) {
+			break;
+		}
+
+		memcpy(nxp_wifi->buf + len, argv[i], argv_len);
+		len += argv_len;
+		if (argc > 2) {
+			memcpy(nxp_wifi->buf + len, " ", 1);
+			len += 1;
+		}
+	}
+	nxp_wifi->buf[len] = '\0';
+
+	nxp_wifi_cmd(nxp_wifi, nxp_wifi->buf);
 
 	nxp_wifi_unlock(nxp_wifi);
 
