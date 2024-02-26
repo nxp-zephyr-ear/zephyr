@@ -444,6 +444,12 @@ static int WPL_Start_AP(const struct device *dev, struct wifi_connect_req_params
 {
 	wpl_ret_t status = WPLRET_SUCCESS;
 	int ret;
+	interface_t *if_handle = (interface_t *)dev->data;
+
+	if (if_handle->state.interface != WLAN_BSS_TYPE_UAP) {
+		LOG_ERR("Wi-Fi not in uAP mode");
+		return -EIO;
+	}
 
 	if ((s_wplState != WPL_STARTED) || (s_wplUapActivated != false)) {
 		status = WPLRET_NOT_READY;
@@ -461,12 +467,7 @@ static int WPL_Start_AP(const struct device *dev, struct wifi_connect_req_params
 		wlan_initialize_uap_network(&uap_network);
 
 		memcpy(uap_network.ssid, params->ssid, params->ssid_length);
-
-		if (params->channel == WIFI_CHANNEL_ANY) {
-			uap_network.channel = 0;
-		} else {
-			uap_network.channel = params->channel;
-		}
+		uap_network.channel = params->channel;
 
 		if (params->mfp == WIFI_MFP_REQUIRED) {
 			uap_network.security.mfpc = true;
