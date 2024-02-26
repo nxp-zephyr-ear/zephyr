@@ -227,10 +227,7 @@ static ALWAYS_INLINE void clock_init(void)
 	/* Enable T3 256M clock and SFRO */
 	CLOCK_EnableClock(kCLOCK_T3PllMci256mClk);
 
-	/* Do not configure the SVC sensor for A0 parts */
-	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
-		config_svc_sensor();
-	}
+	config_svc_sensor();
 	/* Move FLEXSPI clock source to T3 256m / 4 to avoid instruction/data fetch issue in XIP
 	 * when updating PLL and main clock.
 	 */
@@ -389,10 +386,7 @@ static ALWAYS_INLINE void clock_init(void)
 	CLOCK_EnableClock(kCLOCK_TddrMciEnetClk);
 #endif /* CONFIG_NET_L2_ETHERNET */
 
-	/* Leave this disabled for A0 parts */
-	if ((SOCCTRL->CHIP_INFO & SOCCIU_CHIP_INFO_REV_NUM_MASK) != 0U) {
-		POWER_EnableGDetVSensors();
-	}
+	POWER_EnableGDetVSensors();
 }
 
 /**
