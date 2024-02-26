@@ -368,7 +368,6 @@ static const struct adc_driver_api mcux_gau_adc_driver_api = {
 #ifdef CONFIG_ADC_ASYNC
 	.read_async = mcux_gau_adc_read_async,
 #endif
-	.ref_internal = 1200,
 };
 
 #define GAU_ADC_MCUX_INIT(n)							\
