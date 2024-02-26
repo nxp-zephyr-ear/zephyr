@@ -181,7 +181,6 @@
 &os_timer {
 	status = "okay";
 	wakeup-source;
-	deep-sleep-counter = <&rtc_highres>;
 };
 
 &hci {
@@ -299,7 +298,7 @@ zephyr_udc0: &usb_otg {
 
 
 /* RTC is the wakeup source for PM modes 3,4 */
-&rtc_highres {
+&rtc {
 	status = "okay";
 	wakeup-source;
 };
