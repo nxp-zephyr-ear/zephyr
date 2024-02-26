@@ -181,7 +181,7 @@
 		interrupts = <112 0>;
 		status = "disabled";
 		#io-channel-cells = <1>;
-		resolution = <16>;
+		clock-divider = <1>;
 	};
 
 	adc1: gau_adc1@38100 {
@@ -190,7 +190,7 @@
 		interrupts = <111 0>;
 		status = "disabled";
 		#io-channel-cells = <1>;
-		resolution = <16>;
+		clock-divider = <1>;
 	};
 };
 
