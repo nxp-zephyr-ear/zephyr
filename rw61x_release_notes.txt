@@ -31,18 +31,11 @@ Limitations:
 	- Hardware accelerators for security cryptography are not supported yet.
 	- Some shell BLE commands may be unsupported for now.
 	- Low power with BLE is still undergoing trials. Therefore it's not enabled by default
-	  for BLE applications. Please add this Kconfig `CONFIG_PM` to your application
-	  to enable low power capabilities.
+	  for BLE applications. Please add this Kconfig `CONFIG_PM` to your application 
+	  to enable low power capabilities. 
 	  Low power was only tested on peripheral_ht and central_ht.
 	- Enforcement of ATT flow control (BT_ATT_ENFORCE_FLOW) is disabled
 	  for all BLE applications.
-
-Base Enablement
-===============
-
-Support for the display module has the following improvements from EAR2.0:
-	- Rendering performance has been improved with double bufferring
-	- Support for touchscreen IC FT7401 has been enabled
 
 Early Access Release of Zephyr for the NXP RW61x Reference Design
 =================================================================
