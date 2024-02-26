@@ -32,13 +32,6 @@ config DMA_MCUX_LPC_NUMBER_OF_DESCRIPTORS
 config LV_Z_VDB_SIZE
 	default 10
 
-# Enable double buffering and offloaded render thread to improve performance
-config LV_Z_DOUBLE_VDB
-	default y
-
-config LV_Z_FLUSH_THREAD
-	default y
-
 endif # LVGL
 
 # Limit flash load size to avoid overwriting fw storage partition
