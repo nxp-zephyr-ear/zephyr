@@ -14,10 +14,6 @@ config ROM_START_OFFSET
 config NUM_IRQS
 	default 129
 
-choice USB_MCUX_CONTROLLER_TYPE
-	default USB_DC_NXP_EHCI
-endchoice
-
 source "soc/arm/nxp_imx/rw6xx/Kconfig.defconfig.rw6*"
 
 endif # SOC_SERIES_RW6XX
