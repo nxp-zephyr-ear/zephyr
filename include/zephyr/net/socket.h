@@ -1166,7 +1166,7 @@ struct ifreq {
 /** Protocol used with the socket */
 #define SO_PROTOCOL 38
 
-/** Domain used with SOCKET */
+/** Domain used with SOCKET (ignored, for compatibility) */
 #define SO_DOMAIN 39
 
 /** Enable SOCKS5 for Socket */
