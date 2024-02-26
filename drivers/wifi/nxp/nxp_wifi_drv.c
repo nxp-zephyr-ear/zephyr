@@ -669,9 +669,8 @@ out:
 	return WM_SUCCESS;
 }
 
-static int WPL_Scan(const struct device *dev, struct wifi_scan_params *params, scan_result_cb_t cb)
+static int WPL_Scan(const struct device *dev, scan_result_cb_t cb)
 {
-	wlan_scan_params_v2_t wlan_scan_param;
 	wpl_ret_t status = WPLRET_SUCCESS;
 	int ret;
 
@@ -680,24 +679,14 @@ static int WPL_Scan(const struct device *dev, struct wifi_scan_params *params, s
 		return -EINPROGRESS;
 	}
 
+	g_mlan.scan_cb = cb;
+
 	if (s_wplState != WPL_STARTED) {
 		status = WPLRET_NOT_READY;
 	}
 
 	if (status == WPLRET_SUCCESS) {
-		g_mlan.scan_cb = cb;
-		(void)memset(&wlan_scan_param, 0, sizeof(wlan_scan_params_v2_t));
-		wlan_scan_param.cb = WPL_process_results;
-		if ((params != NULL) && (params->ssids[0] != NULL)) {
-#ifdef CONFIG_COMBO_SCAN
-			(void)memcpy(wlan_scan_param.ssid[0], params->ssids[0],
-				     strlen(params->ssids[0]));
-#else
-			(void)memcpy(wlan_scan_param.ssid, params->ssids[0],
-				     strlen(params->ssids[0]));
-#endif
-		}
-		ret = wlan_scan_with_opt(wlan_scan_param);
+		ret = wlan_scan(WPL_process_results);
 		if (ret != WM_SUCCESS) {
 			status = WPLRET_FAIL;
 		}
@@ -987,12 +976,10 @@ static void wifi_net_iface_init(struct net_if *iface)
 	static int init_cnt;
 	const struct device *dev = net_if_get_device(iface);
 	interface_t *intf = dev->data;
-	struct ethernet_context *eth_ctx = net_if_l2_data(iface);
 	int ret;
 
 	intf->netif = iface;
 	net_if_flag_set(iface, NET_IF_NO_AUTO_START);
-	eth_ctx->eth_if_type = L2_ETH_IF_TYPE_WIFI;
 	init_cnt++;
 
 	/* Not do the wlan init until the last wifi netif configured */
