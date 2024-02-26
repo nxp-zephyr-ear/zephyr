@@ -128,13 +128,6 @@ config MCUX_OS_TIMER_PM_POWERED_OFF
 
 endif # PM
 
-if PM_DEVICE
-
-config POWER_DOMAIN
-	default y
-
-endif # PM_DEVICE
-
 source "soc/arm/nxp_imx/rw6xx/Kconfig.defconfig.rw6*"
 
 endif # SOC_SERIES_RW6XX

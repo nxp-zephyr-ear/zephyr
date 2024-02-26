@@ -83,10 +83,6 @@
 		ranges = <0x0 0x443C0000 DT_SIZE_K(140)>;
 	};
 
-	power_mode3_domain: power_mode3_domain {
-		compatible = "power-domain-deviceonoff";
-		onoff-power-states = <&standby>;
-	};
 };
 
 &sram {
@@ -173,7 +169,6 @@
 		#gpio-cells = <2>;
 		port = <0>;
 		int-source = "pint";
-		power-domain = <&power_mode3_domain>;
 	};
 
 	hsgpio1: hsgpio@1 {
@@ -183,7 +178,6 @@
 		#gpio-cells = <2>;
 		port = <1>;
 		int-source = "pint";
-		power-domain = <&power_mode3_domain>;
 	};
 
 	usb_otg: usbotg@145000 {
@@ -203,7 +197,6 @@
 		status = "disabled";
 		dmas = <&dma0 0>, <&dma0 1>;
 		dma-names = "rx", "tx";
-		power-domain = <&power_mode3_domain>;
 	};
 
 	flexcomm1: flexcomm@107000 {
@@ -214,7 +207,6 @@
 		status = "disabled";
 		dmas = <&dma0 2>, <&dma0 3>;
 		dma-names = "rx", "tx";
-		power-domain = <&power_mode3_domain>;
 	};
 
 	flexcomm2: flexcomm@108000 {
@@ -225,7 +217,6 @@
 		status = "disabled";
 		dmas = <&dma0 4>, <&dma0 5>;
 		dma-names = "rx", "tx";
-		power-domain = <&power_mode3_domain>;
 	};
 
 	flexcomm3: flexcomm@109000 {
@@ -236,7 +227,6 @@
 		status = "disabled";
 		dmas = <&dma0 6>, <&dma0 7>;
 		dma-names = "rx", "tx";
-		power-domain = <&power_mode3_domain>;
 	};
 
 	flexcomm14: flexcom@126000 {
@@ -247,7 +237,6 @@
 		status = "disabled";
 		dmas = <&dma0 26>, <&dma0 27>;
 		dma-names = "rx", "tx";
-		power-domain = <&power_mode3_domain>;
 	};
 
 	aon_soc_ctrl: aon_soc_ctrl@5000800 {
