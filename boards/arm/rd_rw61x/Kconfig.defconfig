@@ -22,6 +22,7 @@ config LV_COLOR_16_SWAP
 	# This will enable color swapping if the LCDIC does not have
 	# the nxp,swap-bytes property set.
 	default y if !$(dt_nodelabel_bool_prop,lcdic,$(SWAP_BYTES))
+	depends on (LV_Z_BITS_PER_PIXEL = 16)
 
 # Enable DMA mode if using SPI
 config SPI_MCUX_FLEXCOMM_DMA
@@ -58,7 +59,7 @@ config KSCAN
 
 # Configure LVGL to use touchscreen with KSCAN API
 config LV_Z_POINTER_KSCAN
-	default y
+	default y if KSCAN
 
 # Swap X/Y coordinates, and invert Y to match screen layout
 config LV_Z_POINTER_KSCAN_SWAP_XY
