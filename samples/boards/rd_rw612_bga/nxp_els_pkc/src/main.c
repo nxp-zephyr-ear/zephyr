@@ -262,7 +262,7 @@ int main(void)
 	}
 
 	printf("CMAC AES128:");
-	if (mcuxClMacModes_Els_Cmac_Oneshot_example() == true) {
+	if (mcuxClMacModes_Els_Cmac_Aes128_Oneshot_example() == true) {
 		pass++;
 		printf("pass \n");
 	} else {
