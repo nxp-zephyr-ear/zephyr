@@ -246,6 +246,9 @@ if (CONFIG_BUILD_WITH_TFM)
 
     # Specific to nordic_nrf platform
     ${TFM_INTERFACE_SOURCE_DIR}/tfm_ioctl_core_ns_api.c
+
+    # Specific to nxp-rw61x platform
+    ${TFM_INTERFACE_SOURCE_DIR}/tfm_lds_api.c
     )
 
   # Get the toolchain variant
@@ -277,7 +280,7 @@ if (CONFIG_BUILD_WITH_TFM)
 
   if(CONFIG_BOARD_RD_RW612_BGA)
     # Supply path to NXP HAL sources used for TF-M build
-    set(TFM_PLATFORM_NXP_HAL_FILE_PATH ${ZEPHYR_HAL_NXP_MODULE_DIR}/mcux/mcux-sdk)
+    set(TFM_PLATFORM_NXP_HAL_FILE_PATH ${ZEPHYR_TRUSTED_FIRMWARE_M_MODULE_DIR}/platform/ext/target/nxp/)
     list(APPEND TFM_CMAKE_ARGS -DTFM_PLATFORM_NXP_HAL_FILE_PATH=${TFM_PLATFORM_NXP_HAL_FILE_PATH})
     # Disable watchdog support on this platform for tfm_psa_tests
     if(TFM_PSA_TEST_SUITE)
@@ -430,6 +433,10 @@ if (CONFIG_BUILD_WITH_TFM)
 
   if(CONFIG_SOC_FAMILY_NRF)
     zephyr_library_sources_ifdef(CONFIG_TFM_PARTITION_PLATFORM               ${TFM_INTERFACE_SOURCE_DIR}/tfm_ioctl_core_ns_api.c)
+  endif()
+
+  if(CONFIG_BOARD_RD_RW612_BGA)
+    zephyr_library_sources_ifdef(CONFIG_TFM_PARTITION_LOADER_SERVICE          ${TFM_INTERFACE_SOURCE_DIR}/tfm_lds_api.c)
   endif()
 
   target_include_directories(tfm_api PRIVATE
