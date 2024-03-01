@@ -15,5 +15,4 @@ if(CONFIG_HAS_MCUX OR CONFIG_HAS_IMX_HAL OR CONFIG_HAS_NXP_S32_HAL)
 
   zephyr_compile_definitions_ifdef(CONFIG_CAN_MCUX_FLEXCAN
     FLEXCAN_WAIT_TIMEOUT=${CONFIG_CAN_MCUX_FLEXCAN_WAIT_TIMEOUT})
-  zephyr_sources(fsl_os_abstraction_zephyr.c)
 endif()
