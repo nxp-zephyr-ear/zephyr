@@ -1487,7 +1487,7 @@ static int device_wlan_pm_action(const struct device *dev, enum pm_device_action
 		 */
 		if (!is_hs_handshake_done) {
 			is_hs_handshake_done = WLAN_HOSTSLEEP_IN_PROCESS;
-			ret = powerManager_send_event(HOST_SLEEP_HANDSHAKE, NULL);
+			ret = wlan_hs_send_event(HOST_SLEEP_HANDSHAKE, NULL);
 			if (ret != 0) {
 				return -EFAULT;
 			}
@@ -1508,7 +1508,7 @@ static int device_wlan_pm_action(const struct device *dev, enum pm_device_action
 		 * User can use this time to issue other commands.
 		 */
 		if (is_hs_handshake_done == WLAN_HOSTSLEEP_SUCCESS) {
-			ret = powerManager_send_event(HOST_SLEEP_EXIT, NULL);
+			ret = wlan_hs_send_event(HOST_SLEEP_EXIT, NULL);
 			if (ret != 0) {
 				return -EFAULT;
 			}
