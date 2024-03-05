@@ -414,3 +414,9 @@ zephyr_udc0: &usb_otg {
 	dc-cutoff = "155hz";
 	dc-gain = <1>;
 };
+
+&pmu {
+	reset-causes-en = <PMU_RESET_CM33_LOCKUP>,
+			  <PMU_RESET_ITRC>,
+			  <PMU_RESET_AP_RESET>;
+};
