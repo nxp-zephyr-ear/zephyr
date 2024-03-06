@@ -7,8 +7,8 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(nxp_mfg_bridge)
 
 zephyr_include_directories(
-  ${ZEPHYR_HAL_NXP_MODULE_DIR}/mcux/components/rpmsg
-  ${ZEPHYR_HAL_NXP_MODULE_DIR}/mcux/components/conn_fwloader/include
+  ${ZEPHYR_HAL_NXP_MODULE_DIR}/mcux/mcux-sdk/components/rpmsg
+  ${ZEPHYR_HAL_NXP_MODULE_DIR}/mcux/mcux-sdk/components/conn_fwloader/include
   )
 
 FILE(GLOB app_sources src/*.c)
