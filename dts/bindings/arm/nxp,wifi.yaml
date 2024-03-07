@@ -3,7 +3,7 @@
 
 description: IMU interrupt info
 
-compatible: "nxp,imu-wifi"
+compatible: "nxp,wifi"
 
 include: base.yaml
 
