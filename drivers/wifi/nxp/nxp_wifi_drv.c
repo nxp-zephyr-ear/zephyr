@@ -29,6 +29,12 @@ LOG_MODULE_REGISTER(nxp_wifi, CONFIG_WIFI_LOG_LEVEL);
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+#ifdef CONFIG_NXP_WIFI_TC_RELOCATE
+#define NXP_WIFI_SET_FUNC_ATTR __ramfunc
+#else
+#define NXP_WIFI_SET_FUNC_ATTR
+#endif
+
 #ifdef CONFIG_RW610
 #define IMU_IRQ_N        DT_INST_IRQ_BY_IDX(0, 0, irq)
 #define IMU_IRQ_P        DT_INST_IRQ_BY_IDX(0, 0, priority)
@@ -66,7 +72,7 @@ static int nxp_wifi_recv(struct net_if *iface, struct net_pkt *pkt);
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
-#ifdef CONFIG_NXP_WIFI_STA_AUTO
+#ifdef CONFIG_NXP_WIFI_STA_AUTO_CONN
 static void nxp_wifi_auto_connect(void);
 #endif
 
@@ -140,10 +146,10 @@ int nxp_wifi_wlan_event_callback(enum wlan_event_reason reason, void *data)
 		if (addr.ipv4.address != 0U) {
 			LOG_DBG("IPv4 Address: [%s]", ip);
 		}
-#ifdef CONFIG_IPV6
+#ifdef CONFIG_NXP_WIFI_IPV6
 		int i;
 
-		for (i = 0; i < CONFIG_MAX_IPV6_ADDRESSES; i++) {
+		for (i = 0; i < CONFIG_NET_IF_UNICAST_IPV6_ADDR_COUNT; i++) {
 			if ((addr.ipv6[i].addr_state == NET_ADDR_TENTATIVE) ||
 			    (addr.ipv6[i].addr_state == NET_ADDR_PREFERRED)) {
 				LOG_DBG("IPv6 Address: %-13s:\t%s (%s)",
@@ -254,7 +260,7 @@ int nxp_wifi_wlan_event_callback(enum wlan_event_reason reason, void *data)
 	case WLAN_REASON_PS_EXIT:
 		LOG_DBG("WLAN: PS EXIT");
 		break;
-#ifdef CONFIG_SUBSCRIBE_EVENT_SUPPORT
+#ifdef CONFIG_NXP_WIFI_SUBSCRIBE_EVENT_SUPPORT
 	case WLAN_REASON_RSSI_HIGH:
 	case WLAN_REASON_SNR_LOW:
 	case WLAN_REASON_SNR_HIGH:
@@ -585,12 +591,14 @@ static int nxp_wifi_scan(const struct device *dev, struct wifi_scan_params *para
 	}
 #if (CONFIG_WIFI_MGMT_SCAN_SSID_FILT_MAX > 0)
 	if (params->ssids[0]) {
-		strcpy(wlan_scan_params_v2.ssid[0], params->ssids[0]);
+		strncpy(wlan_scan_params_v2.ssid[0], params->ssids[0], WIFI_SSID_MAX_LEN);
+		wlan_scan_params_v2.ssid[0][WIFI_SSID_MAX_LEN - 1] = 0;
 	}
 
 #if (CONFIG_WIFI_MGMT_SCAN_SSID_FILT_MAX > 1)
 	if (params->ssids[1]) {
-		strcpy(wlan_scan_params_v2.ssid[1], params->ssids[1]);
+		strncpy(wlan_scan_params_v2.ssid[1], params->ssids[1], WIFI_SSID_MAX_LEN);
+		wlan_scan_params_v2.ssid[1][WIFI_SSID_MAX_LEN - 1] = 0;
 	}
 #endif
 #endif
@@ -876,8 +884,9 @@ static int nxp_wifi_uap_status(const struct device *dev, struct wifi_iface_statu
 	if (connection_state == WLAN_UAP_STARTED) {
 
 		if (!wlan_get_current_uap_network(&nxp_wlan_network)) {
-			strcpy(status->ssid, nxp_wlan_network.ssid);
-			status->ssid_len = strlen(nxp_wlan_network.ssid);
+			strncpy(status->ssid, nxp_wlan_network.ssid, WIFI_SSID_MAX_LEN);
+			status->ssid[WIFI_SSID_MAX_LEN - 1] = 0;
+			status->ssid_len = strlen(status->ssid);
 
 			memcpy(status->bssid, nxp_wlan_network.bssid, WIFI_MAC_ADDR_LEN);
 
@@ -898,12 +907,12 @@ static int nxp_wifi_uap_status(const struct device *dev, struct wifi_iface_statu
 			}
 #endif
 
-#ifdef CONFIG_11AX
+#ifdef CONFIG_NXP_WIFI_11AX
 			if (nxp_wlan_network.dot11ax) {
 				status->link_mode = WIFI_6;
 			}
 #endif
-#ifdef CONFIG_11AC
+#ifdef CONFIG_NXP_WIFI_11AC
 			else if (nxp_wlan_network.dot11ac) {
 				status->link_mode = WIFI_5;
 			}
@@ -980,12 +989,12 @@ static int nxp_wifi_status(const struct device *dev, struct wifi_iface_status *s
 			}
 #endif
 
-#ifdef CONFIG_11AX
+#ifdef CONFIG_NXP_WIFI_11AX
 			if (nxp_wlan_network.dot11ax) {
 				status->link_mode = WIFI_6;
 			}
 #endif
-#ifdef CONFIG_11AC
+#ifdef CONFIG_NXP_WIFI_11AC
 			else if (nxp_wlan_network.dot11ac) {
 				status->link_mode = WIFI_5;
 			}
@@ -1030,7 +1039,7 @@ static int nxp_wifi_stats(const struct device *dev, struct net_stats_wifi *stats
 }
 #endif
 
-#ifdef CONFIG_NXP_WIFI_STA_AUTO
+#ifdef CONFIG_NXP_WIFI_STA_AUTO_CONN
 static void nxp_wifi_auto_connect(void)
 {
 	int ssid_len = strlen(CONFIG_NXP_WIFI_STA_AUTO_SSID);
@@ -1343,7 +1352,7 @@ static void nxp_wifi_uap_init(struct net_if *iface)
 
 #endif
 
-static __ramfunc int nxp_wifi_send(const struct device *dev, struct net_pkt *pkt)
+static NXP_WIFI_SET_FUNC_ATTR int nxp_wifi_send(const struct device *dev, struct net_pkt *pkt)
 {
 #if defined(CONFIG_NET_STATISTICS_WIFI)
 	interface_t *if_handle = (interface_t *)dev->data;
@@ -1369,7 +1378,7 @@ out:
 	return -EIO;
 }
 
-static __ramfunc int nxp_wifi_recv(struct net_if *iface, struct net_pkt *pkt)
+static NXP_WIFI_SET_FUNC_ATTR int nxp_wifi_recv(struct net_if *iface, struct net_pkt *pkt)
 {
 #if defined(CONFIG_NET_STATISTICS_WIFI)
 	interface_t *if_handle = (interface_t *)(net_if_get_device(iface)->data);
@@ -1476,7 +1485,7 @@ static int device_wlan_pm_action(const struct device *dev, enum pm_device_action
 	switch (pm_action) {
 	case PM_DEVICE_ACTION_SUSPEND:
 		if (!wlan_host_sleep_state || !wlan_is_started() || wakelock_isheld()
-#ifdef CONFIG_WMM_UAPSD
+#ifdef CONFIG_NXP_WIFI_WMM_UAPSD
 		    || wlan_is_wmm_uapsd_enabled()
 #endif
 		)
