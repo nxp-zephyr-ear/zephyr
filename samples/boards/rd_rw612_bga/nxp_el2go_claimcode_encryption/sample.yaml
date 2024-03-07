@@ -1,0 +1,18 @@
+sample:
+  name: nxp el2go claimcode encryption
+common:
+  tags:
+    - crypto
+    - els_pkc
+tests:
+  sample.boards.rd_rw612_bga.nxp_el2go_claimcode_encryption:
+    platform_allow:
+      - rd_rw612_bga
+    integration_platforms:
+      - rd_rw612_bga
+    harness: console
+    harness_config:
+      type: multi_line
+      regex:
+        - "Enabling ELS... done"
+        - "claimcode information written to flash at address 0x084a0000"

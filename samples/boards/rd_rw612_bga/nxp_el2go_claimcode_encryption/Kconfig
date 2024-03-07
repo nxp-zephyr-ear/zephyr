@@ -1,0 +1,8 @@
+# Copyright 2023 NXP
+# SPDX-License-Identifier: Apache-2.0
+
+source "Kconfig.zephyr"
+
+config EL2GO_CLAIMCODE_APP
+	bool "Build EL2GO claimcode encryption application"
+	depends on MCUX_ELS_PKC && MCUX_NXP_IOT_AGENT
