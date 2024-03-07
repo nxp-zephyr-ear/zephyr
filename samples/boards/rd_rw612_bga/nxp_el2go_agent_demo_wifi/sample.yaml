@@ -1,0 +1,15 @@
+sample:
+  name: "EL2GO Agent Demo (Wi-Fi)"
+
+tests:
+  sample.boards.rd_rw612_bga.nxp_el2go_agent_demo_wifi:
+    tags:
+      - trusted-firmware-m
+      - el2go
+    platform_allow:
+      - rd_rw612_bga_ns
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+        - "Connecting to SSID '(.*)' \\.\\.\\."
