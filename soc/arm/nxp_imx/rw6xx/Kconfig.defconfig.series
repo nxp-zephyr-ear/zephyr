@@ -42,13 +42,19 @@ config HCI_NXP_SET_CAL_DATA
 config HCI_NXP_SET_CAL_DATA_ANNEX100
 	default n
 
-config NXP_FW_LOADER_MONOLITHIC
-	default y
-
 config HEAP_MEM_POOL_SIZE
 	default 256
 
 endif # BT
+
+config MONOLITHIC_WIFI
+	default y if WIFI
+
+config MONOLITHIC_BT
+	default y if BT
+
+config MONOLITHIC_IEEE802154
+	default y if IEEE802154
 
 config NXP_FW_LOADER
 	default y if (BT || WIFI)

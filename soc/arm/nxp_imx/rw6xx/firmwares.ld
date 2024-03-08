@@ -4,13 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#if defined(CONFIG_WIFI)
+#if defined(CONFIG_MONOLITHIC_WIFI)
 . = ALIGN(4);
 KEEP(*(.fw_cpu1))
 . += 4;
 #endif
 
-#if defined(CONFIG_BT)
+#if defined(CONFIG_MONOLITHIC_IEEE802154)
+. = ALIGN(4);
+KEEP(*(.fw_cpu2_combo))
+#elif defined(CONFIG_MONOLITHIC_BT)
 . = ALIGN(4);
 KEEP(*(.fw_cpu2_ble))
 #endif

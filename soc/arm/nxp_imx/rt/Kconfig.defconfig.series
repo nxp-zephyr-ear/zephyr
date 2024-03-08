@@ -118,9 +118,6 @@ choice SEGGER_SYSVIEW_SECTION
 	depends on SEGGER_SYSTEMVIEW
 endchoice
 
-config NXP_FW_LOADER_MONOLITHIC
-	default y
-
 #
 # MBEDTLS is larger but much faster than TinyCrypt so choose wisely
 #
