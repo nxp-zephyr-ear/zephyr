@@ -35,20 +35,23 @@ struct st7796s_config {
 	uint16_t width;
 	uint16_t height;
 	bool inverted; /* Display color inversion */
+};
+
+struct st7796s_data {
 	/* Display configuration parameters */
 	uint8_t dic; /* Display inversion control */
 	uint8_t frmctl1[2]; /* Frame rate control, normal mode */
 	uint8_t frmctl2[2]; /* Frame rate control, idle mode */
 	uint8_t frmctl3[2]; /* Frame rate control, partial mode */
-	uint8_t bpc[4]; /* Blanking porch control */
-	uint8_t dfc[4]; /* Display function control */
+	uint8_t bpc[4] __aligned(4); /* Blanking porch control */
+	uint8_t dfc[4] __aligned(4); /* Display function control */
 	uint8_t pwr1[2]; /* Power control 1 */
 	uint8_t pwr2; /* Power control 2 */
 	uint8_t pwr3; /* Power control 3 */
 	uint8_t vcmpctl; /* VCOM control */
-	uint8_t doca[8]; /* Display output ctrl */
-	uint8_t pgc[14]; /* Positive gamma control */
-	uint8_t ngc[14]; /* Negative gamma control */
+	uint8_t doca[8] __aligned(4); /* Display output ctrl */
+	uint8_t pgc[14] __aligned(4); /* Positive gamma control */
+	uint8_t ngc[14] __aligned(4); /* Negative gamma control */
 	uint8_t madctl; /* Memory data access control */
 };
 
@@ -103,6 +106,7 @@ static int st7796s_write(const struct device *dev,
 			 const void *buf)
 {
 	const struct st7796s_config *config = dev->config;
+	struct st7796s_data *data = dev->data;
 	int ret;
 	struct display_buffer_descriptor mipi_desc;
 	enum display_pixel_format pixfmt;
@@ -121,7 +125,7 @@ static int st7796s_write(const struct device *dev,
 		return ret;
 	}
 
-	if (config->madctl & ST7796S_MADCTL_BGR) {
+	if (data->madctl & ST7796S_MADCTL_BGR) {
 		/* Zephyr treats RGB565 as BGR565 */
 		pixfmt = PIXEL_FORMAT_RGB_565;
 	} else {
@@ -163,10 +167,11 @@ static void st7796s_get_capabilities(const struct device *dev,
 				     struct display_capabilities *capabilities)
 {
 	const struct st7796s_config *config = dev->config;
+	struct st7796s_data *data = dev->data;
 
 	memset(capabilities, 0, sizeof(struct display_capabilities));
 
-	if (config->madctl & ST7796S_MADCTL_BGR) {
+	if (data->madctl & ST7796S_MADCTL_BGR) {
 		/* Zephyr treats RGB565 as BGR565 */
 		capabilities->current_pixel_format = PIXEL_FORMAT_RGB_565;
 	} else {
@@ -199,7 +204,7 @@ static int st7796s_set_orientation(const struct device *dev,
 
 static int st7796s_lcd_config(const struct device *dev)
 {
-	const struct st7796s_config *config = dev->config;
+	const struct st7796s_data *data = dev->data;
 	int ret;
 	uint8_t param;
 
@@ -216,72 +221,72 @@ static int st7796s_lcd_config(const struct device *dev)
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_DIC, &config->dic, sizeof(config->dic));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_DIC, &data->dic, sizeof(data->dic));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_FRMCTR1, config->frmctl1,
-			       sizeof(config->frmctl1));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_FRMCTR1, data->frmctl1,
+			       sizeof(data->frmctl1));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_FRMCTR2, config->frmctl2,
-			       sizeof(config->frmctl2));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_FRMCTR2, data->frmctl2,
+			       sizeof(data->frmctl2));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_FRMCTR3, config->frmctl3,
-			       sizeof(config->frmctl3));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_FRMCTR3, data->frmctl3,
+			       sizeof(data->frmctl3));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_BPC, config->bpc, sizeof(config->bpc));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_BPC, data->bpc, sizeof(data->bpc));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_DFC, config->dfc, sizeof(config->dfc));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_DFC, data->dfc, sizeof(data->dfc));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_PWR1, config->pwr1, sizeof(config->pwr1));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_PWR1, data->pwr1, sizeof(data->pwr1));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_PWR2, &config->pwr2, sizeof(config->pwr2));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_PWR2, &data->pwr2, sizeof(data->pwr2));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_PWR3, &config->pwr3, sizeof(config->pwr3));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_PWR3, &data->pwr3, sizeof(data->pwr3));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_VCMPCTL, &config->vcmpctl,
-			       sizeof(config->vcmpctl));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_VCMPCTL, &data->vcmpctl,
+			       sizeof(data->vcmpctl));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_DOCA, config->doca,
-			       sizeof(config->doca));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_DOCA, data->doca,
+			       sizeof(data->doca));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_PGC, config->pgc, sizeof(config->pgc));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_PGC, data->pgc, sizeof(data->pgc));
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = st7796s_send_cmd(dev, ST7796S_CMD_NGC, config->ngc, sizeof(config->ngc));
+	ret = st7796s_send_cmd(dev, ST7796S_CMD_NGC, data->ngc, sizeof(data->ngc));
 	if (ret < 0) {
 		return ret;
 	}
@@ -300,6 +305,7 @@ static int st7796s_lcd_config(const struct device *dev)
 static int st7796s_init(const struct device *dev)
 {
 	const struct st7796s_config *config = dev->config;
+	struct st7796s_data *data = dev->data;
 	int ret;
 	uint8_t param;
 
@@ -335,7 +341,7 @@ static int st7796s_init(const struct device *dev)
 		return ret;
 	}
 
-	param = config->madctl;
+	param = data->madctl;
 	ret = st7796s_send_cmd(dev, ST7796S_CMD_MADCTL, &param, sizeof(param));
 	if (ret < 0) {
 		return ret;
@@ -379,6 +385,8 @@ static const struct display_driver_api st7796s_api = {
 		.width = DT_INST_PROP(n, width),				\
 		.height = DT_INST_PROP(n, height),				\
 		.inverted = DT_INST_PROP(n, color_invert),			\
+	};									\
+	static struct st7796s_data st7796s_data_##n = {				\
 		.dic = DT_INST_ENUM_IDX(n, invert_mode),			\
 		.frmctl1 = DT_INST_PROP(n, frmctl1),				\
 		.frmctl2 = DT_INST_PROP(n, frmctl2),				\
@@ -397,7 +405,7 @@ static const struct display_driver_api st7796s_api = {
 										\
 	DEVICE_DT_INST_DEFINE(n, st7796s_init,					\
 			NULL,							\
-			NULL,							\
+			&st7796s_data_##n,					\
 			&st7796s_config_##n,					\
 			POST_KERNEL, CONFIG_DISPLAY_INIT_PRIORITY,		\
 			&st7796s_api);
