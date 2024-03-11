@@ -372,11 +372,23 @@ config NXP_FW_LOADER
 	   The firmware loader is used to load firmwares to embedded tranceivers.
 	   It is needed to enable connectivity features.
 
-config NXP_FW_LOADER_MONOLITHIC
-	bool "NXP firmware loader monolithic build"
+config MONOLITHIC_WIFI
+	bool "WiFi firmware monolithic build"
 	help
-	  If enabled, the firmwares used by the device will be linked with the application
-	  directly.
+	   If enabled, the WiFi firmware used by the device will be linked with the
+	   application directly.
+
+config MONOLITHIC_BT
+	bool "BT firmware monolithic build"
+	help
+	   If enabled, the BT firmware used by the device will be linked with the
+	   application directly.
+
+config MONOLITHIC_IEEE802154
+	bool "IEEE802154 firmware monolithic build"
+	help
+	   If enabled, the IEEE802154 firmware used by the device will be linked
+	   with the application directly.
 
 config NXP_RF_IMU
 	bool "Include RF_IMU adapter for intercore messaging"
