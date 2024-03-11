@@ -2,15 +2,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config SUPPORT_BLE_15D4
-	int "Support IEEE 802154"
-	default 1
+	bool "Support IEEE 802154"
+	default y
+	imply MONOLITHIC_IEEE802154
 
 config SUPPORT_BLE
-	int "Support bluetooth low energy"
-	default 0
+	bool "Support bluetooth low energy"
+	imply MONOLITHIC_BT
 
 config SUPPORT_WIFI
-	int "Support WiFi"
-	default 1
+	bool "Support WiFi"
+	default y
+	imply MONOLITHIC_WIFI
 
 source "Kconfig.zephyr"

@@ -165,6 +165,27 @@ static struct cmd_header last_cmd_hdr;
 uint8_t *local_outbuf;
 static struct SDIOPkt *sdiopkt;
 
+#if defined(CONFIG_MONOLITHIC_WIFI)
+extern const uint32_t fw_cpu1[];
+#define WIFI_FW_ADDRESS  (uint32_t)&fw_cpu1[0]
+#else
+#define WIFI_FW_ADDRESS  0U
+#endif
+
+#if defined(CONFIG_MONOLITHIC_IEEE802154)
+extern const uint32_t fw_cpu2_combo[];
+#define COMBO_FW_ADDRESS (uint32_t)&fw_cpu2_combo[0]
+#else
+#define COMBO_FW_ADDRESS   0U
+#endif
+
+#if defined(CONFIG_MONOLITHIC_BT) && !defined(CONFIG_MONOLITHIC_IEEE802154)
+extern const uint32_t fw_cpu2_ble[];
+#define BLE_FW_ADDRESS   (uint32_t)&fw_cpu2_ble[0]
+#else
+#define BLE_FW_ADDRESS   0U
+#endif
+
 /*******************************************************************************
  * Code
  ******************************************************************************/
@@ -665,7 +686,7 @@ static void task_main(void)
 				should be defined, or it will not download any formware!!"
 #endif
 #if defined(CONFIG_SUPPORT_WIFI) && (CONFIG_SUPPORT_WIFI == 1)
-	sb3_fw_download(LOAD_WIFI_FIRMWARE, 1, 0);
+	sb3_fw_download(LOAD_WIFI_FIRMWARE, 1, WIFI_FW_ADDRESS);
 #endif
 
 	wifi_cau_temperature_enable();
@@ -673,12 +694,12 @@ static void task_main(void)
 
 	/* 15d4 single and 15d4+ble combo */
 #if defined(CONFIG_SUPPORT_BLE_15D4) && (CONFIG_SUPPORT_BLE_15D4 == 1)
-	sb3_fw_download(LOAD_15D4_FIRMWARE, 1, 0);
+	sb3_fw_download(LOAD_15D4_FIRMWARE, 1, COMBO_FW_ADDRESS);
 #endif
 	/* only ble, no 15d4 */
 #if defined(CONFIG_SUPPORT_BLE_15D4) && (CONFIG_SUPPORT_BLE_15D4 == 0) && defined(CONFIG_SUPPORT_BLE) &&   \
 	(CONFIG_SUPPORT_BLE == 1)
-	sb3_fw_download(LOAD_BLE_FIRMWARE, 1, 0);
+	sb3_fw_download(LOAD_BLE_FIRMWARE, 1, BLE_FW_ADDRESS);
 #endif
 
 	/* Initialize WIFI Driver */
