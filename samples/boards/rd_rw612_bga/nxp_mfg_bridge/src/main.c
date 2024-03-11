@@ -667,6 +667,10 @@ static void task_main(void)
 #if defined(CONFIG_SUPPORT_WIFI) && (CONFIG_SUPPORT_WIFI == 1)
 	sb3_fw_download(LOAD_WIFI_FIRMWARE, 1, 0);
 #endif
+
+	wifi_cau_temperature_enable();
+	wifi_cau_temperature_write_to_firmware();
+
 	/* 15d4 single and 15d4+ble combo */
 #if defined(CONFIG_SUPPORT_BLE_15D4) && (CONFIG_SUPPORT_BLE_15D4 == 1)
 	sb3_fw_download(LOAD_15D4_FIRMWARE, 1, 0);
@@ -682,9 +686,6 @@ static void task_main(void)
 
 	/* Initialize rpmsg */
 	rpmsg_init();
-
-	/* Initialize CAU temperature timer */
-	wifi_cau_temperature_enable();
 
 	k_timer_init(&g_wifi_cau_temperature_timer, wifi_cau_temperature_timer_cb, NULL);
 	k_timer_start(&g_wifi_cau_temperature_timer, K_MSEC(5000), K_MSEC(5000));
