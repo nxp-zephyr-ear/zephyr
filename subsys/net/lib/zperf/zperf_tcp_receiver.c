@@ -43,7 +43,6 @@ static void tcp_svc_handler(struct k_work *work);
 
 NET_SOCKET_SERVICE_SYNC_DEFINE_STATIC(svc_tcp, NULL, tcp_svc_handler,
 				      SOCK_ID_MAX);
-static char tcp_server_iface_name[Z_DEVICE_MAX_NAME_LEN];
 
 static void tcp_received(const struct sockaddr *addr, size_t datalen)
 {
@@ -278,8 +277,7 @@ out:
 
 static int zperf_tcp_receiver_init(void)
 {
-	int ret = 0;
-	int if_namelen;
+	int ret;
 
 	for (int i = 0; i < ARRAY_SIZE(fds); i++) {
 		fds[i].fd = -1;
@@ -309,22 +307,6 @@ static int zperf_tcp_receiver_init(void)
 			if (ret < 0) {
 				NET_WARN("Unable to set IPv4");
 				goto use_any_ipv4;
-			}
-		} else if (tcp_server_iface_name[0]) {
-			if_namelen = strnlen(tcp_server_iface_name, IFNAMSIZ);
-			if (if_namelen == IFNAMSIZ) {
-				NET_ERR("iface name is too long");
-				goto error;
-			}
-			ret = zsock_setsockopt(fds[SOCK_ID_IPV4_LISTEN].fd,
-					       SOL_SOCKET,
-					       SO_BINDTODEVICE,
-					       tcp_server_iface_name,
-					       if_namelen);
-			if (ret < 0) {
-				NET_ERR("Could not bind to iface %s",
-					tcp_server_iface_name);
-				goto error;
 			}
 		} else {
 use_any_ipv4:
@@ -424,14 +406,6 @@ int zperf_tcp_download(const struct zperf_download_params *param,
 	tcp_user_data = user_data;
 	tcp_server_port = param->port;
 	memcpy(&tcp_server_addr, &param->addr, sizeof(struct sockaddr));
-
-	if (param->if_name[0]) {
-		memset(tcp_server_iface_name, 0x0, sizeof(tcp_server_iface_name));
-		strncpy(tcp_server_iface_name, param->if_name,
-			sizeof(tcp_server_iface_name));
-	} else {
-		tcp_server_iface_name[0] = 0;
-	}
 
 	ret = zperf_tcp_receiver_init();
 	if (ret < 0) {

@@ -45,7 +45,6 @@ struct zperf_upload_params {
 struct zperf_download_params {
 	uint16_t port;
 	struct sockaddr addr;
-	char if_name[Z_DEVICE_MAX_NAME_LEN];
 };
 
 struct zperf_results {

@@ -399,10 +399,6 @@ static int cmd_udp_download(const struct shell *sh, size_t argc,
 			return -ENOEXEC;
 		}
 
-		if (argc >= 4) {
-			strncpy(param.if_name, argv[3], sizeof(param.if_name));
-		}
-
 		ret = zperf_udp_download(&param, udp_session_cb, (void *)sh);
 		if (ret == -EALREADY) {
 			shell_fprintf(sh, SHELL_WARNING,
@@ -1197,10 +1193,6 @@ static int cmd_tcp_download(const struct shell *sh, size_t argc,
 			return -ENOEXEC;
 		}
 
-		if (argc >= 4) {
-			strncpy(param.if_name, argv[3], sizeof(param.if_name));
-		}
-
 		ret = zperf_tcp_download(&param, tcp_session_cb, (void *)sh);
 		if (ret == -EALREADY) {
 			shell_fprintf(sh, SHELL_WARNING,
@@ -1393,8 +1385,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(zperf_cmd_udp,
 	SHELL_CMD(download, &zperf_cmd_udp_download,
 		  "[<port>]:  Server port to listen on/connect to\n"
 		  "[<host>]:  Bind to <host>, an interface address\n"
-		  "[<interface name>]: Bind to interface <interface_name>\n"
-		  "Example: udp download 5001 192.168.0.1 eth0\n",
+		  "Example: udp download 5001 192.168.0.1\n",
 		  cmd_udp_download),
 	SHELL_SUBCMD_SET_END
 );
