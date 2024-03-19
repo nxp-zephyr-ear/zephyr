@@ -280,6 +280,8 @@ if (CONFIG_BUILD_WITH_TFM)
 
   if(CONFIG_BOARD_RD_RW612_BGA)
     # Supply path to NXP HAL sources used for TF-M build
+    set(TFM_PLATFORM_NXP_HAL_COMP_PATH ${ZEPHYR_HAL_NXP_MODULE_DIR}/mcux/mcux-sdk/components)
+    list(APPEND TFM_CMAKE_ARGS -DTFM_PLATFORM_NXP_HAL_COMP_PATH=${TFM_PLATFORM_NXP_HAL_COMP_PATH})
     set(TFM_PLATFORM_NXP_HAL_FILE_PATH ${ZEPHYR_TRUSTED_FIRMWARE_M_MODULE_DIR}/platform/ext/target/nxp/)
     list(APPEND TFM_CMAKE_ARGS -DTFM_PLATFORM_NXP_HAL_FILE_PATH=${TFM_PLATFORM_NXP_HAL_FILE_PATH})
     # Disable watchdog support on this platform for tfm_psa_tests
