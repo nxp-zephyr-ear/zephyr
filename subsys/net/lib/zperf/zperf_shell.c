@@ -400,8 +400,7 @@ static int cmd_udp_download(const struct shell *sh, size_t argc,
 		}
 
 		if (argc >= 4) {
-			strncpy(param.if_name, argv[3], Z_DEVICE_MAX_NAME_LEN - 1);
-			param.if_name[Z_DEVICE_MAX_NAME_LEN - 1] = '\0';
+			strncpy(param.if_name, argv[3], sizeof(param.if_name));
 		}
 
 		ret = zperf_udp_download(&param, udp_session_cb, (void *)sh);
@@ -1199,8 +1198,7 @@ static int cmd_tcp_download(const struct shell *sh, size_t argc,
 		}
 
 		if (argc >= 4) {
-			strncpy(param.if_name, argv[3], Z_DEVICE_MAX_NAME_LEN - 1);
-			param.if_name[Z_DEVICE_MAX_NAME_LEN - 1] = '\0';
+			strncpy(param.if_name, argv[3], sizeof(param.if_name));
 		}
 
 		ret = zperf_tcp_download(&param, tcp_session_cb, (void *)sh);
