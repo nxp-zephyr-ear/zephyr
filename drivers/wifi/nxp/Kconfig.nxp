@@ -949,6 +949,11 @@ config NXP_WIFI_TC_RELOCATE
 	  Relocate Wi-Fi transmit and receive api to RAM to increase
 	  traffic throughput.
 
+config NXP_WIFI_CUSTOM_CALDATA
+	bool "Set caldata by drv"
+	help
+	  This option force to use custom calibration data.
+
 if 88W8987 || IW416
 
 config NXP_WIFI_FW_AUTO_RECONNECT
