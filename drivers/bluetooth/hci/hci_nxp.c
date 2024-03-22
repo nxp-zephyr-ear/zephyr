@@ -210,6 +210,7 @@ static bool is_hci_event_discardable(const uint8_t *evt_data)
 
 		switch (subevt_type) {
 		case BT_HCI_EVT_LE_ADVERTISING_REPORT:
+		case BT_HCI_EVT_LE_EXT_ADVERTISING_REPORT:
 			ret = true;
 			break;
 		default:
@@ -249,7 +250,7 @@ static struct net_buf *bt_evt_recv(uint8_t *data, size_t len)
 	discardable_evt = is_hci_event_discardable(data);
 
 	/* Allocate a buffer for the HCI Event */
-	buf = bt_buf_get_evt(evt_hdr, discardable_evt, K_NO_WAIT);
+	buf = bt_buf_get_evt(evt_hdr, discardable_evt, (discardable_evt ? K_NO_WAIT : K_FOREVER));
 
 	if (buf) {
 		space_in_buffer = net_buf_tailroom(buf);
