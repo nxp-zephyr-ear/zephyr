@@ -3,11 +3,11 @@
 
 config SUPPORT_BLE_15D4
 	bool "Support IEEE 802154"
-	default y
 	imply MONOLITHIC_IEEE802154
 
 config SUPPORT_BLE
 	bool "Support bluetooth low energy"
+	default y
 	imply MONOLITHIC_BT
 
 config SUPPORT_WIFI
