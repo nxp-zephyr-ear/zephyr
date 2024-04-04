@@ -56,14 +56,13 @@ Prepare the Demo
     in file modules/hal/nxp/mcux/middleware/nxp_iot_agent/ex/src/apps/el2go_claimcode_encryption.c
     #define CLAIM_CODE_INFO_ADDRESS
 
-4.  [Optional] In case the example will be used in a device with secure boot mode enabled.
-    The generated binary must be signed with the correct with OEM key.
-    Additionaly if the example is supposed to run in the OEM CLOSED life cycle, the image needs to be encrypted
-    with the OEM FW encryption key and loaded as an SB3.1 container (details on how to execute these steps can be found
-    in the Application note AN13813 - Secure boot on RW61x downloadable from link
-    https://www.nxp.com/products/wireless-connectivity/wi-fi-plus-bluetooth-plus-802-15-4/
-wireless-mcu-with-integrated-tri-radio-1x1-wi-fi-6-plus-bluetooth-low-energy-5-3-802-15-4:RW612
-    under Secure file section).
+4.  [Optional] In case the example will be used in a device with secure boot mode enabled, the bootheader
+    needs to be removed from the image and the resulting binary must be signed with the OEM key.
+    Additionaly, if the example is supposed to run in the OEM CLOSED life cycle, the image needs to be encrypted with
+    the OEM FW encryption key and loaded as an SB3.1 container.
+    Details on how to execute these steps can be found in the Application note AN13813 "Secure boot on RW61x", downloadable from
+    https://www.nxp.com/products/wireless-connectivity/wi-fi-plus-bluetooth-plus-802-15-4/wireless-mcu-with-integrated-tri-radio-1x1-wi-fi-6-plus-bluetooth-low-energy-5-3-802-15-4:RW612
+    in the "Secure Files" section.
 
 5.  Compile the project using the dedicated toolchain
 

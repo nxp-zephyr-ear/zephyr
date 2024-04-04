@@ -34,14 +34,13 @@ Prepare the Demo
     in file modules/hal/nxp/mcux/middleware/nxp_iot_agent/ex/src/apps/psa_examples/el2go_import_blob/el2go_import_blob.h
     #define VALIDATE_PSA_IMPORT_OPERATION 0
 
-2.  To correctly run the example the secure boot mode on the device needs to be enabled;.
-    The generated binary must be signed with the correct with OEM key. Additionaly if the
-    example is supposed to run in the OEM CLOSED life cycle, the image needs to be
-    encrypted with the OEM FW encryption key and loaded as an SB3.1 container (details on how to execute these
-    steps can be found in the Application note AN13813 - Secure boot on RW61x downloadable from link
-    https://www.nxp.com/products/wireless-connectivity/wi-fi-plus-bluetooth-plus-802-15-4/
-wireless-mcu-with-integrated-tri-radio-1x1-wi-fi-6-plus-bluetooth-low-energy-5-3-802-15-4:RW612
-    under Secure file section).
+2.  To correctly run the example, the secure boot mode on the device needs to be enabled. The bootheader needs to be removed
+    from the SPE image, it has to be merged with the NSPE image and the resulting image must be signed with the OEM key.
+    Additionaly, if the example is supposed to run in the OEM CLOSED life cycle, the image needs to be encrypted with
+    the OEM FW encryption key and loaded as an SB3.1 container.
+    Details on how to execute these steps can be found in the Application note AN13813 "Secure boot on RW61x", downloadable from
+    https://www.nxp.com/products/wireless-connectivity/wi-fi-plus-bluetooth-plus-802-15-4/wireless-mcu-with-integrated-tri-radio-1x1-wi-fi-6-plus-bluetooth-low-energy-5-3-802-15-4:RW612
+    in the "Secure Files" section.
 
 3.  [Optional] In order to maximize the TF-M ITS performance, the maximum supported blob size is set to 2908 bytes. In case
     the user wants to support bigger blobs (8K is the maximum size supported by PSA), he needs to change the following two variables:
