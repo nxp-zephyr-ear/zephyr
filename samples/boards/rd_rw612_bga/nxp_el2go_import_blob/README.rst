@@ -43,9 +43,10 @@ Prepare the Demo
     in the "Secure Files" section.
 
 3.  [Optional] In order to maximize the TF-M ITS performance, the maximum supported blob size is set to 2908 bytes. In case
-    the user wants to support bigger blobs (8K is the maximum size supported by PSA), he needs to change the following two variables:
+    the user wants to support bigger blobs (8K is the maximum size supported by PSA), he needs to change the following three variables:
 
     in file modules/tee/tf-m/trusted-firmware-m/platform/ext/target/nxp/$board$/config_tfm_target.h
+    #define CRYPTO_ENGINE_BUF_SIZE                 0x8000
     #define ITS_MAX_ASSET_SIZE                     3 * 0xC00
 
     in file modules/tee/tf-m/trusted-firmware-m/platform/ext/target/nxp/$board$/partition/flash_layout.h
