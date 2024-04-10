@@ -21,6 +21,18 @@ If you previously setup your environment please run the following command to upd
 
 The Zephyr getting started guide can be found at: https://docs.zephyrproject.org/latest/develop/getting_started/index.html
 
+Release: RFP
+
+Wi-Fi support
+============
+- Auto null packet TX
+- Auto antenna detection
+- Custom Wi-Fi calibration data configuration in sample/net/wifi
+- Wi-Fi station mode EAP-TLS-FT, WPA3 FT-SAE, WPA3-SUITEB-192 EAP-TLS-FT-SHA384
+- All nxp Wi-Fi commands changed from "wlansh wlan-xxx" to "nxp_wifi xxx"
+- Low power mode PM1, PM2, PM3 supported in sample/net/wifi, PM3 is auto selected
+  by zephyr power manager framework, user can’t configure
+- Monolithic image download, Wi-Fi FW is linked with sample/net/wifi, user don't need to download Wi-Fi FW
 
 Release: EAR4.0
 
