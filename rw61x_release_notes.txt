@@ -10,11 +10,11 @@ the west init command is as follows:
 
 Then, run:
  $ west update
- 
+
 If you previously setup your environment please run the following command to update to a subsequent release:
 
  $ cd /to/your/zephyr/clone
- $ git fetch 
+ $ git fetch
  $ git checkout -b rw61x_ear origin/rw61x_ear
  $ west update
 
@@ -22,6 +22,14 @@ If you previously setup your environment please run the following command to upd
 The Zephyr getting started guide can be found at: https://docs.zephyrproject.org/latest/develop/getting_started/index.html
 
 Release: RFP
+
+BLE support
+============
+- Support Zephyr 3.6 BLE code base
+- Monolithic image enabled by default: BLE firmware is linked with the application
+
+Limitations:
+- Low power mode PM3 is not supported
 
 Wi-Fi support
 ============
@@ -74,7 +82,7 @@ Base Enablement
   new rw61x_ear branch
 - Added support for CTIMER counter
 - Added support for RTC
-- Added Ethernet 
+- Added Ethernet
 - Added support for multirate timer (MRT)
 - Enabled support for driving ST7796S based display using LCDIC
 
@@ -84,7 +92,7 @@ BLE support
 	- peripheral_ht   (samples/bluetooth/peripheral_ht)
 	- central_ht      (samples/bluetooth/central_ht)
 
-Low power capabilities are limited to PM1 and PM2 power modes. 
+Low power capabilities are limited to PM1 and PM2 power modes.
 
 Wi-Fi support
 ============
