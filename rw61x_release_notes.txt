@@ -52,15 +52,15 @@ Repositories:
 
    Repository: git@github.com:nxp-zephyr-ear/zephyr_mbedtls.git
    Branch: feature/rw61x-mbedtls3.5.2
-   Tag: rw61x_rfp_1.0
+   Tag: zephyr_rw61x_v3.6_RFP
 
    Repository: git@github.com:nxp-zephyr-ear/zephyr_tf-m.git
    Branch: feature/tfm_rw61x
-   Tag: rw61x_rfp_1.0
+   Tag: zephyr_rw61x_v3.6_RFP
 
    Repository: git@github.com:nxp-zephyr-ear/zephyr_psa_arch_test.git
    Branch: feature/psa_arch_test_rw61x
-   Tag: rw61x_rfp_1.0
+   Tag: zephyr_rw61x_v3.6_RFP
 
    Repository: git@github.com:NXP/el2go-agent.git
    Branch: master
