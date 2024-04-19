@@ -6,18 +6,10 @@ How to get the code
 Use the getting Zephyr started guide to setup your development environment. However,
 the west init command is as follows:
 
- $ west init -m git@github.com:nxp-ea-7/zephyr.git -–mr rw61x_ear
+ $ west init zephyrproject -m https://github.com/nxp-zephyr-ear/zephyr.git --mr zephyr_rw61x_v3.6_RFP
 
 Then, run:
  $ west update
-
-If you previously setup your environment please run the following command to update to a subsequent release:
-
- $ cd /to/your/zephyr/clone
- $ git fetch
- $ git checkout -b rw61x_ear origin/rw61x_ear
- $ west update
-
 
 The Zephyr getting started guide can be found at: https://docs.zephyrproject.org/latest/develop/getting_started/index.html
 

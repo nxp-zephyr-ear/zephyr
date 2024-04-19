@@ -1,0 +1,52 @@
+manifest:
+  remotes:
+    - name: upstream
+      url-base: https://github.com/zephyrproject-rtos
+  projects:
+    - name: hal_nxp
+      url: https://github.com/nxp-zephyr-ear/hal_nxp.git
+      revision: 8bcae96cee191863ead8305e8a40826e7c09f648
+      path: modules/hal/nxp
+      groups:
+        - hal
+    - name: mbedtls
+      url: https://github.com/nxp-zephyr-ear/zephyr_mbedtls.git
+      revision: 376f983f318588a52ae9d14ac8a29159f0f50157
+      path: modules/crypto/mbedtls
+      groups:
+        - crypto
+    - name: trusted-firmware-m
+      url: https://github.com/nxp-zephyr-ear/zephyr_tf-m.git
+      revision: 9b7e81ec60dc5660d0504fb3b2fa29daccc623d0
+      path: modules/tee/tf-m/trusted-firmware-m
+      groups:
+        - tee
+    - name: psa-arch-tests
+      url: https://github.com/nxp-zephyr-ear/zephyr_psa_arch_test.git
+      revision: 532df132525add95914389855a6f5f67dc4fd13b
+      path: modules/tee/tf-m/psa-arch-tests
+      groups:
+        - tee
+    - name: tf-m-tests
+      revision: 08a3158f0623a4205608a52d880b17ae394e31d2
+      path: modules/tee/tf-m/tf-m-tests
+      remote: upstream
+      groups:
+        - tee
+    - name: wpa_supplicant-rtos
+      url: https://github.com/nxp-zephyr-ear/wpa_supplicant-rtos.git
+      revision: 74a65eb957af9b487d58f0278e71ff14add326ee
+      path: modules/hal/nxp/mcux/middleware/wpa_supplicant-rtos
+    - name: wifi_nxp
+      url: https://github.com/nxp-zephyr-ear/wifi-nxp.git
+      revision: fbc974810ed8ea6cbc16baa99b223c152f09c1f3
+      path: modules/hal/nxp/mcux/middleware/wifi_nxp
+    - name: fw_bin
+      url: https://github.com/nxp-zephyr-ear/fw_bin.git
+      revision: a2dd04eec39312fff7cd44fd444f8c22648b388d
+      path: modules/hal/nxp/mcux/components/fw_bin
+    - name: nxp_iot_agent
+      url: https://github.com/NXP/el2go-agent.git
+      revision: aed46fd1a9dec4f30c858080a604a692bae9ceb8
+      path: modules/hal/nxp/mcux/middleware/nxp_iot_agent
+
